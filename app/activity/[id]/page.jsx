@@ -1,599 +1,557 @@
-// app/activity/[id]/page.jsx
-
-"use client";
-
-import React, { useState, useEffect } from "react";
+"use client"
+import React, { useState, useEffect , useRef  } from "react";
 import { useParams } from "next/navigation";
-import Image from "next/image";
-import { useGetActivityByIdQuery } from "@/features/activity/activityApi";
-
-import {
-  Clock,
-  MapPin,
-  Users,
-  Check,
-  X,
-  Calendar,
-  MessageCircle,
-  Star,
+import { useGetActivityByIdQuery } from "@/features/activity/activityApi.js";
+import { 
+  Clock, 
+  Users, 
+  Calendar, 
+  Check, 
+  ChevronRight, 
+  Home, 
+  Star, 
+  ShieldCheck, 
+  AlertCircle, 
   Info,
-  Package,
-  Plus,
-  Minus,
+  Car,
+  Camera,
+  Map as MapIcon,
+  ChevronDown,
+  Play
 } from "lucide-react";
 
 export default function ActivityDetailPage() {
-  const { id } = useParams();
-  const { data: activity, isLoading, isError } = useGetActivityByIdQuery(id);
+  const params = useParams();
+  const id = params?.id;
+  
+  // Using the requested API feature
+  const { data: activity, isLoading, isError } = useGetActivityByIdQuery(id, {
+    skip: !id,
+  });
 
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
+  const [isVariantExpanded, setIsVariantExpanded] = useState(true);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [quantities, setQuantities] = useState({});
+  const [activeTab, setActiveTab] = useState("itinerary");
+  const [selectedDate, setSelectedDate] = useState("");
+  const [showCalendar, setShowCalendar] = useState(false);
+  const dateInputRef = useRef(null);
 
-  // Initialize quantities when variant or activity changes
+
   useEffect(() => {
-    if (!activity || !activity.variants?.length) return;
-
-    const selectedVariant = activity.variants[selectedVariantIndex];
-    const initialQuantities = {};
-
-    selectedVariant.pricing.forEach((p) => {
+    if (!activity?.variants?.length) return;
+    const variant = activity.variants[selectedVariantIndex];
+    const initialQty = {};
+    variant.pricing.forEach((p) => {
       if (p.type === "per_person") {
-        initialQuantities[p._id] = p.label.toLowerCase().includes("adult")
-          ? 1
-          : 0;
+        initialQty[p._id] = p.label.toLowerCase().includes("adult") ? 1 : 0;
       }
-      // No initial quantity for per_vehicle or flat – they will be auto-calculated
     });
-
-    setQuantities(initialQuantities);
+    setQuantities(initialQty);
     setSelectedTimeSlot(activity.timeSlots?.[0]?.startTime || "");
   }, [selectedVariantIndex, activity]);
 
-  // Early returns
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-600"></div>
-      </div>
-    );
-  }
-
-  if (isError || !activity) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center text-center">
-        <div>
-          <p className="text-3xl font-bold text-red-600 mb-4">
-            Activity Not Found
-          </p>
-          <p className="text-gray-600">We couldn't load this experience.</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading)
+    return <div className="min-h-screen flex items-center justify-center text-indigo-600 font-medium animate-pulse">Loading experience details...</div>;
+  if (isError || !activity)
+    return <div className="min-h-screen flex items-center justify-center text-red-600">Activity not found</div>;
 
   const selectedVariant = activity.variants[selectedVariantIndex];
-  const mainImage =
-    activity.images?.find((img) => img.isMain)?.url ||
-    activity.images?.[0]?.url ||
-    "/placeholder.jpg";
+  const images = activity.images || [];
+  const video = activity.video?.url || null;
 
-  // Quantity update (only for per_person)
-  const updateQuantity = (pricingId, delta) => {
+  const updateQuantity = (id, delta) => {
     setQuantities((prev) => {
-      const current = prev[pricingId] || 0;
-      const newQty = Math.max(0, current + delta);
-      const pricing = selectedVariant.pricing.find((p) => p._id === pricingId);
-
-      if (pricing?.minParticipants && newQty < pricing.minParticipants)
-        return prev;
-      if (pricing?.maxParticipants && newQty > pricing.maxParticipants)
-        return prev;
-
-      return { ...prev, [pricingId]: newQty };
+      const newQty = Math.max(0, (prev[id] || 0) + delta);
+      return { ...prev, [id]: newQty };
     });
   };
 
-  // Calculations
+  const handleVariantClick = (index) => {
+    if (selectedVariantIndex === index) {
+      setIsVariantExpanded(!isVariantExpanded);
+    } else {
+      setSelectedVariantIndex(index);
+      setIsVariantExpanded(true);
+    }
+  };
+
   const totalPersons = selectedVariant.pricing
     .filter((p) => p.type === "per_person")
     .reduce((sum, p) => sum + (quantities[p._id] || 0), 0);
 
-  const vehiclePricing = selectedVariant.pricing.find(
-    (p) => p.type === "per_vehicle"
-  );
-
-  const maxPerVehicle = vehiclePricing?.maxParticipants || 4; // fallback
-  const vehiclesNeeded =
-    totalPersons > 0 ? Math.ceil(totalPersons / maxPerVehicle) : 0;
-
-  const vehicleCost = vehiclePricing
-    ? vehiclesNeeded * vehiclePricing.price
-    : 0;
-
-  const personsCost = selectedVariant.pricing
-    .filter((p) => p.type === "per_person")
-    .reduce((sum, p) => sum + p.price * (quantities[p._id] || 0), 0);
-
-  // Add any flat pricing if exists
-  const flatCost = selectedVariant.pricing
-    .filter((p) => p.type === "flat")
-    .reduce((sum, p) => sum + p.price * (quantities[p._id] || 1), 0); // flat usually qty=1
-
-  const totalPrice = personsCost + vehicleCost + flatCost;
-
   const canBook = totalPersons > 0 && selectedTimeSlot;
 
+  // --- Helper Components ---
+  
+  const SectionTitle = ({ children, icon: Icon }) => (
+    <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-4 md:mb-6 flex items-center gap-3">
+      {Icon && <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600"><Icon size={20} className="md:w-6 md:h-6" /></div>}
+      {children}
+    </h2>
+  );
+
+  const InfoCard = ({ icon: Icon, title, value }) => (
+    <div className="flex items-start gap-3 md:gap-4 p-3 md:p-4 rounded-2xl bg-slate-50 border border-slate-100">
+      <div className="p-2 bg-white rounded-xl shadow-sm text-indigo-600 border border-indigo-50 shrink-0">
+        <Icon size={18} className="md:w-5 md:h-5" />
+      </div>
+      <div>
+        <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{title}</p>
+        <p className="text-sm md:text-base font-semibold text-slate-800 leading-tight">{value}</p>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="relative h-96 md:h-[80vh] overflow-hidden">
-        <Image
-          src={mainImage}
-          alt={activity.title}
-          fill
-          className="object-cover brightness-70"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30" />
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 pb-12">
 
-        <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
-          <h1 className="text-4xl md:text-6xl font-extrabold mb-4 drop-shadow-2xl">
-            {activity.title}
-          </h1>
-          <p className="text-xl md:text-2xl max-w-4xl mb-8 opacity-95">
-            {activity.shortDescription}
-          </p>
-
-          <div className="flex flex-wrap gap-6 text-lg">
-            <div className="flex items-center gap-2">
-              <Clock className="w-6 h-6" />
-              <span>
-                {activity.duration?.label} ({activity.duration?.hours} hours)
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Users className="w-6 h-6" />
-              <span>Guide: {activity.languages?.join(" & ")}</span>
-            </div>
-            {activity.pickup?.included && (
-              <div className="flex items-center gap-2">
-                <MapPin className="w-6 h-6" />
-                <span>
-                  Pickup from {activity.pickup.locations?.join(" & ")}
-                </span>
-              </div>
-            )}
-            <div className="flex items-center gap-2">
-              <Package className="w-6 h-6" />
-              <span>{activity.variants?.length} Plans Available</span>
-            </div>
-          </div>
+      {/* --- Breadcrumb --- */}
+      <div className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 md:py-4 flex items-center text-xs md:text-sm text-slate-500 gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
+          <Home className="w-3.5 h-3.5 hover:text-indigo-600 cursor-pointer transition-colors" />
+          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+          <span className="hover:text-indigo-600 cursor-pointer transition-colors">UAE</span>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+          <span className="hover:text-indigo-600 cursor-pointer transition-colors">Dubai</span>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+          <span className="font-medium text-indigo-600 truncate">{activity.title}</span>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-12 grid lg:grid-cols-3 gap-12">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-12">
-          {/* Full Description */}
-          <section>
-            <h2 className="text-3xl font-bold mb-6">Experience Overview</h2>
-            <p className="text-lg leading-relaxed text-gray-700 whitespace-pre-wrap">
-              {activity.fullDescription}
-            </p>
-          </section>
-
-          {/* Variant Selection */}
-          <section>
-            <h2 className="text-3xl font-bold mb-8">Choose Your Package</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              {activity.variants.map((variant, index) => (
-                <button
-                  key={variant._id}
-                  onClick={() => setSelectedVariantIndex(index)}
-                  className={`p-8 rounded-2xl border-4 text-left transition-all shadow-lg ${
-                    selectedVariantIndex === index
-                      ? "border-indigo-600 bg-indigo-50"
-                      : "border-gray-200 hover:border-indigo-400 bg-white"
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-6">
-                    <h3 className="text-3xl font-bold">{variant.name}</h3>
-                    {variant.discount?.percentage && (
-                      <span className="px-5 py-2 bg-red-600 text-white rounded-full text-lg font-bold">
-                        Save {variant.discount.percentage}%
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-gray-700 mb-6 text-lg">
-                    {variant.description}
-                  </p>
-
-                  <div className="space-y-3">
-                    {variant.pricing.map((p) => (
-                      <div
-                        key={p._id}
-                        className="flex justify-between items-center"
-                      >
-                        <span className="text-gray-600">
-                          {p.label} (
-                          {p.type === "per_person"
-                            ? "per person"
-                            : p.type === "per_vehicle"
-                            ? "per vehicle"
-                            : "flat rate"}
-                          )
-                        </span>
-                        <span className="text-xl font-bold">{p.price} AED</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {variant.highlights?.length > 0 && (
-                    <ul className="mt-6 space-y-2">
-                      {variant.highlights.map((h, i) => (
-                        <li
-                          key={i}
-                          className="flex items-center gap-3 text-gray-700"
-                        >
-                          <Star className="w-5 h-5 text-yellow-500" />
-                          {h}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </button>
-              ))}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-8 space-y-8 md:space-y-10">
+        
+        {/* --- Header Section --- */}
+        <div className="space-y-3 md:space-y-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="px-2.5 py-1 bg-amber-100 text-amber-700 text-[10px] md:text-xs font-bold rounded-full flex items-center gap-1">
+              <Star size={10} className="fill-current" /> Bestseller
+            </span>
+            <div className="flex items-center gap-1 text-sm font-medium text-slate-600">
+              <Star className="w-4 h-4 text-amber-400 fill-current" />
+              <span className="text-slate-900">{activity.rating}</span>
+              <span className="text-slate-400">({activity.reviewCount})</span>
             </div>
-          </section>
-
-          {/* Itinerary, Inclusions, Exclusions, Important Info – unchanged */}
-          {activity.itinerary?.length > 0 && (
-            <section>
-              <h2 className="text-3xl font-bold mb-10">Detailed Itinerary</h2>
-              <div className="space-y-12">
-                {activity.itinerary.map((item, i) => (
-                  <div key={i} className="flex gap-8">
-                    <div className="flex flex-col items-center">
-                      <div className="w-16 h-16 bg-indigo-600 text-white rounded-full flex items-center justify-center text-2xl font-bold">
-                        {i + 1}
-                      </div>
-                      {i < activity.itinerary.length - 1 && (
-                        <div className="w-1 h-full bg-indigo-200 mt-4" />
-                      )}
-                    </div>
-                    <div className="flex-1 pb-12">
-                      <h4 className="text-2xl font-semibold mb-3">
-                        {item.title}
-                      </h4>
-                      <p className="text-lg text-gray-600 flex items-center gap-2 mb-4">
-                        <MapPin className="w-5 h-5" />
-                        {item.location}
-                      </p>
-                      <ul className="list-disc pl-8 space-y-2 mb-4">
-                        {item.activities.map((act, j) => (
-                          <li key={j} className="text-gray-700">
-                            {act}
-                          </li>
-                        ))}
-                      </ul>
-                      {item.optionalAddons?.length > 0 && (
-                        <p className="text-sm italic text-gray-500">
-                          Optional add-ons: {item.optionalAddons.join(", ")}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          <section className="grid md:grid-cols-2 gap-10">
-            <div className="bg-green-50 p-8 rounded-2xl border border-green-200">
-              <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                <Check className="w-8 h-8 text-green-600" />
-                What's Included
-              </h3>
-              <ul className="space-y-3">
-                {(activity.includes || [])
-                  .concat(selectedVariant.includes || [])
-                  .map((inc, i) => (
-                    <li key={i} className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-green-600" />
-                      <span>{inc}</span>
-                    </li>
-                  ))}
-              </ul>
-            </div>
-
-            <div className="bg-red-50 p-8 rounded-2xl border border-red-200">
-              <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                <X className="w-8 h-8 text-red-600" />
-                What's Excluded
-              </h3>
-              <ul className="space-y-3">
-                {(activity.excludes || []).map((exc, i) => (
-                  <li key={i} className="flex items-center gap-3">
-                    <X className="w-5 h-5 text-red-600" />
-                    <span>{exc}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
-
-          {(activity.importantInfo?.length > 0 ||
-            activity.notSuitableFor?.length > 0) && (
-            <section className="bg-amber-50 border-2 border-amber-400 p-8 rounded-2xl">
-              <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                <Info className="w-8 h-8 text-amber-600" />
-                Important Information
-              </h3>
-              {activity.importantInfo?.map((info, i) => (
-                <p key={i} className="flex items-start gap-4 mb-4 text-lg">
-                  <span className="text-3xl font-bold text-amber-600 mt-1">
-                    !
-                  </span>
-                  <span>{info}</span>
-                </p>
-              ))}
-              {activity.notSuitableFor?.length > 0 && (
-                <div className="mt-6 pt-6 border-t border-amber-400">
-                  <h4 className="font-bold text-lg mb-2">Not Suitable For:</h4>
-                  <p className="text-gray-700">
-                    {activity.notSuitableFor.join(", ")}
-                  </p>
-                </div>
-              )}
-            </section>
-          )}
+            <span className="hidden sm:inline text-xs text-slate-400">•</span>
+            <span className="text-xs font-medium text-green-600 flex items-center gap-1">
+              <ShieldCheck size={14} /> Free cancellation
+            </span>
+          </div>
+          <h1 className="text-2xl md:text-4xl lg:text-5xl font-extrabold text-slate-900 leading-tight tracking-tight">
+            {activity.title}
+          </h1>
         </div>
 
-        {/* Booking Sidebar */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 sticky top-6">
-            <h3 className="text-2xl font-bold mb-6">Your Booking Summary</h3>
+        {/* --- Media Gallery (Layout: Left Big, Middle Vertical, Right Split) --- */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4 h-[350px] md:h-[500px]">
+          
+          {/* 1. Left: Main Image (50% Width) */}
+          <div className="md:col-span-2 md:row-span-2 relative h-full rounded-2xl overflow-hidden group cursor-pointer shadow-sm">
+            <img src={images[0]?.url} alt={images[0]?.alt} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+          
+          {/* 2. Middle: Vertical Image (25% Width) */}
+          <div className="hidden md:block md:col-span-1 md:row-span-2 relative h-full rounded-2xl overflow-hidden group cursor-pointer shadow-sm">
+            <img src={images[1]?.url} alt={images[1]?.alt} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+          </div>
 
-            <div className="p-6 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-xl mb-8">
-              <h4 className="text-2xl font-bold">{selectedVariant.name}</h4>
-              {selectedVariant.discount?.percentage && (
-                <p className="text-red-600 font-bold text-lg mt-2">
-                  Save {selectedVariant.discount.percentage}% –{" "}
-                  {selectedVariant.discount.label}
-                </p>
+          {/* 3. Right: Split Column (25% Width) */}
+          <div className="hidden md:grid md:col-span-1 md:row-span-2 grid-rows-2 gap-3 md:gap-4 h-full">
+            
+            {/* Top Right: Video */}
+            <div className="relative h-full rounded-2xl overflow-hidden bg-black group cursor-pointer shadow-sm">
+              {video ? (
+                 <>
+                  <video
+  className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+  muted
+  loop
+  playsInline
+  autoPlay
+>
+  <source src={video} type="video/mp4" />
+</video>
+                   {/* <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                         <Play size={16} className="text-white fill-white ml-0.5" />
+                      </div>
+                   </div> */}
+                 </>
+               ) : (
+                 <img src={images[2]?.url} alt="Activity" className="h-full w-full object-cover" />
+               )}
+            </div>
+
+            {/* Bottom Right: More Photos */}
+            <div className="relative h-full rounded-2xl overflow-hidden group cursor-pointer shadow-sm">
+               <img src={images[3]?.url || images[2]?.url} alt="More" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+               <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors" />
+               <div className="absolute inset-0 flex items-center justify-center">
+                 <button className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-full text-sm font-bold shadow-lg hover:bg-white transition-all flex items-center gap-2 text-slate-900">
+                    <Camera size={16} /> + More
+                 </button>
+               </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-8 lg:gap-12 items-start">
+          
+          {/* --- LEFT COLUMN UI --- */}
+          <div className="lg:col-span-2 space-y-8 md:space-y-12">
+            
+            {/* Quick Info Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4">
+              <InfoCard icon={Clock} title="Duration" value={`${activity.duration?.hours} Hours`} />
+              <InfoCard icon={Users} title="Guide" value={activity.languages?.join(", ")} />
+              {activity.pickup?.included && (
+                 <InfoCard icon={Car} title="Pickup" value="Included" />
               )}
             </div>
 
-            {/* Date */}
-            <div className="mb-8">
-              <label className="block font-bold text-lg mb-3">Date</label>
-              <div className="flex items-center gap-4 p-5 bg-gray-100 rounded-xl">
-                <Calendar className="w-8 h-8 text-indigo-600" />
-                <span className="font-semibold text-lg">
-                  {new Date(activity.availableDates[0]).toLocaleDateString(
-                    "en-US",
-                    {
-                      weekday: "long",
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    }
-                  )}
-                </span>
-              </div>
+            {/* Description */}
+            <div className="prose prose-slate prose-sm md:prose-base max-w-none text-slate-600">
+              <h3 className="text-xl md:text-2xl font-bold text-slate-900 mb-3 md:mb-4">Experience Overview</h3>
+              <p className="leading-relaxed">{activity.fullDescription}</p>
             </div>
 
-            {/* Time Slots */}
-            <div className="mb-10">
-              <label className="block font-bold text-lg mb-4">
-                Select Starting Time
-              </label>
-              <div className="grid grid-cols-2 gap-4">
-                {activity.timeSlots?.map((slot) => (
-                  <button
-                    key={slot._id}
-                    onClick={() => setSelectedTimeSlot(slot.startTime)}
-                    disabled={!slot.isAvailable}
-                    className={`py-5 px-6 rounded-xl font-bold text-lg transition shadow-md ${
-                      selectedTimeSlot === slot.startTime
-                        ? "bg-indigo-600 text-white"
-                        : slot.isAvailable
-                        ? "bg-gray-100 hover:bg-gray-200"
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    }`}
-                  >
-                    {slot.startTime}
-                  </button>
+            {/* Highlights Grid */}
+            <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100">
+              <SectionTitle icon={Star}>Highlights</SectionTitle>
+              <div className="grid sm:grid-cols-2 gap-y-3 gap-x-6">
+                {(activity.highlights || []).map((h, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <div className="mt-1 min-w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
+                      <Check size={12} className="text-emerald-600 stroke-[3]" />
+                    </div>
+                    <span className="text-slate-700 font-medium text-sm md:text-base">{h}</span>
+                  </div>
                 ))}
               </div>
             </div>
 
-            {/* Quantity Selectors – Only per_person */}
-            <div className="mb-10">
-              <h4 className="font-bold text-xl mb-6">Number of Travellers</h4>
-              <div className="space-y-5">
-                {selectedVariant.pricing
-                  .filter((p) => p.type === "per_person")
-                  .map((pricing) => {
-                    const qty = quantities[pricing._id] || 0;
-
-                    return (
-                      <div
-                        key={pricing._id}
-                        className="p-5 bg-gray-50 rounded-xl"
-                      >
-                        <div className="flex justify-between items-center mb-3">
-                          <div>
-                            <div className="font-bold text-lg">
-                              {pricing.label}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              {pricing.price} AED per person
-                              {pricing.minParticipants &&
-                                ` • Min: ${pricing.minParticipants}`}
-                              {pricing.maxParticipants &&
-                                ` • Max: ${pricing.maxParticipants}`}
-                            </div>
-                          </div>
+            {/* PACKAGE SELECTION (Refined Accordion) */}
+            <div id="packages">
+              <SectionTitle icon={Check}>Choose Your Package</SectionTitle>
+              <div className="space-y-4">
+                {activity.variants.map((v, i) => {
+                  const isSelected = i === selectedVariantIndex;
+                  const isExpanded = isSelected && isVariantExpanded;
+                  
+                  return (
+                    <div 
+                      key={v._id}
+                      onClick={() => handleVariantClick(i)}
+                      className={`relative group cursor-pointer rounded-2xl border transition-all duration-300 overflow-hidden ${
+                        isSelected 
+                          ? "border-indigo-600 bg-white shadow-lg shadow-indigo-100 ring-1 ring-indigo-600" 
+                          : "border-slate-200 bg-white hover:border-indigo-300 hover:shadow-md"
+                      }`}
+                    >
+                      {/* Accordion Header */}
+                      <div className="p-5 flex items-start md:items-center justify-between gap-4">
+                        <div className="flex items-start gap-4">
+                           {/* Radio Circle */}
+                           <div className={`mt-1 md:mt-0 w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${isSelected ? 'border-indigo-600 bg-indigo-50' : 'border-slate-300 bg-transparent'}`}>
+                             {isSelected && <div className="w-2.5 h-2.5 bg-indigo-600 rounded-full shadow-sm" />}
+                           </div>
+                           
+                           <div className="flex flex-col">
+                             <div className="flex flex-wrap items-center gap-3">
+                               <h3 className={`font-bold text-lg leading-tight ${isSelected ? 'text-indigo-900' : 'text-slate-900'}`}>{v.name}</h3>
+                               {v.discount?.percentage && (
+                                 <span className="bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                   Save {v.discount.percentage}%
+                                 </span>
+                               )}
+                             </div>
+                             
+                             {/* Show condensed info if collapsed */}
+                             <div className={`transition-all duration-300 overflow-hidden ${isExpanded ? 'max-h-0 opacity-0' : 'max-h-20 opacity-100 mt-1'}`}>
+                               <p className="text-sm text-slate-500 line-clamp-1">{v.description}</p>
+                             </div>
+                           </div>
                         </div>
-                        <div className="flex items-center justify-end gap-4">
-                          <button
-                            onClick={() => updateQuantity(pricing._id, -1)}
-                            disabled={qty <= (pricing.minParticipants || 0)}
-                            className="w-12 h-12 rounded-full bg-gray-300 hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition"
-                          >
-                            <Minus className="w-6 h-6" />
-                          </button>
-                          <span className="text-3xl font-bold w-20 text-center">
-                            {qty}
-                          </span>
-                          <button
-                            onClick={() => updateQuantity(pricing._id, 1)}
-                            disabled={
-                              pricing.maxParticipants &&
-                              qty >= pricing.maxParticipants
-                            }
-                            className="w-12 h-12 rounded-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white flex items-center justify-center transition"
-                          >
-                            <Plus className="w-6 h-6" />
-                          </button>
+
+                        <div className="flex flex-col items-end gap-1 min-w-[80px]">
+                           {!isExpanded && (
+                             <span className="font-bold text-slate-900">{Math.min(...v.pricing.map(p => p.price))} AED</span>
+                           )}
+                           <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-indigo-600' : ''}`} />
                         </div>
                       </div>
-                    );
-                  })}
-              </div>
-
-              {/* Show auto-calculated vehicles info */}
-              {vehiclePricing && totalPersons > 0 && (
-                <div className="mt-6 p-4 bg-blue-50 rounded-xl text-center">
-                  <p className="font-semibold text-lg">
-                    {vehiclesNeeded} vehicle{vehiclesNeeded > 1 ? "s" : ""}{" "}
-                    required (max {maxPerVehicle} per vehicle)
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Price Breakdown */}
-            <div className="border-t-2 border-gray-300 pt-6 mb-8">
-              <h4 className="font-bold text-xl mb-5">Price Breakdown</h4>
-
-              {/* Per-person lines */}
-              {selectedVariant.pricing
-                .filter((p) => p.type === "per_person")
-                .map((pricing) => {
-                  const qty = quantities[pricing._id] || 0;
-                  if (qty === 0) return null;
-                  return (
-                    <div
-                      key={pricing._id}
-                      className="flex justify-between py-3 text-lg"
-                    >
-                      <span>
-                        {pricing.label} × {qty}
-                      </span>
-                      <span className="font-semibold">
-                        {pricing.price * qty} AED
-                      </span>
+                      
+                      {/* Accordion Body */}
+                      <div className={`grid transition-all duration-300 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                        <div className="overflow-hidden">
+                          <div className="px-5 pb-6 pt-0 border-t border-slate-100 mx-5 mt-2">
+                             <p className="text-slate-600 text-sm leading-relaxed my-4">{v.description}</p>
+                             
+                             {/* Pricing Breakdown */}
+                             <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                               <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Select Travellers</h4>
+                               <div className="grid gap-3 sm:grid-cols-2">
+                                 {v.pricing.map((p) => (
+                                   <div key={p._id} className="flex justify-between items-center bg-white p-3 rounded-lg border border-slate-100 shadow-sm">
+                                     <span className="text-sm font-medium text-slate-700">{p.label}</span>
+                                     <span className="font-bold text-indigo-600">{p.price} <span className="text-[10px] text-slate-400 font-normal">AED</span></span>
+                                   </div>
+                                 ))}
+                               </div>
+                             </div>
+                             
+                             {/* Features */}
+                             {v.includes && (
+                               <div className="mt-4 flex flex-wrap gap-2">
+                                 {v.includes.map((inc, idx) => (
+                                   <span key={idx} className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md flex items-center gap-1.5 border border-emerald-100">
+                                     <Check size={12} /> {inc}
+                                   </span>
+                                 ))}
+                               </div>
+                             )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   );
                 })}
+              </div>
+            </div>
 
-              {/* Vehicle line – auto calculated */}
-              {vehiclePricing && vehiclesNeeded > 0 && (
-                <div className="flex justify-between py-3 text-lg">
-                  <span>
-                    Vehicle (max {maxPerVehicle} pax) × {vehiclesNeeded}
-                  </span>
-                  <span className="font-semibold">{vehicleCost} AED</span>
+            {/* TABBED CONTENT */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="flex border-b border-slate-200 overflow-x-auto scrollbar-hide">
+                 <button 
+                  onClick={() => setActiveTab("itinerary")}
+                  className={`flex-1 min-w-[140px] px-6 py-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeTab === "itinerary" ? "border-indigo-600 text-indigo-700 bg-indigo-50/30" : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50"}`}
+                 >
+                   Itinerary
+                 </button>
+                 <button 
+                  onClick={() => setActiveTab("policies")}
+                  className={`flex-1 min-w-[140px] px-6 py-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeTab === "policies" ? "border-indigo-600 text-indigo-700 bg-indigo-50/30" : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50"}`}
+                 >
+                   Important Info
+                 </button>
+              </div>
+
+              <div className="p-6 md:p-8">
+                {activeTab === "itinerary" && (
+                   <div className="relative space-y-0 ml-2">
+                     <div className="absolute top-2 bottom-2 left-[7px] w-0.5 bg-slate-200" />
+                     {activity.itinerary?.map((stop) => (
+                       <div key={stop._id} className="relative pl-9 md:pl-10 pb-10 last:pb-0 group">
+                         <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-white border-2 border-indigo-600 z-10 group-hover:scale-125 transition-transform shadow-sm" />
+                         <h4 className="text-base md:text-lg font-bold text-slate-900 mb-1">{stop.title}</h4>
+                         {stop.location && (
+                           <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2.5">
+                             <MapIcon size={12} /> {stop.location}
+                           </div>
+                         )}
+                         <ul className="space-y-2">
+                           {stop.activities?.map((act, k) => (
+                             <li key={k} className="text-slate-600 text-sm flex items-start gap-2.5">
+                               <span className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-2 flex-shrink-0" />
+                               {act}
+                             </li>
+                           ))}
+                         </ul>
+                       </div>
+                     ))}
+                   </div>
+                )}
+
+                {activeTab === "policies" && (
+                  <div className="space-y-8">
+                    <div className="grid md:grid-cols-2 gap-8">
+                      <div>
+                        <h4 className="font-bold text-slate-900 mb-4 flex items-center gap-2 text-sm md:text-base">
+                          <Check className="text-emerald-500" size={18} /> What's Included
+                        </h4>
+                        <ul className="space-y-3">
+                          {(activity.includes || []).concat(selectedVariant.includes || []).map((inc, i) => (
+                            <li key={i} className="text-sm text-slate-600 pl-3 border-l-2 border-emerald-200">
+                              {inc}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 mb-4 flex items-center gap-2 text-sm md:text-base">
+                          <AlertCircle className="text-rose-500" size={18} /> What's Excluded
+                        </h4>
+                        <ul className="space-y-3">
+                          {(activity.excludes || []).map((exc, i) => (
+                            <li key={i} className="text-sm text-slate-500 pl-3 border-l-2 border-rose-200">
+                              {exc}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="border-t border-slate-100 pt-8">
+                       <h4 className="font-bold text-slate-900 mb-4 flex items-center gap-2 text-sm md:text-base">
+                          <Info className="text-indigo-500" size={18} /> Know Before You Go
+                        </h4>
+                        <div className="grid gap-3">
+                           {activity.importantInfo?.map((info, i) => (
+                             <div key={i} className="flex gap-3 text-sm text-slate-600 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                               <span className="font-bold text-indigo-500">•</span> {info}
+                             </div>
+                           ))}
+                        </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+          </div>
+
+          {/* --- RIGHT COLUMN UI (Sticky Booking Widget) --- */}
+          <div className="lg:col-span-1 relative z-20 h-fit">
+            <div className="bg-white border border-slate-200 p-5 md:p-6 rounded-3xl shadow-xl shadow-slate-200/40 sticky top-24 space-y-6">
+              
+              <div className="pb-4 border-b border-slate-100">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Booking</p>
+                <h3 className="text-lg md:text-xl font-bold text-slate-900">Your Selection</h3>
+              </div>
+
+              {/* Selected Package Summary */}
+              <div className="bg-indigo-50/60 p-4 rounded-xl border border-indigo-100 flex flex-col gap-2">
+                 <div className="flex justify-between items-start">
+                   <span className="text-[10px] md:text-xs font-bold text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded">SELECTED PACKAGE</span>
+                   {selectedVariant.discount?.percentage && (
+                      <span className="text-[10px] md:text-xs font-bold text-rose-600">-{selectedVariant.discount.percentage}% OFF</span>
+                   )}
+                 </div>
+                 <p className="font-bold text-indigo-900 leading-snug text-sm md:text-base">{selectedVariant.name}</p>
+              </div>
+
+              {/* Date & Time */}
+              <div className="space-y-4">
+ <div>
+  <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase mb-2 block">
+    Date
+  </label>
+
+  <div className="relative w-full flex items-center justify-between p-3.5 bg-white border border-slate-200 rounded-xl">
+    {/* Date Text */}
+    <span className="font-medium text-slate-700 flex items-center gap-2 text-sm">
+      {selectedDate
+        ? new Date(selectedDate).toLocaleDateString("en-US", {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+          })
+        : "Select Date"}
+    </span>
+
+    {/* Calendar Icon */}
+    <button
+      type="button"
+      onClick={() => dateInputRef.current?.showPicker()}
+      className="p-1 rounded-md hover:bg-slate-100 transition"
+    >
+      <Calendar size={16} className="text-slate-400 hover:text-indigo-500" />
+    </button>
+
+    {/* HIDDEN DATE INPUT (NO UI CHANGE) */}
+    <input
+      ref={dateInputRef}
+      type="date"
+      value={selectedDate}
+      onChange={(e) => setSelectedDate(e.target.value)}
+      className="absolute opacity-0 pointer-events-none"
+      min={new Date().toISOString().split("T")[0]}
+    />
+  </div>
+</div>
+
+
+
+
+
+                <div>
+                  <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase mb-2 block">Start Time</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {activity.timeSlots?.map((slot) => (
+                      <button
+                        key={slot._id}
+                        onClick={() => setSelectedTimeSlot(slot.startTime)}
+                        className={`py-2 px-2 rounded-xl text-xs md:text-sm font-semibold transition-all border ${
+                          selectedTimeSlot === slot.startTime 
+                          ? "bg-slate-900 text-white border-slate-900 shadow-md" 
+                          : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                        }`}
+                      >
+                        {slot.startTime}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              )}
+              </div>
 
-              {/* Flat pricing if any */}
-              {selectedVariant.pricing
-                .filter((p) => p.type === "flat")
-                .map((pricing) => (
-                  <div
-                    key={pricing._id}
-                    className="flex justify-between py-3 text-lg"
-                  >
-                    <span>{pricing.label}</span>
-                    <span className="font-semibold">{pricing.price} AED</span>
+              {/* Guests/Quantity */}
+              <div className="space-y-3 pt-2">
+                <label className="text-[10px] md:text-xs font-bold text-slate-500 uppercase block">Guests</label>
+                {selectedVariant.pricing.filter((p) => p.type === "per_person").map((p) => (
+                  <div key={p._id} className="flex justify-between items-center py-1">
+                    <div>
+                      <span className="block text-sm font-semibold text-slate-700">{p.label}</span>
+                      <span className="text-[10px] md:text-xs text-slate-400 font-medium">{p.price} AED</span>
+                    </div>
+                    <div className="flex items-center gap-2 md:gap-3 bg-slate-50 rounded-lg p-1 border border-slate-200">
+                      <button 
+                        onClick={() => updateQuantity(p._id, -1)} 
+                        className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-white rounded-md transition disabled:opacity-30"
+                        disabled={!quantities[p._id]}
+                      >
+                        -
+                      </button>
+                      <span className="w-4 text-center text-sm font-bold text-slate-900">{quantities[p._id] || 0}</span>
+                      <button onClick={() => updateQuantity(p._id, 1)} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-white rounded-md transition">+</button>
+                    </div>
                   </div>
                 ))}
+              </div>
 
-              {/* Total */}
-              {totalPrice > 0 ? (
-                <>
-                  <div className="flex justify-between text-3xl font-bold mt-8 pt-6 border-t-2 border-gray-300">
-                    <span>Total Amount</span>
-                    <span className="text-indigo-600">{totalPrice} AED</span>
+              {/* Footer / Total */}
+              <div className="pt-6 border-t border-dashed border-slate-200 mt-2">
+                <div className="flex justify-between items-end mb-4">
+                  <div>
+                    <span className="text-[10px] md:text-xs text-slate-500 font-bold uppercase">Total Pay</span>
+                    <p className="text-[10px] text-green-600 font-medium mt-0.5">No hidden fees</p>
                   </div>
-                  <p className="text-sm text-gray-500 mt-3 text-center">
-                    All taxes and fees included
-                  </p>
-                </>
-              ) : (
-                <p className="text-gray-500 text-center py-4">
-                  Select number of travellers to see pricing
-                </p>
-              )}
-            </div>
+                  <div className="text-right">
+                    <span className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+                      {selectedVariant.pricing.reduce((acc, p) => acc + (p.price * (quantities[p._id] || 0)), 0)} 
+                    </span>
+                    <span className="text-xs md:text-sm text-slate-500 font-bold ml-1">AED</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <button 
+                    className={`w-full py-3.5 md:py-4 rounded-xl font-bold text-white shadow-xl shadow-indigo-200 transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm md:text-base ${canBook ? "bg-indigo-600 hover:bg-indigo-700" : "bg-slate-300 cursor-not-allowed shadow-none"}`} 
+                    disabled={!canBook}
+                  >
+                     {canBook ? "Proceed to Checkout" : "Select Options"} <ChevronRight size={16} />
+                  </button>
+                  <button className="w-full py-3 rounded-xl font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition-colors text-xs md:text-sm">
+                    Book via WhatsApp
+                  </button>
+                </div>
+              </div>
 
-            {/* CTA Buttons */}
-            <div className="space-y-5">
-              <a
-                href={`https://wa.me/?text=I want to book "${
-                  activity.title
-                }" (${
-                  selectedVariant.name
-                }) for ${totalPrice} AED on ${new Date(
-                  activity.availableDates[0]
-                ).toLocaleDateString()} at ${selectedTimeSlot}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`w-full flex items-center justify-center gap-4 py-6 rounded-xl font-bold text-xl transition shadow-xl ${
-                  canBook
-                    ? "bg-green-600 hover:bg-green-700 text-white"
-                    : "bg-gray-400 text-gray-600 cursor-not-allowed"
-                }`}
-              >
-                <MessageCircle className="w-9 h-9" />
-                Book via WhatsApp
-              </a>
-
-              <button
-                disabled={!canBook}
-                className={`w-full py-6 rounded-xl font-bold text-xl transition shadow-xl ${
-                  canBook
-                    ? "bg-indigo-600 hover:bg-indigo-700 text-white"
-                    : "bg-gray-400 text-gray-600 cursor-not-allowed"
-                }`}
-              >
-                Proceed to Book Online
-              </button>
             </div>
-
-            {/* Policies */}
-            <div className="mt-10 pt-8 border-t text-sm text-gray-600 space-y-3">
-              {activity.cancellationPolicy?.isFreeCancellation && (
-                <p className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-green-600" />
-                  Free cancellation up to{" "}
-                  {activity.cancellationPolicy.hoursBefore} hours before
-                </p>
-              )}
-              {activity.reservePolicy?.payLater && (
-                <p className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-green-600" />
-                  Reserve now, pay later available
-                </p>
-              )}
-            </div>
+    
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
