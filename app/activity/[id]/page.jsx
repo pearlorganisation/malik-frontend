@@ -468,7 +468,7 @@ export default function ActivityDetailPage() {
               </div>
             </div>
 
-            {/* TABBED CONTENT */}
+            {/* TABED CONTENT */}
             <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="flex border-b border-slate-200 overflow-x-auto scrollbar-hide">
                 <button
