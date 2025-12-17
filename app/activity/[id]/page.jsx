@@ -123,11 +123,11 @@ export default function ActivityDetailPage() {
       const result = await createBooking(bookingPayload).unwrap();
 
       // 4. Handle Success (Redirect to payment/checkout page)
-      // if (result.success) {
-      //   // Assuming you have a checkout page that takes the booking ID or Client Secret
-      //   // You might want to pass the clientSecret via query param or state management
-      //   router.push(`/checkout?bookingId=${result.bookingId}&clientSecret=${result.clientSecret}`);
-      // }
+      if (result.success) {
+        // Assuming you have a checkout page that takes the booking ID or Client Secret
+        // You might want to pass the clientSecret via query param or state management
+        router.push(`/checkout?bookingId=${result.bookingId}&clientSecret=${result.clientSecret}`);
+      }
     } catch (err) {
       console.error("Booking Failed:", err);
       // Ideally show a toast notification here
