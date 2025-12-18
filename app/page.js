@@ -1,10 +1,10 @@
 import React from "react";
-import Header from "@/app/components/Header";
-import Hero from "@/app/components/Home/Hero.jsx";
-import About from "@/app/components/Home/About.jsx";
-import FAQ from "@/app/components/Home/Faq.jsx";
-import Footer from "@/app/components/Footer.jsx";
-import ActivitiesPage from "@/app/components/Activity/AcrivityListing.jsx";
+import Header from "@/components/Header";
+import Hero from "@/components/Home/Hero.jsx";
+import About from "@/components/Home/About.jsx";
+import FAQ from "@/components/Home/Faq.jsx";
+import Footer from "@/components/Footer.jsx";
+import ActivitiesPage from "@/components/Activity/AcrivityListing.jsx";
 
 export default function HomePage() {
   return (
