@@ -9,7 +9,14 @@ export const bookingApi = baseApi.injectEndpoints({
         body,
       }),
     }),
+    confirmBooking: builder.mutation({
+      query: (body) => ({
+        url: "/bookings/confirm-payment",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
-export const { useCreateBookingMutation } = bookingApi;
+export const { useCreateBookingMutation,useConfirmBookingMutation } = bookingApi;

@@ -124,9 +124,11 @@ export default function ActivityDetailPage() {
 
       // 4. Handle Success (Redirect to payment/checkout page)
       if (result.success) {
+        console.log("Booking Successful:", result);
+        window.location.href = result.checkoutUrl; // Redirect to Stripe Checkout
         // Assuming you have a checkout page that takes the booking ID or Client Secret
         // You might want to pass the clientSecret via query param or state management
-        router.push(`/checkout?bookingId=${result.bookingId}&clientSecret=${result.clientSecret}`);
+        // router.push(`/checkout?bookingId=${result.bookingId}&clientSecret=${result.clientSecret}`);
       }
     } catch (err) {
       console.error("Booking Failed:", err);

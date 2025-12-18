@@ -1,15 +1,11 @@
 "use client";
-import React from "react";
-import {
-  Check,
-  X,
-  RefreshCw,
-  Mail,
-  Download,
-  AlertCircle,
-} from "lucide-react";
 
+import React, { useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Check, X, RefreshCw, Mail, Download, AlertCircle } from "lucide-react";
+import { useConfirmBookingMutation } from "@/features/booking/bookApi";
 
+/* ---------- Button component (unchanged) ---------- */
 const Button = ({
   children,
   variant = "primary",
@@ -46,8 +42,7 @@ const Button = ({
   );
 };
 
-
-
+/* ---------- Transaction Card (unchanged UI) ---------- */
 const TransactionCard = ({
   paymentVerified,
   details,
@@ -56,21 +51,17 @@ const TransactionCard = ({
 }) => {
   return (
     <div className="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden ring-1 ring-slate-900/5">
-      {/* Top Bar */}
       <div
-        className={`h-2 ${
-          paymentVerified ? "bg-green-500" : "bg-red-500"
-        }`}
+        className={`h-2 ${paymentVerified ? "bg-green-500" : "bg-red-500"}`}
       />
 
       <div className="p-8 pt-10 text-center">
-        {/* Icon */}
         <div className="relative mb-6 mx-auto w-20 h-20">
           <div
             className={`absolute inset-0 rounded-full opacity-20 ${
               paymentVerified ? "bg-green-500 animate-pulse" : "bg-red-500"
             }`}
-          ></div>
+          />
           <div
             className={`relative flex items-center justify-center w-full h-full rounded-full border-[3px] ${
               paymentVerified
@@ -86,17 +77,14 @@ const TransactionCard = ({
           </div>
         </div>
 
-        {/* Title */}
         <h1 className="text-2xl font-bold text-slate-900 mb-1">
           {paymentVerified ? "Payment Successful" : "Payment Failed"}
         </h1>
 
-        {/* Amount */}
         <div className="text-4xl font-extrabold text-slate-900 my-4">
-          {details.amount}
+          {details.amount || "—"}
         </div>
 
-        {/* Description */}
         <p className="text-slate-500 mb-8 text-sm font-medium">
           {paymentVerified
             ? "Thank you! Your transaction has been completed successfully."
@@ -104,7 +92,6 @@ const TransactionCard = ({
               "We couldn’t process your payment. Please try again."}
         </p>
 
-        {/* Buttons */}
         <div className="space-y-3">
           {paymentVerified ? (
             <>
@@ -142,7 +129,6 @@ const TransactionCard = ({
         </div>
       </div>
 
-      {/* Footer */}
       {paymentVerified && (
         <div className="bg-slate-50 px-8 py-4 border-t border-slate-100">
           <div className="flex items-center justify-center text-xs text-slate-500 gap-2">
@@ -155,23 +141,60 @@ const TransactionCard = ({
   );
 };
 
-
+/* ---------- MAIN PAGE ---------- */
 export default function PaymentStatusPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const bookingId = searchParams.get("bookingId");
 
-  const paymentVerified = true;
+  const [confirmBooking, { data, isLoading, isError, error }] =
+    useConfirmBookingMutation();
 
-  const transactionDetails = {
-    amount: "",
-    errorMessage: "",
-  };
+  useEffect(() => {
+    if (bookingId) {
+      confirmBooking({ bookingId });
+    }
+  }, [bookingId, confirmBooking]);
+
+  /* ---------- Loading ---------- */
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100">
+        <p className="text-slate-600 font-medium">Verifying payment...</p>
+      </div>
+    );
+  }
+
+  /* ---------- Error ---------- */
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center px-4">
+        <TransactionCard
+          paymentVerified={false}
+          details={{
+            amount: "",
+            errorMessage: error?.data?.message || "Unable to verify payment",
+          }}
+          onRetry={() => confirmBooking({ bookingId })}
+          onContactSupport={() => router.push("/support")}
+        />
+      </div>
+    );
+  }
+
+  /* ---------- Success / Failed ---------- */
+  const paymentVerified = data?.isPaid === true;
 
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center px-4">
       <TransactionCard
         paymentVerified={paymentVerified}
-        details={transactionDetails}
-        onRetry={() => alert("Retry payment")}
-        onContactSupport={() => alert("Contact support")}
+        details={{
+          amount: data?.amount || "",
+          errorMessage: data?.message,
+        }}
+        onRetry={() => confirmBooking({ bookingId })}
+        onContactSupport={() => router.push("/support")}
       />
     </div>
   );
