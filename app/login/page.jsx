@@ -25,7 +25,7 @@ export default function LoginPage() {
       console.log("Logged in user:", loggedInUser);
       // Save user to Redux state so Header updates instantly
       dispatch(setUser(loggedInUser));
-      alert("Login successful!");
+      // alert("Login successful!");
       router.push("/dashboard"); // or "/" or your main app route
     } catch (err) {
       const message =
