@@ -1,8 +1,11 @@
+"use client";
+
 import Providers from "./providers";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header.jsx";
 import Footer from "@/components/Footer.jsx";
+import { usePathname } from "next/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,18 +17,17 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata = {
-  title: "DubaiTours",
-  description: "Curated Dubai Experiences",
-};
-
 export default function RootLayout({ children }) {
+  const pathname = usePathname();
+
+  const showHeader = !pathname?.startsWith("/dashboard");
+
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="font-sans">
         <Providers>
-          {/* Sticky Header */}
-          <Header />
+          {/* Conditional Header */}
+          {showHeader && <Header />}
 
           {/* Page Content */}
           <main className="mt-0">{children}</main>
