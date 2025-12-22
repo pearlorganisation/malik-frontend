@@ -133,6 +133,15 @@ export default function LoginPage() {
             </Link>
           </p>
 
+          <p className="text-sm text-slate-600">
+    <Link
+      href="/forgot-password"
+      className="font-semibold text-amber-500 hover:underline"
+    >
+      Forgot Password?
+    </Link>
+  </p>
+
           <Link
             href="/verify-otp"
             className="text-sm text-slate-500 hover:text-slate-900 underline"

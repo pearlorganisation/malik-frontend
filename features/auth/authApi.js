@@ -68,10 +68,10 @@ export const authApi = baseApi.injectEndpoints({
 
     // 8. Reset Password (after OTP verification)
     resetPassword: builder.mutation({
-      query: ({ email, newPassword, confirmNewPassword }) => ({
+      query: ({ email,otp, newPassword, confirmNewPassword }) => ({
         url: "/auth/reset-password",
-        method: "POST",
-        body: { email, newPassword, confirmNewPassword },
+        method: "PATCH",
+        body: { email, otp , newPassword, confirmNewPassword },
       }),
       invalidatesTags: ["Auth"],
     }),
