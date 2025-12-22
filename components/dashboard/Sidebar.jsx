@@ -3,14 +3,46 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useDispatch, useSelector } from 'react-redux';
+import { LogOut } from "lucide-react";
+import { useLogoutMutation } from "@/features/auth/authApi";
+import { logout as logoutAction } from "@/features/auth/authSlice";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import { Home } from 'lucide-react';
 
 const Sidebar = () => {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const user = useSelector((state) => state.auth.user);
+
+
+  const dispatch = useDispatch();
+
+const [logoutMutation, { isLoading: isLoggingOut }] =
+  useLogoutMutation();
+
+ const handleLogout = async () => {
+    try {
+      await logoutMutation().unwrap();
+      dispatch(logoutAction());
+      router.push("/");
+      router.refresh();
+      toast.success("Logged out successfully!"); 
+    } catch (err) {
+      dispatch(logoutAction());
+      router.push("/");
+      router.refresh();
+      toast.error("Failed to logout. Please try again.");
+    }
+  };
 
   const navItems = [
     { id: 'overview', label: 'Dashboard', path: '/dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
     { id: 'bookings', label: 'My Bookings', path: '/dashboard/bookings', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
     { id: 'profile', label: 'My Profile', path: '/dashboard/profile', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
+     { id: 'home', label: 'Home', path: '/', icon: 'Home' },
   ];
 
   return (
@@ -50,18 +82,40 @@ const Sidebar = () => {
         </nav>
       </div>
 
-      <div className="mt-auto p-8 border-t border-slate-800/50">
-        <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-800/30 border border-slate-700/50">
-          <div className="relative">
-            <img src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80&w=100" className="w-10 h-10 rounded-xl border-2 border-[#c5a059]" alt="User" />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0f172a]"></div>
+        {user && (
+        <div className="mt-auto p-8 border-t border-slate-800/50">
+          <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-800/30">
+            {/* AVATAR */}
+            <div className="w-10 h-10 rounded-xl bg-[#c5a059] text-black flex items-center justify-center font-black">
+              {user?.name?.charAt(0)?.toUpperCase()}
+            </div>
+
+            {/* USER INFO */}
+            <div className="overflow-hidden">
+              <p className="font-bold text-sm truncate">
+                {user?.name}
+              </p>
+              <p className="text-[9px] text-slate-400 uppercase tracking-widest">
+                {user?.role || "Traveler"}
+              </p>
+            </div>
           </div>
-          <div className="overflow-hidden">
-            <p className="font-bold text-sm truncate">Khalid Rashid</p>
-            <p className="text-[9px] text-slate-500 uppercase font-extrabold tracking-widest">VIP Traveler</p>
-          </div>
+           <button
+      onClick={handleLogout}
+      disabled={isLoggingOut}
+      className="
+        w-full flex items-center justify-center gap-3
+        px-4 py-3 rounded-2xl
+        bg-red-500/10 text-red-400
+        hover:bg-red-500/20 hover:text-red-300
+        transition font-semibold text-sm
+      "
+    >
+      <LogOut size={16} />
+      Logout
+    </button>
         </div>
-      </div>
+      )}
     </aside>
   );
 };

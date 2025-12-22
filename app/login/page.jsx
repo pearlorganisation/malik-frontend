@@ -6,6 +6,8 @@ import { useLoginMutation } from "@/features/auth/authApi";
 import { setUser } from "@/features/auth/authSlice";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
+import { Compass } from "lucide-react";
+import toast from "react-hot-toast"; 
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -20,93 +22,124 @@ export default function LoginPage() {
 
     try {
       const response = await login({ email, password }).unwrap();
-      console.log("Login response:", response);
       const loggedInUser = response.user;
-      console.log("Logged in user:", loggedInUser);
-      // Save user to Redux state so Header updates instantly
       dispatch(setUser(loggedInUser));
-      alert("Login successful!");
-      router.push("/dashboard"); // or "/" or your main app route
+       toast.success(response.message || "Login successful!");
+      router.push("/dashboard");
     } catch (err) {
       const message =
         err?.data?.message ||
         "Login failed. Check your credentials or verify your email first.";
-      alert(message);
+       toast.error(message || "Login failed. Check credentials or verify your email."
+    );
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white relative overflow-hidden">
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0 bg-gradient-to-br from-black via-transparent to-black"></div>
-        <div className="absolute top-0 left-0 w-96 h-96 border-l-8 border-t-8 border-black -translate-x-48 -translate-y-48"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 border-r-8 border-b-8 border-black translate-x-48 translate-y-48"></div>
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 sm:px-6 relative overflow-hidden">
+      {/* BACKGROUND DECOR */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-40 -left-40 w-[400px] sm:w-[500px] h-[400px] sm:h-[500px] rounded-full bg-amber-200/20 blur-3xl" />
+        <div className="absolute -bottom-40 -right-40 w-[400px] sm:w-[500px] h-[400px] sm:h-[500px] rounded-full bg-slate-900/10 blur-3xl" />
       </div>
 
-      <div className="relative w-full max-w-md p-10 bg-white shadow-2xl border border-gray-200 rounded-none">
-        <div className="text-center mb-10">
-          <h1 className="text-5xl font-bold text-black tracking-wider">LOGO</h1>
-          <p className="text-sm text-gray-600 mt-2">Welcome back</p>
+      {/* CARD */}
+      <div className="relative w-full max-w-md sm:max-w-lg bg-white rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.12)] border border-slate-100 p-6 sm:p-10">
+        
+        {/* LOGO */}
+        <div className="flex flex-col items-center gap-3 sm:gap-4 mb-8 sm:mb-10">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-slate-900 flex items-center justify-center shadow-lg">
+              <Compass className="text-amber-400" />
+            </div>
+
+            <div className="leading-tight">
+              <div className="text-xl sm:text-2xl font-black text-slate-900">
+                Dubai<span className="text-amber-500">Tours</span>
+              </div>
+              <div className="text-[10px] text-slate-400 uppercase tracking-widest">
+                Premium Portal
+              </div>
+            </div>
+          </div>
+
+          <p className="text-sm sm:text-base text-slate-600">Welcome back</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={isLoading}
-              placeholder="Email address"
-              className="w-full px-0 py-3 bg-transparent border-0 border-b-2 border-gray-400 text-black text-lg focus:outline-none focus:border-black transition-colors duration-300 placeholder-gray-400 disabled:opacity-50"
-            />
-          </div>
+        {/* FORM */}
+        <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-7">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={isLoading}
+            placeholder="Email address"
+            className="
+              w-full px-4 py-3 rounded-xl
+              border border-slate-200
+              text-slate-900 text-sm sm:text-base
+              focus:outline-none focus:ring-2 focus:ring-amber-400
+              transition disabled:opacity-50
+            "
+          />
 
-          <div>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={isLoading}
-              placeholder="Password"
-              className="w-full px-0 py-3 bg-transparent border-0 border-b-2 border-gray-400 text-black text-lg focus:outline-none focus:border-black transition-colors duration-300 placeholder-gray-400 disabled:opacity-50"
-            />
-          </div>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            disabled={isLoading}
+            placeholder="Password"
+            className="
+              w-full px-4 py-3 rounded-xl
+              border border-slate-200
+              text-slate-900 text-sm sm:text-base
+              focus:outline-none focus:ring-2 focus:ring-amber-400
+              transition disabled:opacity-50
+            "
+          />
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-4 bg-black text-white text-lg font-medium tracking-wide hover:bg-gray-900 transition-all duration-300 shadow-md disabled:bg-gray-600 disabled:cursor-not-allowed"
+            className="
+              w-full py-3 rounded-xl
+              bg-slate-900 text-white font-bold
+              hover:bg-slate-800
+              transition shadow-lg
+              disabled:bg-slate-500 disabled:cursor-not-allowed
+            "
           >
             {isLoading ? "Signing In..." : "Sign In"}
           </button>
 
           {isError && (
-            <p className="text-red-600 text-center text-sm -mt-4">
+            <p className="text-red-600 text-center text-sm">
               {error?.data?.message || "Invalid email or password"}
             </p>
           )}
         </form>
 
-        <p className="mt-10 text-center text-sm text-gray-700">
-          Don't have an account?{" "}
-          <Link
-            href="/signup"
-            className="font-semibold text-black underline hover:text-gray-800 transition"
-          >
-            Sign Up
-          </Link>
-        </p>
+        {/* FOOTER LINKS */}
+        <div className="mt-6 sm:mt-8 text-center space-y-2 sm:space-y-3">
+          <p className="text-sm text-slate-600">
+            Don&apos;t have an account?{" "}
+            <Link
+              href="/signup"
+              className="font-semibold text-slate-900 hover:underline"
+            >
+              Sign Up
+            </Link>
+          </p>
 
-        <p className="mt-4 text-center text-sm text-gray-600">
           <Link
             href="/verify-otp"
-            className="text-black underline hover:text-gray-800"
+            className="text-sm text-slate-500 hover:text-slate-900 underline"
           >
             Verify OTP / Resend OTP
           </Link>
-        </p>
+        </div>
       </div>
     </div>
   );

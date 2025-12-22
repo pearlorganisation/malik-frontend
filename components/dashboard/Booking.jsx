@@ -120,7 +120,7 @@ const BookingCard = ({ booking }) => {
         </div>
 
         {/* Total & Button */}
-        <div className="flex items-center justify-between pt-6  border-gray-100">
+        <div className="flex items-center justify-between   border-gray-100">
           <div>
             <p className="text-sm text-gray-500 uppercase tracking-wide">Total Paid</p>
             <p className="text-3xl font-bold text-gray-900 mt-1">
@@ -130,7 +130,7 @@ const BookingCard = ({ booking }) => {
 
           <button
             onClick={() => router.push(`/activity/${booking.activity._id}`)}
-            className="bg-slate-900 hover:bg-slate-800 text-white font-semibold px-8 py-3 rounded-full flex items-center gap-3 transition-all"
+            className="bg-slate-900 hover:bg-slate-800 text-white  px-8 py-3 rounded-full flex items-center gap-3 transition-all"
           >
             Details
             <ArrowRight className="w-5 h-5" />

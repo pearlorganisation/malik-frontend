@@ -16,6 +16,8 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import { useLogoutMutation } from "@/features/auth/authApi";
 import { logout as logoutAction } from "@/features/auth/authSlice";
+import { toast } from "react-hot-toast";
+
 
 /* ---------------- NAV ITEMS ---------------- */
 const NAV_ITEMS = [
@@ -70,10 +72,13 @@ export default function Header() {
   const handleLogout = async () => {
     try {
       await logoutMutation().unwrap();
-    } catch {}
-    dispatch(logoutAction());
-    router.push("/");
-    router.refresh();
+      dispatch(logoutAction());
+      router.push("/");
+      router.refresh();
+      toast.success("Logged out successfully!");
+    } catch (err) {
+      toast.error("Failed to logout. Please try again.");
+    }
   };
 
   return (
@@ -131,10 +136,6 @@ export default function Header() {
 
             {/* ACTIONS */}
             <div className="flex items-center gap-2 sm:gap-3">
-              <button className="hidden sm:flex p-2.5 text-slate-400 hover:text-slate-900">
-                <Search />
-              </button>
-
               {/* AUTH */}
               {isAuthenticated ? (
                 <div ref={profileRef} className="relative">
@@ -198,7 +199,7 @@ export default function Header() {
                 </div>
               ) : (
                 <div className="hidden sm:flex gap-2">
-                  <Link href="/login" className="font-bold">
+                  <Link href="/login" className="px-5 py-2 bg-slate-900 text-white rounded-xl font-bold">
                     Sign In
                   </Link>
                   <Link
