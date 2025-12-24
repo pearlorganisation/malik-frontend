@@ -18,7 +18,6 @@ export default function ActivitiesPage() {
   const { data, isLoading, isError } = useGetActivitiesQuery({
     page: 1,
     limit: 12,
-    isActive: true,
   });
 
   if (isLoading) {

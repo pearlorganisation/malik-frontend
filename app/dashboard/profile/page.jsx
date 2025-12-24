@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import {
   useGetProfileQuery,
   useUpdateProfileMutation,
-} from "@/features/auth/authApi"; // Adjust this path if needed
-import { Loader2 } from "lucide-react"; // Optional spinner icon
+} from "@/features/auth/authApi";
+import { Loader2 } from "lucide-react";
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -34,7 +34,6 @@ export default function EditProfilePage() {
     email: "",
   });
 
-  // Populate form when profile data loads
   useEffect(() => {
     if (profileData?.user) {
       setFormData({
@@ -67,7 +66,6 @@ export default function EditProfilePage() {
         email: profileData.user.email.trim() || undefined,
       }).unwrap();
 
-      // Redirect after success
       setTimeout(() => router.push("/profile"), 1500);
     } catch (err) {
       console.error("Update failed:", err);
@@ -77,7 +75,7 @@ export default function EditProfilePage() {
   if (profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="w-10 h-10 animate-spin text-[#c5a059]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#c5a059]" />
       </div>
     );
   }
@@ -85,7 +83,7 @@ export default function EditProfilePage() {
   if (profileError) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <p className="text-red-600 text-xl">
+        <p className="text-red-600 text-sm">
           Failed to load profile. Please try again later.
         </p>
       </div>
@@ -95,54 +93,54 @@ export default function EditProfilePage() {
   const user = profileData?.user;
 
   return (
-    <main className="min-h-screen bg-white py-12 px-6">
+    <main className="min-h-screen bg-white py-10 px-6">
       <div className="max-w-full mx-auto">
-        <h1 className="text-4xl md:text-5xl font-bold text-center mb-12 border-b-4 border-[#c5a059] inline-block pb-4">
+        <h1 className="text-lg md:text-xl font-bold text-center mb-10 border-b-4 border-[#c5a059] inline-block pb-3">
           Edit Profile
         </h1>
 
-        <div className="bg-gray-50 rounded-xl shadow-2xl p-8 md:p-12">
-          {/* Profile Photo Placeholder */}
-          <div className="flex flex-col items-center mb-12">
-            <div className="w-32 h-32 rounded-full border-8 border-[#c5a059] overflow-hidden shadow-xl">
+        <div className="bg-gray-50 rounded-xl shadow-2xl p-6 md:p-10">
+          {/* Profile Photo */}
+          <div className="flex flex-col items-center mb-10">
+            <div className="w-20 h-20 rounded-full border-8 border-[#c5a059] overflow-hidden shadow-xl">
               <Image
-                src="/user-avatar.png" // Replace later with real avatar
+                src="/user-avatar.png"
                 alt={user?.name || "User"}
                 width={128}
                 height={128}
                 className="object-cover w-full h-full"
               />
             </div>
-            <p className="mt-4 text-gray-600 font-medium">
+            <p className="mt-3 text-sm text-gray-600 font-medium">
               Profile photo (coming soon)
             </p>
           </div>
 
-          {/* Success Message */}
+          {/* Success */}
           {updateSuccess && (
-            <div className="mb-8 p-4 bg-green-100 border border-green-400 text-green-800 rounded-lg text-center font-semibold">
+            <div className="mb-6 p-3 bg-green-100 border border-green-400 text-green-800 rounded-lg text-center text-sm font-medium">
               Profile updated successfully! Redirecting...
             </div>
           )}
 
-          {/* Error Message */}
+          {/* Error */}
           {updateError && (
-            <div className="mb-8 p-4 bg-red-100 border border-red-400 text-red-800 rounded-lg text-center font-semibold">
+            <div className="mb-6 p-3 bg-red-100 border border-red-400 text-red-800 rounded-lg text-center text-sm font-medium">
               {updateErrorData?.data?.message || "Failed to update profile"}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Email - Read Only */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email */}
             <div>
-              <label className="block text-lg font-semibold mb-2 text-gray-800">
+              <label className="block text-sm font-medium mb-1 text-gray-800">
                 Email
               </label>
               <input
                 type="email"
                 value={user?.email || ""}
                 disabled
-                className="w-full px-5 py-3 border-2 border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg bg-gray-100 text-gray-600 text-sm cursor-not-allowed"
               />
             </div>
 
@@ -150,7 +148,7 @@ export default function EditProfilePage() {
             <div>
               <label
                 htmlFor="name"
-                className="block text-lg font-semibold mb-2 text-gray-800"
+                className="block text-sm font-medium mb-1 text-gray-800"
               >
                 Full Name <span className="text-red-500">*</span>
               </label>
@@ -161,17 +159,17 @@ export default function EditProfilePage() {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                minLength="2"
-                className="w-full px-5 py-3 border-2 border-black rounded-lg focus:border-[#c5a059] focus:outline-none transition-all"
+                minLength={2}
+                className="w-full px-4 py-2 border-2 border-black rounded-lg text-sm focus:border-[#c5a059] focus:outline-none transition-all"
                 placeholder="John Doe"
               />
             </div>
 
-            {/* Phone Number */}
+            {/* Phone */}
             <div>
               <label
                 htmlFor="phoneNumber"
-                className="block text-lg font-semibold mb-2 text-gray-800"
+                className="block text-sm font-medium mb-1 text-gray-800"
               >
                 Phone Number <span className="text-gray-500">(optional)</span>
               </label>
@@ -181,26 +179,26 @@ export default function EditProfilePage() {
                 type="tel"
                 value={formData.phoneNumber}
                 onChange={handleChange}
-                className="w-full px-5 py-3 border-2 border-black rounded-lg focus:border-[#c5a059] focus:outline-none transition-all"
+                className="w-full px-4 py-2 border-2 border-black rounded-lg text-sm focus:border-[#c5a059] focus:outline-none transition-all"
                 placeholder="+1234567890"
               />
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-6 justify-center pt-6">
+            {/* Buttons */}
+            <div className="flex flex-col sm:flex-row gap-5 justify-center pt-5">
               <button
                 type="submit"
                 disabled={updateLoading}
-                className="px-10 py-4 bg-[#c5a059] text-white font-bold rounded-lg hover:bg-black hover:text-[#c5a059] transition-all border-2 border-[#c5a059] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                className="px-8 py-3 bg-[#c5a059] text-white text-sm font-semibold rounded-lg hover:bg-black hover:text-[#c5a059] transition-all border-2 border-[#c5a059] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {updateLoading && <Loader2 className="w-5 h-5 animate-spin" />}
+                {updateLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                 {updateLoading ? "Saving..." : "Save Changes"}
               </button>
 
               <button
                 type="button"
                 onClick={() => router.push("/profile")}
-                className="px-10 py-4 border-2 border-black text-black font-bold rounded-lg hover:bg-black hover:text-white transition-all"
+                className="px-8 py-3 border-2 border-black text-black text-sm font-semibold rounded-lg hover:bg-black hover:text-white transition-all"
               >
                 Cancel
               </button>

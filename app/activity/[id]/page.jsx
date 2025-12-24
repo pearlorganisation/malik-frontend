@@ -175,7 +175,7 @@ export default function ActivityDetailPage() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800 pb-12">
       {/* --- Breadcrumb --- */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+      {/* <div className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 md:py-4 flex items-center text-xs md:text-sm text-slate-500 gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
           <Home className="w-3.5 h-3.5 hover:text-indigo-600 cursor-pointer transition-colors" />
           <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
@@ -191,12 +191,15 @@ export default function ActivityDetailPage() {
             {activity.title}
           </span>
         </div>
-      </div>
+      </div> */}
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-8 space-y-8 md:space-y-10">
         {/* --- Header Section --- */}
-        <div className="space-y-3 md:space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
+        <div className="space-y-3 py-4 md:space-y-4">
+          <h1 className="text-2xl md:text-4xl lg:text-5xl font-extrabold text-slate-900 leading-tight tracking-tight">
+            {activity.title}
+          </h1>
+           <div className="flex flex-wrap items-center gap-3">
             <span className="px-2.5 py-1 bg-amber-100 text-amber-700 text-[10px] md:text-xs font-bold rounded-full flex items-center gap-1">
               <Star size={10} className="fill-current" /> Bestseller
             </span>
@@ -210,9 +213,6 @@ export default function ActivityDetailPage() {
               <ShieldCheck size={14} /> Free cancellation
             </span>
           </div>
-          <h1 className="text-2xl md:text-4xl lg:text-5xl font-extrabold text-slate-900 leading-tight tracking-tight">
-            {activity.title}
-          </h1>
         </div>
 
         {/* --- Media Gallery (Layout: Left Big, Middle Vertical, Right Split) --- */}
@@ -269,11 +269,11 @@ export default function ActivityDetailPage() {
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors" />
-              <div className="absolute inset-0 flex items-center justify-center">
+              {/* <div className="absolute inset-0 flex items-center justify-center">
                 <button className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-full text-sm font-bold shadow-lg hover:bg-white transition-all flex items-center gap-2 text-slate-900">
                   <Camera size={16} /> + More
                 </button>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
