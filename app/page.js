@@ -9,11 +9,10 @@ import ActivitiesPage from "@/components/Activity/AcrivityListing.jsx";
 export default function HomePage() {
   return (
     <main className="font-sans text-gray-800">
-
-      <Hero/>
-      < About />
-      <ActivitiesPage/>
-      < FAQ />
+      <Hero />
+      <About />
+      <ActivitiesPage />
+      <FAQ />
     </main>
   );
 }

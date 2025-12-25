@@ -4,6 +4,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { Clock, Star, MapPin, Check, ChevronRight } from "lucide-react";
 import { useGetActivitiesQuery } from "@/features/activity/activityApi";
+import CategoryBalls from "../Category/CategoryBalls";
 
 const getStartingPrice = (variants = []) => {
   const prices = [];
@@ -50,24 +51,35 @@ export default function ActivitiesPage() {
 
       {/* Horizontal Scrollable Cards */}
       <div className="overflow-x-auto px-6 pb-12 scrollbar-hide">
-        <div className="flex gap-6 min-w-max">
+        <CategoryBalls limit={8} showAllLink={true} />
+        <div className="flex gap-6 min-w-max my-4">
           {data.activities.map((activity, index) => {
             const price = getStartingPrice(activity.variants);
             const durationHours = activity.duration?.hours || 6;
-            const rating = activity.rating > 0 ? activity.rating.toFixed(1) : "4.8";
+            const rating =
+              activity.rating > 0 ? activity.rating.toFixed(1) : "4.8";
             const reviewCount = activity.reviewCount || 1234 + index * 200;
-            const hasFreeCancellation = activity.cancellationPolicy?.isFreeCancellation;
-            const location = activity.pickup?.included ? "Pickup Included" : "Dubai Area";
+            const hasFreeCancellation =
+              activity.cancellationPolicy?.isFreeCancellation;
+            const location = activity.pickup?.included
+              ? "Pickup Included"
+              : "Dubai Area";
 
             // Simulated dynamic ribbons & tags
-            const ribbons = ["BEST VALUE", "BEST SELLER", "EXCLUSIVE", "TOP PICK", "NEW"];
+            const ribbons = [
+              "BEST VALUE",
+              "BEST SELLER",
+              "EXCLUSIVE",
+              "TOP PICK",
+              "NEW",
+            ];
             const ribbon = ribbons[index % ribbons.length];
             const ribbonColors = {
               "BEST VALUE": "bg-blue-600",
               "BEST SELLER": "bg-red-600",
-              "EXCLUSIVE": "bg-purple-600",
+              EXCLUSIVE: "bg-purple-600",
               "TOP PICK": "bg-orange-600",
-              "NEW": "bg-emerald-600",
+              NEW: "bg-emerald-600",
             };
 
             const tags = [
@@ -87,14 +99,19 @@ export default function ActivitiesPage() {
                 {/* Image Section */}
                 <div className="relative h-48">
                   <img
-                    src={activity.images?.[0]?.url || "https://via.placeholder.com/400x300?text=Dubai+Experience"}
+                    src={
+                      activity.images?.[0]?.url ||
+                      "https://via.placeholder.com/400x300?text=Dubai+Experience"
+                    }
                     alt={activity.title}
                     className="w-full h-full object-cover"
                   />
 
                   {/* Ribbon Badge */}
                   <div className="absolute top-0 left-0">
-                    <span className={`${ribbonColors[ribbon]} text-white text-xs font-bold px-5 py-1.5 transform -rotate-45 -translate-x-3 -translate-y-3 shadow-lg`}>
+                    <span
+                      className={`${ribbonColors[ribbon]} text-white text-xs font-bold px-5 py-1.5 transform -rotate-45 -translate-x-3 -translate-y-3 shadow-lg`}
+                    >
                       {ribbon}
                     </span>
                   </div>
@@ -102,11 +119,16 @@ export default function ActivitiesPage() {
                   {/* Rating & Free Cancellation */}
                   <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center">
                     <div className="bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-md">
-                      <Star size={15} className="text-yellow-500 fill-yellow-500" />
+                      <Star
+                        size={15}
+                        className="text-yellow-500 fill-yellow-500"
+                      />
                       <span className="text-sm font-semibold text-gray-800">
                         {rating}
                       </span>
-                      <span className="text-xs text-gray-500">({reviewCount.toLocaleString()})</span>
+                      <span className="text-xs text-gray-500">
+                        ({reviewCount.toLocaleString()})
+                      </span>
                     </div>
 
                     {hasFreeCancellation && (
@@ -139,7 +161,10 @@ export default function ActivitiesPage() {
                   {/* Tags */}
                   <div className="flex flex-wrap gap-2">
                     {tags.map((tag) => (
-                      <span key={tag} className="text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded-full">
+                      <span
+                        key={tag}
+                        className="text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded-full"
+                      >
                         {tag}
                       </span>
                     ))}
@@ -156,7 +181,10 @@ export default function ActivitiesPage() {
 
                     <button className="bg-slate-900 text-white font-medium text-sm px-5 py-2.5 rounded-full flex items-center gap-1.5 hover:gap-2 hover:bg-slate-800 transition-all">
                       View Details
-                      <ChevronRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                      <ChevronRight
+                        size={16}
+                        className="transition-transform group-hover:translate-x-0.5"
+                      />
                     </button>
                   </div>
                 </div>
