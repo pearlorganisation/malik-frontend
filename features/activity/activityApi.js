@@ -4,9 +4,11 @@ export const activityApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // GET ALL ACTIVITIES
     getActivities: builder.query({
-      query: ({ page = 1, limit = 10, isActive } = {}) => {
+      query: ({ page = 1, limit = 10, isActive, category, location } = {}) => {
         const params = new URLSearchParams({ page, limit });
         if (isActive !== undefined) params.append("isActive", isActive);
+        if (category) params.append("category", category);
+        if (location) params.append("location", location);
         return `/activity?${params.toString()}`;
       },
       providesTags: ["Activity"],

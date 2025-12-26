@@ -5,6 +5,8 @@ import About from "@/components/Home/About.jsx";
 import FAQ from "@/components/Home/Faq.jsx";
 import Footer from "@/components/Footer.jsx";
 import ActivitiesPage from "@/components/Activity/AcrivityListing.jsx";
+import TrustSection from "@/components/Home/TrustSection";
+import DestinationGuide from "@/components/Home/DestinationGuide";
 
 export default function HomePage() {
   return (
@@ -12,6 +14,8 @@ export default function HomePage() {
       <Hero />
       <About />
       <ActivitiesPage />
+      <TrustSection />
+      <DestinationGuide/>
       <FAQ />
     </main>
   );

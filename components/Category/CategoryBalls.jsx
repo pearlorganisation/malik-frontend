@@ -4,7 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useGetCategoriesQuery } from "@/features/category/categoryApi"; // Adjust path if needed
 
-export default function CategoryBalls({ limit = 12, showAllLink = true }) {
+export default function CategoryBalls({
+  limit = 12,
+  showAllLink = true,
+  setSelectedCategory,
+}) {
   const { data: response, isLoading } = useGetCategoriesQuery({
     page: 1,
     limit: limit * 2,
@@ -40,9 +44,9 @@ export default function CategoryBalls({ limit = 12, showAllLink = true }) {
     <div className="px-4">
       <div className="flex flex-wrap justify-center gap-8 md:gap-12 ">
         {displayedCategories.map((category) => (
-          <Link
+          <div
             key={category._id}
-            href={`/categories/${category._id}`} // Adjust route as needed (e.g., /shop?category=id)
+            onClick={() => setSelectedCategory(category.name)}
             className="group flex flex-col items-center gap-4 transform transition-all duration-300 "
           >
             <div className="relative w-20 h-20 rounded-full overflow-hidden shadow-xl ring-4 ring-white group-hover:ring-blue-200 transition-all duration-500">
@@ -68,7 +72,7 @@ export default function CategoryBalls({ limit = 12, showAllLink = true }) {
             <h3 className="text-center font-semibold text-gray-800 group-hover:text-blue-600 transition-colors text-lg">
               {category.name}
             </h3>
-          </Link>
+          </div>
         ))}
       </div>
 

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Clock, Star, MapPin, Check, ChevronRight } from "lucide-react";
 import { useGetActivitiesQuery } from "@/features/activity/activityApi";
 import CategoryBalls from "../Category/CategoryBalls";
@@ -16,9 +17,11 @@ const getStartingPrice = (variants = []) => {
 
 export default function ActivitiesPage() {
   const router = useRouter();
+  const [selectedCategory, setSelectedCategory] = useState("");
   const { data, isLoading, isError } = useGetActivitiesQuery({
     page: 1,
     limit: 12,
+    category: selectedCategory,
   });
 
   if (isLoading) {
@@ -29,7 +32,8 @@ export default function ActivitiesPage() {
     );
   }
 
-  if (isError || !data?.activities?.length) {
+
+  if (isError) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <p className="text-lg text-red-600">Unable to load activities</p>
@@ -51,7 +55,13 @@ export default function ActivitiesPage() {
 
       {/* Horizontal Scrollable Cards */}
       <div className="overflow-x-auto px-6 pb-12 scrollbar-hide">
-        <CategoryBalls limit={8} showAllLink={true} />
+        <CategoryBalls
+          limit={8}
+          showAllLink={true}
+          setSelectedCategory={setSelectedCategory}
+        />
+
+        {data && data.activities.length > 0 && (
         <div className="flex gap-6 min-w-max my-4">
           {data.activities.map((activity, index) => {
             const price = getStartingPrice(activity.variants);
@@ -191,7 +201,8 @@ export default function ActivitiesPage() {
               </div>
             );
           })}
-        </div>
+          </div>)}
+        
       </div>
     </section>
   );

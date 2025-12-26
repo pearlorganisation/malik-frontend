@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useGetActivitiesQuery } from "@/features/activity/activityApi";
@@ -15,10 +15,13 @@ import {
 import CategoryBalls from "@/components/Category/CategoryBalls";
 
 export default function ActivitiesPage() {
+  const [selectedCategory, setSelectedCategory] = useState("");
   const { data, isLoading, error } = useGetActivitiesQuery({
     page: 1,
     limit: 20,
+    category: selectedCategory,
   });
+
   const activities = data?.activities || [];
   const total = data?.total || 0;
 
@@ -76,7 +79,11 @@ export default function ActivitiesPage() {
           </p>
         </div>
       </div>
-      <CategoryBalls limit={8} showAllLink={true} />
+      <CategoryBalls
+        limit={8}
+        showAllLink={true}
+        setSelectedCategory={setSelectedCategory}
+      />
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-6 py-10">
