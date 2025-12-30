@@ -46,7 +46,6 @@ const popularCities = [
   },
 ];
 
-
 // Dummy popular tours
 const popularTours = [
   {
@@ -104,7 +103,6 @@ const popularTours = [
       "https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?w=600&h=400&fit=crop",
   },
 ];
-
 
 export default function MegaMenu({ isOpen = false, onClose = () => {} }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -197,7 +195,7 @@ export default function MegaMenu({ isOpen = false, onClose = () => {} }) {
                           className="group flex items-center gap-3 p-3 rounded-xl hover:bg-amber-50 transition-all border border-transparent hover:border-amber-200"
                         >
                           {category.image?.secure_url ? (
-                            <div className="relative w-12 h-12 rounded-xl overflow-hidden shadow-sm flex-shrink-0">
+                            <div className="relative w-12 h-12 rounded-xl overflow-hidden shadow-sm shrink-0">
                               <Image
                                 src={category.image.secure_url}
                                 alt={category.name}
@@ -248,7 +246,7 @@ export default function MegaMenu({ isOpen = false, onClose = () => {} }) {
                           onClick={handleLinkClick}
                           className="group flex items-center gap-4 p-3 rounded-xl hover:bg-amber-50 transition-all duration-300"
                         >
-                          <div className="relative w-14 h-14 rounded-full overflow-hidden shadow-md flex-shrink-0">
+                          <div className="relative w-14 h-14 rounded-full overflow-hidden shadow-md shrink-0">
                             <Image
                               src={city.image}
                               alt={city.name}
@@ -300,7 +298,7 @@ export default function MegaMenu({ isOpen = false, onClose = () => {} }) {
                           className="group flex items-center gap-4 p-3 rounded-xl hover:bg-amber-50 transition-all duration-300 border border-transparent hover:border-amber-200"
                         >
                           {/* Circular Image */}
-                          <div className="relative w-14 h-14 rounded-full overflow-hidden shadow-md flex-shrink-0">
+                          <div className="relative w-14 h-14 rounded-full overflow-hidden shadow-md shrink-0">
                             <Image
                               src={tour.image}
                               alt={tour.title}

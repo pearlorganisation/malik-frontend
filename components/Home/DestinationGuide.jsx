@@ -100,7 +100,7 @@ export default function DestinationGuide() {
             {destinations.map((dest) => (
               <div
                 key={dest.emirate}
-                className="relative w-80 flex-shrink-0 rounded-3xl overflow-hidden shadow-lg group cursor-pointer transition-transform hover:scale-105"
+                className="relative w-80 shrink-0 rounded-3xl overflow-hidden shadow-lg group cursor-pointer transition-transform hover:scale-105"
               >
                 {/* Image */}
                 <div className="aspect-[4/5] relative">

@@ -27,12 +27,17 @@ export default function ActivityDetailPage() {
   const id = params?.id;
 
   // Existing Query
-  const { data: activity, isLoading, isError } = useGetActivityByIdQuery(id, {
+  const {
+    data: activity,
+    isLoading,
+    isError,
+  } = useGetActivityByIdQuery(id, {
     skip: !id,
   });
 
   // New Mutation
-  const [createBooking, { isLoading: isBooking, error: bookingError }] = useCreateBookingMutation();
+  const [createBooking, { isLoading: isBooking, error: bookingError }] =
+    useCreateBookingMutation();
 
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [isVariantExpanded, setIsVariantExpanded] = useState(true);
@@ -199,7 +204,7 @@ export default function ActivityDetailPage() {
           <h1 className="text-2xl md:text-4xl lg:text-5xl font-extrabold text-slate-900 leading-tight tracking-tight">
             {activity.title}
           </h1>
-           <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <span className="px-2.5 py-1 bg-amber-100 text-amber-700 text-[10px] md:text-xs font-bold rounded-full flex items-center gap-1">
               <Star size={10} className="fill-current" /> Bestseller
             </span>
@@ -349,7 +354,7 @@ export default function ActivityDetailPage() {
                         <div className="flex items-start gap-4">
                           {/* Radio Circle */}
                           <div
-                            className={`mt-1 md:mt-0 w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                            className={`mt-1 md:mt-0 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
                               isSelected
                                 ? "border-indigo-600 bg-indigo-50"
                                 : "border-slate-300 bg-transparent"
@@ -401,9 +406,7 @@ export default function ActivityDetailPage() {
                           )}
                           <ChevronDown
                             className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${
-                              isExpanded
-                                ? "rotate-180 text-indigo-600"
-                                : ""
+                              isExpanded ? "rotate-180 text-indigo-600" : ""
                             }`}
                           />
                         </div>
@@ -519,7 +522,7 @@ export default function ActivityDetailPage() {
                               key={k}
                               className="text-slate-600 text-sm flex items-start gap-2.5"
                             >
-                              <span className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-2 flex-shrink-0" />
+                              <span className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-2 shrink-0" />
                               {act}
                             </li>
                           ))}
@@ -578,9 +581,7 @@ export default function ActivityDetailPage() {
                             key={i}
                             className="flex gap-3 text-sm text-slate-600 bg-slate-50 p-3.5 rounded-xl border border-slate-100"
                           >
-                            <span className="font-bold text-indigo-500">
-                              •
-                            </span>{" "}
+                            <span className="font-bold text-indigo-500">•</span>{" "}
                             {info}
                           </div>
                         ))}
@@ -778,13 +779,14 @@ export default function ActivityDetailPage() {
                   <button className="w-full py-3 rounded-xl font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition-colors text-xs md:text-sm">
                     Book via WhatsApp
                   </button>
-                  
+
                   {/* Basic Error Message Display */}
                   {bookingError && (
-                     <div className="text-center p-2 bg-red-50 text-red-600 text-xs rounded-lg border border-red-100">
-                        {/* @ts-ignore */}
-                        {bookingError?.data?.message || "Booking failed. Please try again."}
-                     </div>
+                    <div className="text-center p-2 bg-red-50 text-red-600 text-xs rounded-lg border border-red-100">
+                      {/* @ts-ignore */}
+                      {bookingError?.data?.message ||
+                        "Booking failed. Please try again."}
+                    </div>
                   )}
                 </div>
               </div>
