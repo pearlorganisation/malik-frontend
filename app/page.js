@@ -15,7 +15,7 @@ export default function HomePage() {
       <About />
       <ActivitiesPage />
       <TrustSection />
-      <DestinationGuide/>
+      {/* <DestinationGuide/> */}
       <FAQ />
     </main>
   );

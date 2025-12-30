@@ -23,8 +23,8 @@ import MegaMenu from "./Home/MegaMenu";
 const NAV_ITEMS = [
   { label: "Explore", href: "/" },
   { label: "Activities", href: "/activity" },
-  { label: "The City", href: "/about" },
-  { label: "Support", href: "/contact" },
+  // { label: "The City", href: "/about" },
+  { label: "Contact Us", href: "/contact" },
 ];
 
 export default function Header() {

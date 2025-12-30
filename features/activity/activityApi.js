@@ -4,11 +4,21 @@ export const activityApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // GET ALL ACTIVITIES
     getActivities: builder.query({
-      query: ({ page = 1, limit = 10, isActive, category, location } = {}) => {
+      query: ({ page = 1, limit = 10, isActive, categories, duration, location } = {}) => {
         const params = new URLSearchParams({ page, limit });
+
         if (isActive !== undefined) params.append("isActive", isActive);
-        if (category) params.append("category", category);
+
+        // Support multiple categories as comma-separated string
+        if (categories) {
+          // categories can be array or string
+          const categoryParam = Array.isArray(categories) ? categories.join(",") : categories;
+          params.append("categories", categoryParam);
+        }
+
+        if (duration) params.append("duration", duration);
         if (location) params.append("location", location);
+
         return `/activity?${params.toString()}`;
       },
       providesTags: ["Activity"],
