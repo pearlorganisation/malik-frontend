@@ -5,8 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { MapPin } from "lucide-react";
 import { useGetCategoriesQuery } from "@/features/category/categoryApi";
+import { useGetPopularActivitiesQuery } from "@/features/activity/activityApi"; // <-- Add this import
 
-// Dummy popular cities
+// Dummy popular cities (kept as-is)
 const popularCities = [
   {
     name: "Dubai",
@@ -46,70 +47,18 @@ const popularCities = [
   },
 ];
 
-// Dummy popular tours
-const popularTours = [
-  {
-    id: 1,
-    title: "Desert Safari with BBQ Dinner",
-    price: "AED 250",
-    rating: 4.8,
-    reviews: 1250,
-    image:
-      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=600&h=400&fit=crop",
-  },
-  {
-    id: 2,
-    title: "Burj Khalifa At The Top",
-    price: "AED 169",
-    rating: 4.9,
-    reviews: 3420,
-    image:
-      "https://images.unsplash.com/photo-1512453979798-5ea6868da738?w=600&h=400&fit=crop",
-  },
-  {
-    id: 3,
-    title: "Dubai Marina Yacht Tour",
-    price: "AED 399",
-    rating: 4.7,
-    reviews: 890,
-    image:
-      "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?w=600&h=400&fit=crop",
-  },
-  {
-    id: 4,
-    title: "Abu Dhabi City Tour",
-    price: "AED 300",
-    rating: 4.6,
-    reviews: 670,
-    image:
-      "https://images.unsplash.com/photo-1546412414-8035e1776c9a?w=600&h=400&fit=crop",
-  },
-  {
-    id: 5,
-    title: "Dhow Cruise with Dinner",
-    price: "AED 150",
-    rating: 4.5,
-    reviews: 2100,
-    image:
-      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=600&h=400&fit=crop",
-  },
-  {
-    id: 6,
-    title: "Hot Air Balloon Ride",
-    price: "AED 999",
-    rating: 5.0,
-    reviews: 450,
-    image:
-      "https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?w=600&h=400&fit=crop",
-  },
-];
-
 export default function MegaMenu({ isOpen = false, onClose = () => {} }) {
   const [searchQuery, setSearchQuery] = useState("");
   const inputRef = useRef(null);
 
-  const { data: response, isLoading } = useGetCategoriesQuery({ limit: 30 });
-  const categories = response?.data || [];
+  const { data: catResponse, isLoading: isLoadingCategories } =
+    useGetCategoriesQuery({ limit: 30 });
+  const categories = catResponse?.data || [];
+
+  // Fetch popular activities (tours)
+  const { data: actResponse, isLoading: isLoadingActivities } =
+    useGetPopularActivitiesQuery({ limit: 10 });
+  const popularActivities = actResponse?.activities || [];
 
   // Filter results
   const filteredCategories = categories.filter((cat) =>
@@ -120,8 +69,8 @@ export default function MegaMenu({ isOpen = false, onClose = () => {} }) {
     city.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredTours = popularTours.filter((tour) =>
-    tour.title.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredActivities = popularActivities.filter((activity) =>
+    activity.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleLinkClick = () => {
@@ -172,7 +121,7 @@ export default function MegaMenu({ isOpen = false, onClose = () => {} }) {
                     Categories & Activities
                   </h3>
 
-                  {isLoading ? (
+                  {isLoadingCategories ? (
                     <div className="grid grid-cols-1 gap-3">
                       {[...Array(6)].map((_, i) => (
                         <div
@@ -226,7 +175,7 @@ export default function MegaMenu({ isOpen = false, onClose = () => {} }) {
                   )}
                 </div>
 
-                {/* Popular Destinations - Circular image left, name right */}
+                {/* Popular Destinations */}
                 <div>
                   <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
                     <MapPin size={24} className="text-amber-500" />
@@ -278,50 +227,69 @@ export default function MegaMenu({ isOpen = false, onClose = () => {} }) {
                   )}
                 </div>
 
-                {/* Popular Tours - Same style: Circular image left, info right */}
+                {/* Popular Tours / Activities from API */}
                 <div>
                   <h3 className="text-xl font-bold text-slate-900 mb-4">
                     Popular Tours
                   </h3>
 
-                  {filteredTours.length === 0 && searchQuery ? (
+                  {isLoadingActivities ? (
+                    <div className="space-y-3">
+                      {[...Array(6)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center gap-4 p-3 rounded-xl bg-slate-100 animate-pulse"
+                        >
+                          <div className="w-14 h-14 rounded-full bg-slate-200" />
+                          <div className="flex-1">
+                            <div className="h-4 bg-slate-200 rounded w-3/4 mb-2" />
+                            <div className="h-3 bg-slate-200 rounded w-1/2" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : filteredActivities.length === 0 && searchQuery ? (
                     <p className="text-sm text-slate-500 py-4">
                       No tours found
                     </p>
                   ) : (
                     <div className="space-y-3">
-                      {filteredTours.map((tour) => (
+                      {filteredActivities.map((activity) => (
                         <Link
-                          key={tour.id}
-                          href={`/tours/${tour.id}`}
+                          key={activity._id}
+                          href={`/tours/${activity._id}`} // Adjust slug if needed
                           onClick={handleLinkClick}
                           className="group flex items-center gap-4 p-3 rounded-xl hover:bg-amber-50 transition-all duration-300 border border-transparent hover:border-amber-200"
                         >
                           {/* Circular Image */}
                           <div className="relative w-14 h-14 rounded-full overflow-hidden shadow-md shrink-0">
                             <Image
-                              src={tour.image}
-                              alt={tour.title}
+                              src={
+                                activity.images?.[0]?.url || "/placeholder.jpg"
+                              }
+                              alt={activity.title}
                               fill
                               className="object-cover group-hover:scale-110 transition-transform duration-500"
                             />
                             {/* Rating Badge */}
-                            <div className="absolute -top-1 -right-1 bg-white shadow-md px-2 py-1 rounded-full text-xs font-bold text-slate-700">
-                              ★ {tour.rating}
-                            </div>
+                            {activity.rating && (
+                              <div className="absolute -top-1 -right-1 bg-white shadow-md px-2 py-1 rounded-full text-xs font-bold text-slate-700">
+                                ★ {activity.rating.toFixed(1)}
+                              </div>
+                            )}
                           </div>
 
                           {/* Tour Info */}
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold text-slate-800 group-hover:text-amber-700 line-clamp-2">
-                              {tour.title}
+                              {activity.title}
                             </p>
                             <div className="flex items-center justify-between mt-1">
                               <p className="text-sm text-slate-500">
-                                {tour.reviews.toLocaleString()} reviews
+                                {activity.reviewCount || 0} reviews
                               </p>
                               <p className="text-lg font-bold text-amber-600">
-                                {tour.price}
+                                AED {activity.price}
                               </p>
                             </div>
                           </div>

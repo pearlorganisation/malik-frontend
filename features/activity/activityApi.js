@@ -4,7 +4,14 @@ export const activityApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // GET ALL ACTIVITIES
     getActivities: builder.query({
-      query: ({ page = 1, limit = 10, isActive, categories, duration, location } = {}) => {
+      query: ({
+        page = 1,
+        limit = 10,
+        isActive,
+        categories,
+        duration,
+        location,
+      } = {}) => {
         const params = new URLSearchParams({ page, limit });
 
         if (isActive !== undefined) params.append("isActive", isActive);
@@ -12,7 +19,9 @@ export const activityApi = baseApi.injectEndpoints({
         // Support multiple categories as comma-separated string
         if (categories) {
           // categories can be array or string
-          const categoryParam = Array.isArray(categories) ? categories.join(",") : categories;
+          const categoryParam = Array.isArray(categories)
+            ? categories.join(",")
+            : categories;
           params.append("categories", categoryParam);
         }
 
@@ -20,6 +29,14 @@ export const activityApi = baseApi.injectEndpoints({
         if (location) params.append("location", location);
 
         return `/activity?${params.toString()}`;
+      },
+      providesTags: ["Activity"],
+    }),
+
+    getPopularActivities: builder.query({
+      query: ({ limit = 10 } = {}) => {
+        const params = new URLSearchParams({ limit });
+        return `/activity/popular?${params.toString()}`;
       },
       providesTags: ["Activity"],
     }),
@@ -72,6 +89,7 @@ export const activityApi = baseApi.injectEndpoints({
 
 export const {
   useGetActivitiesQuery,
+  useGetPopularActivitiesQuery,
   useGetActivityByIdQuery,
   useCreateActivityMutation,
   useUpdateActivityMutation,
