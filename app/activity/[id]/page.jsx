@@ -20,6 +20,7 @@ import {
   ChevronDown,
   Loader2, // Added Loader icon
 } from "lucide-react";
+import ActivityReviews from "@/components/Review/ActivityReviews";
 
 export default function ActivityDetailPage() {
   const params = useParams();
@@ -794,6 +795,7 @@ export default function ActivityDetailPage() {
           </div>
         </div>
       </main>
+      <ActivityReviews activityId={activity._id} />
     </div>
   );
 }
