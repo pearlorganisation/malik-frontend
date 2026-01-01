@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { Phone, Mail, MapPin, Clock } from "lucide-react";
+import CallbackForm from "@/components/Home/ContactForm"; 
 
 export default function ContactSection() {
   return (
@@ -26,9 +27,7 @@ export default function ContactSection() {
               </div>
               <div>
                 <h3 className="text-xl font-bold text-slate-900">Phone</h3>
-                <p className="text-slate-600 mt-1 text-lg">
-                  +971 50 190 2213
-                </p>
+                <p className="text-slate-600 mt-1 text-lg">+971 50 190 2213</p>
               </div>
             </div>
 
@@ -39,9 +38,7 @@ export default function ContactSection() {
               </div>
               <div>
                 <h3 className="text-xl font-bold text-slate-900">Email</h3>
-                <p className="text-slate-600 mt-1 text-lg">
-                  info@funtoursdubai.com
-                </p>
+                <p className="text-slate-600 mt-1 text-lg">info@funtoursdubai.com</p>
               </div>
             </div>
 
@@ -77,69 +74,8 @@ export default function ContactSection() {
         </div>
 
         {/* Right Column */}
-        <div className="bg-gray-50 rounded-3xl p-8 md:p-10 shadow-sm border border-gray-100">
-          <h2 className="text-3xl font-bold text-slate-900 mb-4">
-            Get In Touch
-          </h2>
-          <p className="text-slate-600 mb-8 leading-relaxed">
-            Have questions or ready to book? Drop us a message — your UAE adventure begins here!
-          </p>
-
-          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="John Doe"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  placeholder="john@example.com"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">
-                Subject
-              </label>
-              <input
-                type="text"
-                placeholder="Tour Inquiry"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">
-                Message
-              </label>
-              <textarea
-                rows={4}
-                placeholder="Tell us about your plans..."
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none resize-none"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition shadow-lg shadow-slate-900/10"
-            >
-              Send Message
-            </button>
-          </form>
-        </div>
+          <CallbackForm />
+        
       </div>
     </section>
   );
