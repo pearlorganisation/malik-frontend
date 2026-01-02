@@ -36,21 +36,19 @@ export default function Header() {
 
   const [logoutMutation, { isLoading: isLoggingOut }] = useLogoutMutation();
 
-  const [mounted, setMounted] = useState(false); // ✅ hydration fix
+  const [mounted, setMounted] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   const profileRef = useRef(null);
-  const searchContainerRef = useRef(null);
+  // Remove searchContainerRef — no longer needed for click outside
 
-  /* ---------------- CLIENT MOUNT ---------------- */
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  /* ---------------- SCROLL EFFECT ---------------- */
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", onScroll);
@@ -68,21 +66,20 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  /* ---------------- CLOSE MEGA MENU ---------------- */
+  /* ---------------- REMOVE THIS ENTIRE useEffect ---------------- */
+  // DELETE THIS BLOCK — it was conflicting with MegaMenu
+  /*
   useEffect(() => {
     if (!isMegaMenuOpen) return;
-
     const handler = (e) => {
-      if (
-        searchContainerRef.current &&
-        !searchContainerRef.current.contains(e.target)
-      ) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
         setIsMegaMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [isMegaMenuOpen]);
+  */
 
   /* ---------------- CLOSE ALL ON ROUTE CHANGE ---------------- */
   useEffect(() => {
@@ -91,7 +88,6 @@ export default function Header() {
     setIsMegaMenuOpen(false);
   }, [pathname]);
 
-  /* ---------------- LOGOUT ---------------- */
   const handleLogout = async () => {
     try {
       await logoutMutation().unwrap();
@@ -106,7 +102,7 @@ export default function Header() {
 
   return (
     <>
-      {/* Mega Menu */}
+      {/* Mega Menu - now fully controls its own open/close */}
       <MegaMenu
         isOpen={isMegaMenuOpen}
         onClose={() => setIsMegaMenuOpen(false)}
@@ -135,17 +131,15 @@ export default function Header() {
               </div>
             </Link>
 
-            {/* Search */}
-            <div
-              ref={searchContainerRef}
-              className="hidden lg:flex flex-1 max-w-xl mx-8"
-            >
+            {/* Search - Desktop */}
+            <div className="hidden lg:flex flex-1 max-w-xl mx-8">
               <div className="relative w-full">
                 <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   onFocus={() => setIsMegaMenuOpen(true)}
+                  onClick={() => setIsMegaMenuOpen(true)} // Also open on click
                   placeholder="Search tours, activities, cities..."
-                  className="w-full pl-14 pr-6 py-4 rounded-2xl border border-slate-200 bg-slate-50 focus:border-amber-400 focus:ring-4 focus:ring-amber-100"
+                  className="w-full pl-14 pr-6 py-4 rounded-2xl border border-slate-200 bg-slate-50 focus:border-amber-400 focus:ring-4 focus:ring-amber-100 cursor-pointer"
                 />
               </div>
             </div>
@@ -167,8 +161,9 @@ export default function Header() {
               ))}
             </nav>
 
-            {/* Right */}
+            {/* Right Side */}
             <div className="flex items-center gap-3">
+              {/* Mobile Search Button */}
               <button
                 onClick={() => setIsMegaMenuOpen(true)}
                 className="lg:hidden p-3 rounded-xl bg-slate-100"
@@ -176,7 +171,7 @@ export default function Header() {
                 <Search size={20} />
               </button>
 
-              {/* ✅ AUTH (HYDRATION SAFE) */}
+              {/* Auth */}
               {!mounted ? (
                 <div className="hidden sm:flex w-[120px] h-[44px]" />
               ) : isAuthenticated ? (
@@ -233,6 +228,7 @@ export default function Header() {
                 </div>
               )}
 
+              {/* Mobile Menu */}
               <button
                 onClick={() => setIsMenuOpen(true)}
                 className="lg:hidden p-3 rounded-xl bg-slate-100"
@@ -244,9 +240,9 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Drawer - unchanged */}
       <div
-        className={`fixed inset-0 z-[200] ${
+        className={`fixed inset-0 z-[200] transition-opacity ${
           isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={() => setIsMenuOpen(false)}
@@ -264,6 +260,7 @@ export default function Header() {
               <X />
             </button>
           </div>
+          {/* Mobile menu items here if needed */}
         </div>
       </div>
     </>

@@ -2,7 +2,7 @@ import { baseApi } from "@/services/baseApi";
 
 export const activityApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    // GET ALL ACTIVITIES
+    // ================= GET ALL ACTIVITIES =================
     getActivities: builder.query({
       query: ({
         page = 1,
@@ -16,9 +16,8 @@ export const activityApi = baseApi.injectEndpoints({
 
         if (isActive !== undefined) params.append("isActive", isActive);
 
-        // Support multiple categories as comma-separated string
+        // Support multiple categories
         if (categories) {
-          // categories can be array or string
           const categoryParam = Array.isArray(categories)
             ? categories.join(",")
             : categories;
@@ -33,6 +32,7 @@ export const activityApi = baseApi.injectEndpoints({
       providesTags: ["Activity"],
     }),
 
+    // ================= POPULAR ACTIVITIES =================
     getPopularActivities: builder.query({
       query: ({ limit = 10 } = {}) => {
         const params = new URLSearchParams({ limit });
@@ -41,13 +41,22 @@ export const activityApi = baseApi.injectEndpoints({
       providesTags: ["Activity"],
     }),
 
-    // GET SINGLE ACTIVITY
+    // ================= POPULAR LOCATIONS (NEW) =================
+    getPopularLocations: builder.query({
+      query: ({ limit = 10 } = {}) => {
+        const params = new URLSearchParams({ limit });
+        return `/activity/popular-locations?${params.toString()}`;
+      },
+      providesTags: ["Activity"],
+    }),
+
+    // ================= GET SINGLE ACTIVITY =================
     getActivityById: builder.query({
       query: (id) => `/activity/${id}`,
       providesTags: (result, error, id) => [{ type: "Activity", id }],
     }),
 
-    // CREATE ACTIVITY
+    // ================= CREATE ACTIVITY =================
     createActivity: builder.mutation({
       query: (data) => ({
         url: "/activity",
@@ -57,7 +66,7 @@ export const activityApi = baseApi.injectEndpoints({
       invalidatesTags: ["Activity"],
     }),
 
-    // UPDATE ACTIVITY
+    // ================= UPDATE ACTIVITY =================
     updateActivity: builder.mutation({
       query: ({ id, data }) => ({
         url: `/activity/${id}`,
@@ -67,7 +76,7 @@ export const activityApi = baseApi.injectEndpoints({
       invalidatesTags: ["Activity"],
     }),
 
-    // DELETE ACTIVITY
+    // ================= DELETE ACTIVITY =================
     deleteActivity: builder.mutation({
       query: (id) => ({
         url: `/activity/${id}`,
@@ -76,7 +85,7 @@ export const activityApi = baseApi.injectEndpoints({
       invalidatesTags: ["Activity"],
     }),
 
-    // TOGGLE ACTIVE STATUS
+    // ================= TOGGLE ACTIVE STATUS =================
     toggleActivityStatus: builder.mutation({
       query: (id) => ({
         url: `/activity/${id}/toggle-active`,
@@ -90,6 +99,7 @@ export const activityApi = baseApi.injectEndpoints({
 export const {
   useGetActivitiesQuery,
   useGetPopularActivitiesQuery,
+  useGetPopularLocationsQuery, // ✅ NEW
   useGetActivityByIdQuery,
   useCreateActivityMutation,
   useUpdateActivityMutation,
