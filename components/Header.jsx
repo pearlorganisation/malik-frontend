@@ -108,7 +108,7 @@ export default function Header() {
         onClose={() => setIsMegaMenuOpen(false)}
       />
 
-      {/* Header */}
+      {/* Header */} 
       <header
         className={`fixed left-0 right-0 z-90 transition-all duration-500 ${
           scrolled ? "top-2 px-3" : "top-6 px-3"
