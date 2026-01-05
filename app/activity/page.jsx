@@ -33,6 +33,12 @@ function ActivitiesContent() {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedDuration, setSelectedDuration] = useState("");
 
+  // ADD THIS
+const CATEGORY_LIMIT = 4;
+const [showAllCategories, setShowAllCategories] = useState(false);
+
+
+
   const searchParams = useSearchParams();
   const categoryFromUrl = searchParams.get("category");
 
@@ -49,6 +55,10 @@ function ActivitiesContent() {
   });
 
   const sidebarCategories = categoryResponse?.data || [];
+
+  const visibleCategories = showAllCategories
+  ? sidebarCategories
+  : sidebarCategories.slice(0, CATEGORY_LIMIT);
 
   /* ===== Activities ===== */
   const { data, isLoading, error } = useGetActivitiesQuery({
@@ -91,6 +101,12 @@ function ActivitiesContent() {
     );
     return min === Infinity ? 0 : min;
   };
+
+    const getRatingText = (activity) => {
+  if (!activity.rating) return "No reviews";
+  return `${activity.rating} ★ (${activity.reviewCount || 0})`;
+};
+
 
   /* ===== STATES ===== */
   if (isLoading) {
@@ -159,17 +175,27 @@ function ActivitiesContent() {
             <div className="bg-white rounded-xl p-5 shadow-sm">
               <h3 className="font-semibold mb-4">Categories</h3>
               <ul className="space-y-3">
-                {sidebarCategories.map((cat) => (
-                  <li key={cat._id} className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={selectedCategories.includes(cat.name)}
-                      onChange={() => toggleCategory(cat.name)}
-                    />
-                    <span>{cat.name}</span>
-                  </li>
-                ))}
-              </ul>
+  {visibleCategories.map((cat) => (
+    <li key={cat._id} className="flex items-center gap-2 text-sm">
+      <input
+        type="checkbox"
+        checked={selectedCategories.includes(cat.name)}
+        onChange={() => toggleCategory(cat.name)}
+      />
+      <span>{cat.name}</span>
+    </li>
+  ))}
+</ul>
+{/* SEE ALL TOGGLE */}
+{sidebarCategories.length > CATEGORY_LIMIT && (
+  <button
+    onClick={() => setShowAllCategories((prev) => !prev)}
+    className="mt-3 text-sm text-indigo-600 hover:underline font-medium"
+  >
+    {showAllCategories ? "Show less" : "See all"}
+  </button>
+)}
+
             </div>
 
             <div className="bg-white rounded-xl p-5 shadow-sm">
@@ -211,24 +237,55 @@ function ActivitiesContent() {
                     className="object-cover"
                   />
                 </div>
+                
 
-                <div className="p-5 space-y-4">
-                  <h3 className="font-bold line-clamp-2">
-                    {activity.title}
-                  </h3>
+                <div className="p-5 space-y-3">
+  {/* CATEGORY */}
+  <span className="inline-block text-xs font-medium bg-indigo-50 text-indigo-600 px-2 py-1 rounded">
+    {activity.category}
+  </span>
 
-                  <div className="flex items-center gap-1 text-sm">
-                    <Clock size={14} />
-                    {activity.duration?.hours}h
-                  </div>
+  {/* TITLE */}
+  <h3 className="font-bold line-clamp-2">
+    {activity.title}
+  </h3>
 
-                  <div className="flex justify-between items-center">
-                    <span className="text-xl font-bold">
-                      AED {getLowestPrice(activity)}
-                    </span>
-                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                  </div>
-                </div>
+  {/* SHORT DESCRIPTION */}
+  <p className="text-sm text-gray-600 line-clamp-2">
+    {activity.shortDescription}
+  </p>
+
+  {/* META INFO */}
+  <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
+    <div className="flex items-center gap-1">
+      <Clock size={14} />
+      {activity.duration?.hours}h
+    </div>
+
+    {activity.liveGuide && (
+      <span className="text-green-600 font-medium">Live guide</span>
+    )}
+
+    {activity.pickup?.included && (
+      <span className="text-blue-600 font-medium">Pickup included</span>
+    )}
+  </div>
+
+  {/* PRICE + RATING */}
+  <div className="flex justify-between items-center pt-3 ">
+    <span className="text-lg font-bold">
+      AED {getLowestPrice(activity)}
+    </span>
+
+    <div className="flex items-center gap-1 text-sm text-gray-600">
+      <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+      {activity.rating
+        ? `${activity.rating} (${activity.reviewCount || 0})`
+        : "No reviews"}
+    </div>
+  </div>
+</div>
+
               </Link>
             ))}
           </div>
