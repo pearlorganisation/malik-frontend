@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { MapPin } from "lucide-react";
 import { useGetAllPlacesQuery } from "@/features/place/placeApi";
+import Link from "next/link";
 
 export default function DestinationGuide() {
   const { data, isLoading, error } = useGetAllPlacesQuery();
@@ -70,7 +71,8 @@ export default function DestinationGuide() {
         <div className="overflow-x-auto -mx-6 px-6 scrollbar-hide">
           <div className="flex gap-6 pb-4 min-w-max">
             {destinations.map((dest) => (
-              <div
+              <Link
+                href={`/places/${dest._id}`}
                 key={dest._id} // Use unique _id instead of emirate
                 className="relative w-80 shrink-0 rounded-3xl overflow-hidden shadow-lg group cursor-pointer transition-transform hover:scale-105"
               >
@@ -105,7 +107,7 @@ export default function DestinationGuide() {
                       "Discover amazing experiences in this beautiful destination."}
                   </p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

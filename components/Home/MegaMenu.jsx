@@ -95,7 +95,7 @@ export default function MegaMenu({ isOpen = false, onClose = () => {} }) {
                       {categories.slice(0, 10).map((category) => (
                         <Link
                           key={category._id}
-                          href={`/categories/${category._id}`}
+                          href={`/categories/${category.name}`}
                           className="block px-3 py-2 rounded-lg hover:bg-amber-100 transition-all text-sm font-medium text-slate-700 hover:text-amber-700"
                         >
                           {category.name}
