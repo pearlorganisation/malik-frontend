@@ -240,29 +240,107 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Mobile Drawer - unchanged */}
-      <div
-        className={`fixed inset-0 z-[200] transition-opacity ${
-          isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
-        onClick={() => setIsMenuOpen(false)}
-      >
-        <div className="absolute inset-0 bg-black/30" />
-        <div
-          className={`absolute right-0 top-0 h-full w-[85%] max-w-sm bg-white transition-transform ${
-            isMenuOpen ? "translate-x-0" : "translate-x-full"
-          }`}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="p-5 flex justify-between border-b">
-            <span className="font-black text-xl">DUBAITOURS</span>
-            <button onClick={() => setIsMenuOpen(false)}>
-              <X />
-            </button>
-          </div>
-          {/* Mobile menu items here if needed */}
-        </div>
+      {/* Mobile Drawer */}
+<div
+  className={`fixed inset-0 z-[200] transition-opacity ${
+    isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+  }`}
+  onClick={() => setIsMenuOpen(false)}
+>
+  <div className="absolute inset-0 bg-black/30" />
+  <div
+    className={`absolute right-0 top-0 h-full w-[85%] max-w-sm bg-white transition-transform ${
+      isMenuOpen ? "translate-x-0" : "translate-x-full"
+    }`}
+    onClick={(e) => e.stopPropagation()}
+  >
+    <div className="p-5 flex justify-between border-b">
+      <span className="font-black text-xl">DUBAITOURS</span>
+      <button onClick={() => setIsMenuOpen(false)}>
+        <X />
+      </button>
+    </div>
+
+    {/* Mobile Search */}
+    <div className="p-5">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <input
+          onFocus={() => setIsMegaMenuOpen(true)}
+          placeholder="Search tours, activities, cities..."
+          className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+        />
       </div>
+    </div>
+
+    {/* Mobile Menu Links */}
+    <nav className="flex flex-col gap-2 p-5">
+      {NAV_ITEMS.map((item) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          className={`px-4 py-3 rounded-lg text-sm font-semibold ${
+            pathname === item.href
+              ? "bg-amber-100 text-amber-600"
+              : "text-slate-700 hover:bg-slate-100"
+          }`}
+          onClick={() => setIsMenuOpen(false)} // Close menu on click
+        >
+          {item.label}
+        </Link>
+      ))}
+    </nav>
+
+    {/* Auth Links */}
+    <div className="flex flex-col gap-3 p-5">
+      {!isAuthenticated ? (
+        <>
+          <Link
+            href="/login"
+            className="px-4 py-3 bg-slate-900 text-white rounded-lg text-center"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Sign In
+          </Link>
+          <Link
+            href="/signup"
+            className="px-4 py-3 bg-amber-500 text-center rounded-lg font-bold"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Get Started
+          </Link>
+        </>
+      ) : (
+        <>
+          <Link
+            href="/dashboard"
+            className="px-4 py-3 hover:bg-slate-50 rounded-lg"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Dashboard
+          </Link>
+          <Link
+            href="/account"
+            className="px-4 py-3 hover:bg-slate-50 rounded-lg"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Account
+          </Link>
+          <button
+            onClick={() => {
+              handleLogout();
+              setIsMenuOpen(false);
+            }}
+            className="px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg"
+          >
+            Logout
+          </button>
+        </>
+      )}
+    </div>
+  </div>
+</div>
+
     </>
   );
 }
