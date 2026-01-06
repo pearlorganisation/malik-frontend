@@ -4,6 +4,7 @@ import { useGetActivitiesByCategoryQuery } from "@/features/activity/activityApi
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { Star, Clock, MapPin, Ticket } from "lucide-react";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function ActivityPage() {
   const { category } = useParams();
@@ -15,9 +16,7 @@ export default function ActivityPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-32">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
-      </div>
+      <LoadingSpinner size={80} color="border-blue-600" className="py-40" />
     );
   }
 
