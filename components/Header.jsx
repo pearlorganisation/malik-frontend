@@ -39,7 +39,7 @@ export default function Header() {
   const [mounted, setMounted] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
+
   const [scrolled, setScrolled] = useState(false);
 
   const profileRef = useRef(null);
@@ -66,28 +66,6 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  /* ---------------- REMOVE THIS ENTIRE useEffect ---------------- */
-  // DELETE THIS BLOCK — it was conflicting with MegaMenu
-  /*
-  useEffect(() => {
-    if (!isMegaMenuOpen) return;
-    const handler = (e) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
-        setIsMegaMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [isMegaMenuOpen]);
-  */
-
-  /* ---------------- CLOSE ALL ON ROUTE CHANGE ---------------- */
-  useEffect(() => {
-    setIsMenuOpen(false);
-    setIsProfileOpen(false);
-    setIsMegaMenuOpen(false);
-  }, [pathname]);
-
   const handleLogout = async () => {
     try {
       await logoutMutation().unwrap();
@@ -102,13 +80,8 @@ export default function Header() {
 
   return (
     <>
-      {/* Mega Menu - now fully controls its own open/close */}
-      <MegaMenu
-        isOpen={isMegaMenuOpen}
-        onClose={() => setIsMegaMenuOpen(false)}
-      />
-
       {/* Header */}
+      {/* <MegaMenu /> */}
       <header
         className={`fixed left-0 right-0 z-90 transition-all duration-500 ${
           scrolled ? "top-2 px-3" : "top-6 px-3"
@@ -130,19 +103,6 @@ export default function Header() {
                 </div>
               </div>
             </Link>
-
-            {/* Search - Desktop */}
-            <div className="hidden lg:flex flex-1 max-w-xl mx-8">
-              <div className="relative w-full">
-                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  onFocus={() => setIsMegaMenuOpen(true)}
-                  onClick={() => setIsMegaMenuOpen(true)} // Also open on click
-                  placeholder="Search tours, activities, cities..."
-                  className="w-full pl-14 pr-6 py-4 rounded-2xl border border-slate-200 bg-slate-50 focus:border-amber-400 focus:ring-4 focus:ring-amber-100 cursor-pointer"
-                />
-              </div>
-            </div>
 
             {/* Nav */}
             <nav className="hidden lg:flex gap-1">
