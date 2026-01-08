@@ -32,6 +32,19 @@ export const activityApi = baseApi.injectEndpoints({
       providesTags: ["Activity"],
     }),
 
+    // ================= GET ACTIVITIES BY CATEGORY (NEW) =================
+    getActivitiesByCategory: builder.query({
+      query: ({ category, limit = 10, page = 1 }) => {
+        if (!category) {
+          throw new Error("category is required");
+        }
+
+        const params = new URLSearchParams({ limit, page });
+
+        return `/activity/category/${category}?${params.toString()}`;
+      },
+      providesTags: ["Activity"],
+    }),
     // ================= POPULAR ACTIVITIES =================
     getPopularActivities: builder.query({
       query: ({ limit = 10 } = {}) => {
@@ -98,6 +111,7 @@ export const activityApi = baseApi.injectEndpoints({
 
 export const {
   useGetActivitiesQuery,
+  useGetActivitiesByCategoryQuery,
   useGetPopularActivitiesQuery,
   useGetPopularLocationsQuery, // ✅ NEW
   useGetActivityByIdQuery,

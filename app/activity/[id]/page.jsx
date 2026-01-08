@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useGetActivityByIdQuery } from "@/features/activity/activityApi.js";
 import { useCreateBookingMutation } from "@/features/booking/bookApi.js"; // Imported new mutation
+import LoadingSpinner from "@/components/LoadingSpinner";
 import {
   Clock,
   Users,
@@ -63,9 +64,7 @@ export default function ActivityDetailPage() {
 
   if (isLoading)
     return (
-      <div className="min-h-screen flex items-center justify-center text-indigo-600 font-medium animate-pulse">
-        Loading experience details...
-      </div>
+      <LoadingSpinner size={80} color="border-blue-600" className="py-40" />
     );
   if (isError || !activity)
     return (

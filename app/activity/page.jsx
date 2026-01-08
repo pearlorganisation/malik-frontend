@@ -8,6 +8,7 @@ import { useGetActivitiesQuery } from "@/features/activity/activityApi";
 import { useGetCategoriesQuery } from "@/features/category/categoryApi";
 import { Clock, Star, ChevronDown } from "lucide-react";
 import CategoryBalls from "@/components/Category/CategoryBalls";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 /* =========================
    SUSPENSE WRAPPER
@@ -17,7 +18,7 @@ export default function ActivitiesPage() {
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center text-gray-500">
-          Loading page…
+          <LoadingSpinner size={80} color="border-blue-600" className="py-40" />
         </div>
       }
     >
@@ -111,9 +112,7 @@ const [showAllCategories, setShowAllCategories] = useState(false);
   /* ===== STATES ===== */
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">
-        Loading activities…
-      </div>
+      <LoadingSpinner size={80} color="border-blue-600" className="py-40" />
     );
   }
 
