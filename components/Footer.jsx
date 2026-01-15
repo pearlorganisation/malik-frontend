@@ -13,7 +13,10 @@ import {
   ArrowRight,
   PhoneCall,
   Compass,
+  
 } from "lucide-react";
+
+
 import { useGetCategoriesQuery } from "@/features/category/categoryApi.js";
 
 // Static destinations
@@ -90,10 +93,16 @@ const Footer = () => {
 
             {/* CTA Right: Buttons */}
             <div className="flex flex-wrap items-center gap-3">
-              <button className="flex items-center gap-2 bg-white text-blue-700 font-bold px-6 py-3 rounded-lg hover:bg-gray-50 transition-all shadow-md active:scale-95">
+              <a
+                href="https://wa.me/919876543210?text=Hello%20I%20want%20to%20book%20a%20tour"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-white text-blue-700 font-bold px-6 py-3 rounded-lg hover:bg-gray-50 transition-all shadow-md active:scale-95"
+              >
                 <Phone size={18} />
                 <span>WhatsApp</span>
-              </button>
+              </a>
+
               <button className="flex items-center gap-2 bg-amber-500 text-blue-950 font-bold px-6 py-3 rounded-lg hover:bg-yellow-300 transition-all shadow-md active:scale-95">
                 <span>Plan Trip</span>
                 <ArrowRight size={18} />
