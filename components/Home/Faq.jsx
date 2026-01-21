@@ -94,7 +94,7 @@ const FAQSection = () => {
   };
 
   return (
-    <section className="bg-white py-16 sm:py-24">
+    <section className="bg-white py-8 sm:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-y-16 lg:grid-cols-2 lg:gap-x-16 xl:gap-x-24">
           {/* FAQ Column */}

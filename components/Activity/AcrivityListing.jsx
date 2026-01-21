@@ -1,209 +1,116 @@
-"use client";
-
-import React from "react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Clock, Star, MapPin, Check, ChevronRight } from "lucide-react";
+import React, { useState } from "react";
+import { Plus } from "lucide-react";
 import { useGetActivitiesQuery } from "@/features/activity/activityApi";
-import CategoryBalls from "../Category/CategoryBalls";
-
-const getStartingPrice = (variants = []) => {
-  const prices = [];
-  variants.forEach((v) =>
-    v.pricing?.forEach((p) => p.price > 0 && prices.push(p.price))
-  );
-  return prices.length ? Math.min(...prices) : null;
-};
+import CategoryBalls from "@/components/Category/CategoryBalls.jsx";
+import { ExperienceCard } from "./ExperienceCard.jsx";
 
 export default function ActivitiesPage() {
-  const router = useRouter();
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All Experiences");
+  const [itemsToLoad, setItemsToLoad] = useState(8);
+  const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
+
+  // Note: mocked API hooks allow us to simulate the backend behavior client-side
   const { data, isLoading, isError } = useGetActivitiesQuery({
     page: 1,
     limit: 12,
     category: selectedCategory,
   });
 
-  if (isLoading) {
+  const handleSelectCategory = (cat) => {
+    setSelectedCategory(cat);
+    setItemsToLoad(8); // Reset pagination on category change
+  };
+
+  const handleCardClick = (id) => {
+    console.log(`Navigate to activity: ${id}`);
+    // In a real app with router: router.push(`/activity/${id}`);
+  };
+
+  if (isLoading && !data) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <p className="text-lg text-gray-600">Loading premium experiences…</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
+        <div className="flex flex-col items-center gap-4">
+             <div className="w-12 h-12 border-4 border-[#0047AB] border-t-transparent rounded-full animate-spin"></div>
+             <p className="text-lg text-slate-600 font-bold">Loading premium experiences…</p>
+        </div>
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <p className="text-lg text-red-600">Unable to load activities</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
+        <p className="text-lg text-red-600 font-bold">Unable to load activities</p>
       </div>
     );
   }
 
+  const activities = data?.activities || [];
+  const displayedActivities = activities.slice(0, itemsToLoad);
+
   return (
-    <section className="bg-white min-h-screen">
-      {/* Clean Header */}
-      <div className="py-12 px-6 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-          Curated Dubai Experiences
-        </h1>
-        <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-          Hand-picked premium activities for unforgettable moments
-        </p>
-      </div>
+    <section className="bg-[#F8FAFC] min-h-screen font-sans" id="tours">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-16 md:py-24">
+        
+        {/* Header Section */}
+        <div className="mb-10 text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+                <span className="text-[#0047AB] font-black tracking-widest uppercase text-[11px] mb-2 block">DISCOVER THE EMIRATES</span>
+                <h1 className="text-4xl md:text-5xl font-black text-[#0f172a] tracking-tighter leading-none">
+                    Handpicked <span className="text-[#0047AB]">Adventures</span>
+                </h1>
+            </div>
+            <div className="flex items-center gap-3 text-xs font-bold text-slate-400">
+                Found <span className="text-slate-900 font-black">{activities.length}</span> verified results
+            </div>
+        </div>
 
-      {/* Horizontal Scrollable Cards */}
-      <div className="overflow-x-auto px-6 pb-12 scrollbar-hide">
-        <CategoryBalls
-          limit={8}
-          showAllLink={true}
-          setSelectedCategory={setSelectedCategory}
-        />
+        {/* Filter Bar (CategoryBalls) */}
+        <div className="-mx-6 md:mx-0">
+            <CategoryBalls
+            limit={10}
+            showAllLink={false}
+            setSelectedCategory={handleSelectCategory}
+            selectedCategory={selectedCategory}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            />
+        </div>
 
-        {data && data.activities.length > 0 && (
-          <div className="flex gap-6 min-w-max my-4">
-            {data.activities.map((activity, index) => {
-              const price = getStartingPrice(activity.variants);
-              const durationHours = activity.duration?.hours || 6;
-              const rating =
-                activity.rating > 0 ? activity.rating.toFixed(1) : "4.8";
-              const reviewCount = activity.reviewCount || 1234 + index * 200;
-              const hasFreeCancellation =
-                activity.cancellationPolicy?.isFreeCancellation;
-              const location = activity.pickup?.included
-                ? "Pickup Included"
-                : "Dubai Area";
-
-              // Simulated dynamic ribbons & tags
-              const ribbons = [
-                "BEST VALUE",
-                "BEST SELLER",
-                "EXCLUSIVE",
-                "TOP PICK",
-                "NEW",
-              ];
-              const ribbon = ribbons[index % ribbons.length];
-              const ribbonColors = {
-                "BEST VALUE": "bg-blue-600",
-                "BEST SELLER": "bg-red-600",
-                EXCLUSIVE: "bg-purple-600",
-                "TOP PICK": "bg-orange-600",
-                NEW: "bg-emerald-600",
-              };
-
-              const tags = [
-                ["Adventure", "Family Friendly", "Dinner"],
-                ["Luxury", "VIP", "Evening"],
-                ["Couple", "Romantic", "Private"],
-                ["Adrenaline", "Self-Drive", "Buggy"],
-                ["Culture", "History", "Mosque"],
-              ][index % 5] || ["Adventure", "Family Friendly"];
-
-              return (
-                <div
-                  key={activity._id}
-                  className="w-80 shrink-0 bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer"
-                  onClick={() => router.push(`/activity/${activity._id}`)}
-                >
-                  {/* Image Section */}
-                  <div className="relative h-48">
-                    <img
-                      src={
-                        activity.images?.[0]?.url ||
-                        "https://via.placeholder.com/400x300?text=Dubai+Experience"
-                      }
-                      alt={activity.title}
-                      className="w-full h-full object-cover"
-                    />
-
-                    {/* Ribbon Badge */}
-                    <div className="absolute top-0 left-0">
-                      <span
-                        className={`${ribbonColors[ribbon]} text-white text-xs font-bold px-5 py-1.5 transform -rotate-45 -translate-x-3 -translate-y-3 shadow-lg`}
-                      >
-                        {ribbon}
-                      </span>
-                    </div>
-
-                    {/* Rating & Free Cancellation */}
-                    <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center">
-                      <div className="bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-md">
-                        <Star
-                          size={15}
-                          className="text-yellow-500 fill-yellow-500"
-                        />
-                        <span className="text-sm font-semibold text-gray-800">
-                          {rating}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          ({reviewCount.toLocaleString()})
-                        </span>
-                      </div>
-
-                      {hasFreeCancellation && (
-                        <div className="bg-emerald-600 text-white text-xs font-medium px-3 py-1.5 rounded-full flex items-center gap-1 shadow-md">
-                          <Check size={14} />
-                          Free Cancel
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Content Section */}
-                  <div className="p-5 space-y-4">
-                    <h3 className="text-lg font-bold text-gray-900 line-clamp-2">
-                      {activity.title}
-                    </h3>
-
-                    {/* Duration & Location */}
-                    <div className="flex items-center gap-5 text-sm text-gray-600">
-                      <div className="flex items-center gap-1.5">
-                        <Clock size={16} />
-                        <span>{durationHours}h</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <MapPin size={16} />
-                        <span className="truncate max-w-32">{location}</span>
-                      </div>
-                    </div>
-
-                    {/* Tags */}
-                    <div className="flex flex-wrap gap-2">
-                      {tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded-full"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-
-                    {/* Price & Better Aligned View Details Button */}
-                    <div className="flex items-end justify-between">
-                      <div className="space-y-0">
-                        <span className="text-xs text-gray-600 block">
-                          FROM
-                        </span>
-                        <span className="text-2xl font-bold text-gray-900">
-                          {price ? `AED ${price}` : "On request"}
-                        </span>
-                      </div>
-
-                      <button className="bg-slate-900 text-white font-medium text-sm px-5 py-2.5 rounded-full flex items-center gap-1.5 hover:gap-2 hover:bg-slate-800 transition-all">
-                        View Details
-                        <ChevronRight
-                          size={16}
-                          className="transition-transform group-hover:translate-x-0.5"
-                        />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+        {/* Grid/List of Cards */}
+        {activities.length > 0 ? (
+           <div className={
+             viewMode === 'grid' 
+               ? "grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+               : "flex flex-col gap-4"
+           }>
+            {displayedActivities.map((activity) => (
+              <ExperienceCard 
+                key={activity._id} 
+                activity={activity} 
+                onClick={() => handleCardClick(activity._id)}
+                viewMode={viewMode}
+              />
+            ))}
           </div>
+        ) : (
+            <div className="py-20 text-center text-slate-400">
+                <p>No activities found for this category.</p>
+            </div>
         )}
+
+        {/* Load More Button */}
+        {activities.length > itemsToLoad && (
+            <div className="mt-20 text-center">
+                <button 
+                    onClick={() => setItemsToLoad(prev => prev + 8)}
+                    className="group px-12 py-4 bg-white border-2 border-slate-900 text-slate-900 font-black rounded-full hover:bg-slate-900 hover:text-white transition-all shadow-xl shadow-slate-900/5 active:scale-95 flex items-center gap-3 mx-auto uppercase text-xs tracking-widest"
+                >
+                    <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" /> Load More Tours
+                </button>
+            </div>
+        )}
+
       </div>
     </section>
   );

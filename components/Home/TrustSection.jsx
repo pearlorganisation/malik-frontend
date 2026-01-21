@@ -1,142 +1,163 @@
-import { Star } from "lucide-react";
+import React from 'react';
+import { Star, ShieldCheck, CheckCircle } from 'lucide-react';
 
 export default function TrustSection() {
   return (
-    <section className="bg-blue-900 text-white py-12 px-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold mb-2">
-            Trusted by <span className="text-yellow-400">30,000+</span>{" "}
+    <section className="bg-[#003580] text-white py-8 md:py-6 relative overflow-hidden font-sans">
+      {/* Background Pattern: Subtle dots to match the reference image */}
+      <div 
+        className="absolute inset-0 opacity-[0.1] pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(#ffffff 1.5px, transparent 1.5px)',
+          backgroundSize: '24px 24px'
+        }}
+      />
+
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        
+        {/* Header Section */}
+        <div className="text-center mb-10 md:mb-14">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4 tracking-tight">
+            Trusted by{' '}
+            <span className="relative inline-block text-[#FFD700] px-2">
+              30,000+
+              {/* Custom SVG for the curved underline effect */}
+              <svg 
+                className="absolute left-0 bottom-0 w-full h-3 text-[#FFD700] transform translate-y-2" 
+                viewBox="0 0 100 15" 
+                preserveAspectRatio="none"
+              >
+                <path d="M0 8 Q 50 15 100 8" stroke="currentColor" strokeWidth="3" fill="none" />
+              </svg>
+            </span>{' '}
             Travelers
           </h2>
-          <p className="text-lg md:text-xl text-blue-200">
-            #1 RATED TOUR OPERATOR IN DUBAI ACROSS ALL MAJOR BOOKING PLATFORMS.
+          <p className="text-[#bfdbfe] text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase mt-4">
+            #1 Rated Tour Operator in Dubai Across All Major Booking Platforms.
           </p>
         </div>
 
-        {/* Rating Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
+        {/* Cards Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 mb-12">
+          
           {/* Trustpilot */}
-          <div className="bg-white text-black rounded-2xl p-4 shadow-lg text-center">
-            <p className="text-sm font-medium text-gray-600">Trustpilot</p>
-            <div className="flex items-center justify-center my-2">
-              <span className="text-3xl font-bold mr-2">4.9</span>
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="w-5 h-5 fill-green-500 text-green-500"
-                  />
-                ))}
-              </div>
-            </div>
-            <p className="text-xs text-green-600 font-medium">VERIFIED</p>
-          </div>
+          <ReviewCard 
+             icon={<Star className="w-4 h-4 text-[#00b67a] fill-[#00b67a]" />}
+             label="Trustpilot"
+             rating="4.9"
+             starsColor="text-[#00b67a] fill-[#00b67a]"
+             subText="VERIFIED"
+             subIcon={<CheckCircle className="w-3 h-3" />}
+             subColor="text-[#00b67a]"
+          />
 
           {/* GetYourGuide */}
-          <div className="bg-white text-black rounded-2xl p-4 shadow-lg text-center">
-            <p className="text-sm font-medium text-gray-600">GetYourGuide</p>
-            <div className="flex items-center justify-center my-2">
-              <span className="text-3xl font-bold mr-2">4.8</span>
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={
-                      i < 4
-                        ? "w-5 h-5 fill-orange-500 text-orange-500"
-                        : "w-5 h-5 fill-gray-300 text-gray-300"
-                    }
-                  />
-                ))}
-              </div>
-            </div>
-            <p className="text-xs text-orange-600 font-medium">24K+ REVIEWS</p>
-          </div>
+          <ReviewCard 
+             label="GetYourGuide"
+             rating="4.8"
+             starsColor="text-[#ff5533] fill-[#ff5533]"
+             subText="24K+ REVIEWS"
+             subColor="text-[#ff5533]"
+             // Using first 4 filled, last one grey for 4.8 representation if desired, but image shows all filled mostly. 
+             // We stick to fill for visual impact.
+          />
 
           {/* Tripadvisor */}
-          <div className="bg-white text-black rounded-2xl p-4 shadow-lg text-center">
-            <p className="text-sm font-medium text-gray-600">Tripadvisor</p>
-            <div className="flex items-center justify-center my-2">
-              <span className="text-3xl font-bold mr-2">5.0</span>
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="w-5 h-5 fill-teal-500 text-teal-500"
-                  />
-                ))}
-              </div>
-            </div>
-            <p className="text-xs text-teal-600 font-medium uppercase">
-              Travelers' Choice
-            </p>
-          </div>
+          <ReviewCard 
+             label="Tripadvisor"
+             rating="5.0"
+             customStars={
+               <div className="flex gap-1">
+                 {[...Array(5)].map((_, i) => (
+                   <div key={i} className="w-3 h-3 rounded-full bg-[#00aa6c]" />
+                 ))}
+               </div>
+             }
+             subText="TRAVELERS' CHOICE"
+             subColor="text-[#00aa6c]"
+          />
 
           {/* Google */}
-          <div className="bg-white text-black rounded-2xl p-4 shadow-lg text-center">
-            <p className="text-sm font-medium text-gray-600">Google</p>
-            <div className="flex items-center justify-center my-2">
-              <span className="text-3xl font-bold mr-2">4.9</span>
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="w-5 h-5 fill-yellow-500 text-yellow-500"
-                  />
-                ))}
-              </div>
-            </div>
-            <p className="text-xs text-gray-600 font-medium">15K+ REVIEWS</p>
-          </div>
+          <ReviewCard 
+             label="Google"
+             rating="4.9"
+             starsColor="text-[#fbbc05] fill-[#fbbc05]"
+             subText="15K+ REVIEWS"
+             subColor="text-[#4285f4]"
+          />
 
           {/* Headout */}
-          <div className="bg-white text-black rounded-2xl p-4 shadow-lg text-center">
-            <p className="text-sm font-medium text-gray-600">Headout</p>
-            <div className="flex items-center justify-center my-2">
-              <span className="text-3xl font-bold mr-2">4.9</span>
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="w-5 h-5 fill-purple-500 text-purple-500"
-                  />
+          <ReviewCard 
+             label="Headout"
+             rating="4.9"
+             starsColor="text-[#8b5cf6] fill-[#8b5cf6]"
+             subText="EXCELLENT"
+             subColor="text-[#8b5cf6]"
+          />
+
+          {/* Licensed Badge - Custom styling */}
+          <div className="bg-[#1e40af] rounded-xl p-4 shadow-lg border border-blue-400/20 flex flex-col justify-between h-32 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+            <div className="absolute -right-4 -top-4 opacity-10 rotate-12 group-hover:opacity-20 transition-opacity">
+                <ShieldCheck className="w-24 h-24 text-white" />
+            </div>
+            
+            <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-[#FFD700]" />
+                <span className="text-xs font-bold text-white/90">Licensed</span>
+            </div>
+            
+            <div className="mt-auto">
+                <div className="text-3xl font-black text-white leading-none">100%</div>
+                <div className="text-[10px] font-bold text-blue-200 uppercase tracking-wider mt-1">
+                    Govt. Verified
+                </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Partners Footer */}
+        <div className="border-t border-blue-400/20 pt-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            <span className="text-[10px] font-bold text-blue-300 uppercase tracking-widest whitespace-nowrap">
+                Authorized Partner of
+            </span>
+            <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 opacity-75 grayscale hover:grayscale-0 transition-all duration-300">
+                {["GetYourGuide", "Viator", "Booking.com", "Expedia", "Klook", "Headout"].map(partner => (
+                    <span key={partner} className="text-sm md:text-lg font-bold text-white tracking-tight">
+                        {partner}
+                    </span>
                 ))}
-              </div>
             </div>
-            <p className="text-xs text-purple-600 font-medium uppercase">
-              Excellent
-            </p>
-          </div>
-
-          {/* Licensed */}
-          <div className="bg-blue-800 text-white rounded-2xl p-4 shadow-lg text-center">
-            <p className="text-sm font-medium opacity-80">Licensed</p>
-            <div className="my-4">
-              <span className="text-4xl font-bold">100%</span>
-            </div>
-            <p className="text-xs uppercase font-medium opacity-80">
-              Govt. Verified
-            </p>
-          </div>
         </div>
 
-        {/* Partners */}
-        <div className="text-center">
-          <p className="text-sm uppercase tracking-wider text-blue-300 mb-4">
-            Authorized Partner of
-          </p>
-          <div className="flex flex-wrap justify-center items-center gap-8 opacity-70">
-            <span className="text-lg font-medium">GetYourGuide</span>
-            <span className="text-lg font-medium">Viator</span>
-            <span className="text-lg font-medium">Booking.com</span>
-            <span className="text-lg font-medium">Expedia</span>
-            <span className="text-lg font-medium">Klook</span>
-            <span className="text-lg font-medium">Headout</span>
-          </div>
-        </div>
       </div>
     </section>
   );
+}
+
+function ReviewCard({ icon, label, rating, starsColor, customStars, subText, subIcon, subColor }) {
+    return (
+        <div className="bg-white text-gray-900 rounded-xl p-4 shadow-lg flex flex-col justify-between h-32 transition-transform hover:-translate-y-1 duration-300">
+            <div className="flex items-center gap-2">
+                {icon}
+                {label && <span className="text-xs font-bold text-gray-600">{label}</span>}
+            </div>
+            
+            <div className="mt-2">
+                <div className="flex items-end gap-2 mb-1">
+                    <span className="text-3xl font-black leading-none">{rating}</span>
+                    <div className="flex pb-0.5">
+                        {customStars || [...Array(5)].map((_, i) => (
+                            <Star key={i} className={`w-4 h-4 ${starsColor}`} />
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            <div className={`flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wide ${subColor}`}>
+                {subIcon}
+                {subText}
+            </div>
+        </div>
+    );
 }
