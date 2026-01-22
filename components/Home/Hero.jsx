@@ -57,7 +57,8 @@ export default function Hero() {
         <div className="mt-3 flex gap-3 max-w-lg">
           <span className="w-[2px] bg-yellow-400 rounded-full" />
           <p className="text-white/90 text-[13px] leading-relaxed">
-            From the peaks of Burj Khalifa to the dunes of the Red Desert.
+            From the peaks of Burj Khalifa to the dunes 
+            of the Red Desert.
             Curated experiences by <strong>Fun Tours Dubai</strong>.
           </p>
         </div>

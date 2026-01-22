@@ -5,21 +5,27 @@ import CategoryBalls from "@/components/Category/CategoryBalls.jsx";
 import { ExperienceCard } from "./ExperienceCard.jsx";
 
 export default function ActivitiesPage() {
-  const [selectedCategory, setSelectedCategory] = useState("All Experiences");
+  const [selectedCategories, setSelectedCategories] = useState([]);
   const [itemsToLoad, setItemsToLoad] = useState(8);
   const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
 
   // Note: mocked API hooks allow us to simulate the backend behavior client-side
-  const { data, isLoading, isError } = useGetActivitiesQuery({
-    page: 1,
-    limit: 12,
-    category: selectedCategory,
-  });
+const { data, isLoading, isError } = useGetActivitiesQuery({
+  page: 1,
+  limit: 12,
 
-  const handleSelectCategory = (cat) => {
-    setSelectedCategory(cat);
-    setItemsToLoad(8); // Reset pagination on category change
-  };
+  // ✅ CHANGE: explicitly send NO category filter by default
+  ...(selectedCategories.length > 0 && {
+    categories: selectedCategories.join(","),
+  }),
+});
+
+
+
+ const handleSelectCategory = (cat) => {
+  setSelectedCategories(cat ? [cat] : []);
+  setItemsToLoad(8);
+};
 
   const handleCardClick = (id) => {
     console.log(`Navigate to activity: ${id}`);
@@ -68,20 +74,21 @@ export default function ActivitiesPage() {
         {/* Filter Bar (CategoryBalls) */}
         <div className="-mx-6 md:mx-0">
             <CategoryBalls
-            limit={10}
-            showAllLink={false}
-            setSelectedCategory={handleSelectCategory}
-            selectedCategory={selectedCategory}
-            viewMode={viewMode}
-            setViewMode={setViewMode}
-            />
+  limit={10}
+  showAllLink={false}
+  setSelectedCategory={handleSelectCategory}
+  selectedCategory={selectedCategories[0] || ""}
+  viewMode={viewMode}
+  setViewMode={setViewMode}
+/>
+
         </div>
 
         {/* Grid/List of Cards */}
         {activities.length > 0 ? (
            <div className={
              viewMode === 'grid' 
-               ? "grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+               ? "grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4"
                : "flex flex-col gap-4"
            }>
             {displayedActivities.map((activity) => (
@@ -95,7 +102,10 @@ export default function ActivitiesPage() {
           </div>
         ) : (
             <div className="py-20 text-center text-slate-400">
-                <p>No activities found for this category.</p>
+              <p>
+  No activities found
+  {selectedCategories.length ? ` for ${selectedCategories[0]}` : ""}
+</p>
             </div>
         )}
 
