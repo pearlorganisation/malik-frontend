@@ -1,21 +1,38 @@
 import React from "react";
-import { Star, Clock, MapPin, Check, Heart, HelpCircle, ArrowRight } from "lucide-react";
+import {
+  Star,
+  Clock,
+  MapPin,
+  Check,
+  Heart,
+  HelpCircle,
+  ArrowRight,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const getStartingPrice = (variants = []) => {
   const prices = [];
   variants.forEach((v) =>
-    v.pricing?.forEach((p) => p.price > 0 && prices.push(p.price))
+    v.pricing?.forEach((p) => p.price > 0 && prices.push(p.price)),
   );
   return prices.length ? Math.min(...prices) : null;
 };
 
-export const ExperienceCard = ({ activity, onClick, viewMode = 'grid' }) => {
+export const ExperienceCard = ({ activity, onClick, viewMode = "grid" }) => {
   const price = getStartingPrice(activity.variants);
   const durationHours = activity.duration?.hours || 6;
   const rating = activity.rating > 0 ? activity.rating.toFixed(1) : "4.8";
   const reviewCount = activity.reviewCount || 100;
   const hasFreeCancellation = activity.cancellationPolicy?.isFreeCancellation;
-  const location = activity.location || (activity.pickup?.included ? "Pickup Included" : "Dubai");
+  const location =
+    activity.location ||
+    (activity.pickup?.included ? "Pickup Included" : "Dubai");
+
+  const router = useRouter();
+
+  const handleRedirect = () => {
+    router.push(`/activity/${activity._id}`);
+  };
 
   // Logic to simulate the "Badge" look from the reference
   const ribbons = ["BEST SELLER", "POPULAR", "MUST SEE", "LUXURY", "THRILL"];
@@ -23,23 +40,31 @@ export const ExperienceCard = ({ activity, onClick, viewMode = 'grid' }) => {
   const ribbonIndex = activity.title.length % ribbons.length;
   const ribbon = ribbons[ribbonIndex];
 
-  const isBestSeller = ribbon === 'BEST SELLER';
-  const isLuxury = ribbon === 'LUXURY';
-  
-  const ribbonColorClass = isBestSeller ? 'bg-[#EF4444] text-white' : // Red
-                           isLuxury ? 'bg-slate-900 text-white' : // Black
-                           'bg-[#FFC107] text-slate-900'; // Orange (default)
+  const isBestSeller = ribbon === "BEST SELLER";
+  const isLuxury = ribbon === "LUXURY";
 
-  const tags = activity.tags && activity.tags.length > 0 ? activity.tags.slice(0, 3) : ["Adventure", "Sightseeing"];
+  const ribbonColorClass = isBestSeller
+    ? "bg-[#EF4444] text-white" // Red
+    : isLuxury
+      ? "bg-slate-900 text-white" // Black
+      : "bg-[#FFC107] text-slate-900"; // Orange (default)
 
-  const isGrid = viewMode === 'grid';
+  const tags =
+    activity.tags && activity.tags.length > 0
+      ? activity.tags.slice(0, 3)
+      : ["Adventure", "Sightseeing"];
+
+  const isGrid = viewMode === "grid";
 
   return (
     <div className="bg-white rounded-[22px] overflow-hidden shadow-[0_4px_25px_rgba(0,0,0,0.04)] border border-slate-100 transition-all hover:shadow-xl hover:-translate-y-1 group flex flex-col h-full">
       {/* Image Container */}
-      <div className={`relative overflow-hidden cursor-pointer w-full ${
-        isGrid ? 'aspect-[4/3]' : 'h-80 md:h-140'
-      }`} onClick={onClick}>
+      <div
+        className={`relative overflow-hidden cursor-pointer w-full ${
+          isGrid ? "aspect-[4/3]" : "h-80 md:h-140"
+        }`}
+        onClick={onClick}
+      >
         <img
           src={activity.images?.[0]?.url || "https://picsum.photos/400/300"}
           alt={activity.title}
@@ -50,7 +75,9 @@ export const ExperienceCard = ({ activity, onClick, viewMode = 'grid' }) => {
 
         {/* Ribbon Badge */}
         <div className="absolute top-0 left-0 w-32 h-32 overflow-hidden pointer-events-none">
-          <div className={`absolute top-[18px] left-[-35px] w-[140px] py-1 text-center text-[9px] font-black uppercase tracking-wider -rotate-45 shadow-sm z-10 ${ribbonColorClass}`}>
+          <div
+            className={`absolute top-[18px] left-[-35px] w-[140px] py-1 text-center text-[9px] font-black uppercase tracking-wider -rotate-45 shadow-sm z-10 ${ribbonColorClass}`}
+          >
             {ribbon}
           </div>
         </div>
@@ -80,7 +107,10 @@ export const ExperienceCard = ({ activity, onClick, viewMode = 'grid' }) => {
 
       {/* Content Body */}
       <div className="p-5 flex-1 flex flex-col">
-        <h3 className={`${isGrid ? 'text-[16px]' : 'text-xl'} font-extrabold text-[#0f172a] leading-tight mb-2.5 ${isGrid ? 'line-clamp-2 md:line-clamp-1' : ''}`} title={activity.title}>
+        <h3
+          className={`${isGrid ? "text-[16px]" : "text-xl"} font-extrabold text-[#0f172a] leading-tight mb-2.5 ${isGrid ? "line-clamp-2 md:line-clamp-1" : ""}`}
+          title={activity.title}
+        >
           {activity.title}
         </h3>
 
@@ -127,7 +157,7 @@ export const ExperienceCard = ({ activity, onClick, viewMode = 'grid' }) => {
               <HelpCircle className="w-5 h-5 group-hover/q:rotate-12 transition-transform" />
             </button>
             <button
-              onClick={onClick}
+              onClick={handleRedirect}
               className="bg-[#0f172a] text-white rounded-[14px] px-5 py-2.5 flex items-center gap-2 font-black text-[11px] uppercase tracking-wider shadow-lg hover:bg-slate-800 transition-all active:scale-95"
             >
               VIEW <ArrowRight className="w-4 h-4 stroke-[2]" />
