@@ -18,19 +18,10 @@ import {
 
 
 import { useGetCategoriesQuery } from "@/features/category/categoryApi.js";
+import { useGetAllPlacesQuery } from "@/features/place/placeApi";
+import Link from "next/link";
 
-// Static destinations
-const DESTINATIONS = [
-  "Dubai",
-  "Abu Dhabi",
-  "Sharjah",
-  "Ras Al Khaimah",
-  "Fujairah",
-  "Musandam",
-  "Al Ain",
-  "Ajman",
-  "Umm Al Quwain",
-];
+
 
 // Fallback mock categories - Used only if API fails or returns no data
 const MOCK_CATEGORIES = [
@@ -45,12 +36,22 @@ const MOCK_CATEGORIES = [
   { _id: "9", name: "Photography" },
 ];
 
-const Footer = () => {
+const Footer = ({ onPlanTripClick }) => {
   const {
     data: categoryData,
     isLoading,
     isError,
   } = useGetCategoriesQuery({ limit: 12 });
+
+
+  const {
+  data: placesResponse,
+  isLoading: placesLoading,
+  isError: placesError,
+} = useGetAllPlacesQuery();
+
+// backend structure: { data: [...] }
+const places = placesResponse?.data || [];
 
   // Prioritize API data. If API fails, fall back to mocks for display purposes in development.
   const categories = categoryData?.data || [];
@@ -103,10 +104,14 @@ const Footer = () => {
                 <span>WhatsApp</span>
               </a>
 
-              <button className="flex items-center gap-2 bg-amber-500 text-blue-950 font-bold px-6 py-3 rounded-lg hover:bg-yellow-300 transition-all shadow-md active:scale-95">
-                <span>Plan Trip</span>
-                <ArrowRight size={18} />
-              </button>
+              <button
+  onClick={onPlanTripClick}
+  className="flex items-center gap-2 bg-amber-500 text-blue-950 font-bold px-6 py-3 rounded-lg hover:bg-yellow-300 transition-all shadow-md active:scale-95"
+>
+  <span>Have a Question</span>
+  <ArrowRight size={18} />
+</button>
+
             </div>
           </div>
         </div>
@@ -119,25 +124,21 @@ const Footer = () => {
             {/* COLUMN 1: Brand (Span 3) */}
             <div className="lg:col-span-3 space-y-6">
               {/* Logo: DubaiTours */}
-              <a href="/" className="flex items-center gap-3 shrink-0 group">
-                {/* Logo Icon */}
-                <div className="w-11 h-11 bg-[#0F172A] rounded-2xl flex items-center justify-center shadow-lg border border-slate-800 group-hover:border-slate-700 transition-colors">
-                  <Compass
-                    className="text-amber-500"
-                    size={22}
-                    strokeWidth={2.5}
-                  />
-                </div>
-                {/* Logo Text */}
-                <div className="leading-tight flex flex-col justify-center">
-                  <div className="text-xl font-extrabold tracking-tight text-white">
-                    Dubai<span className="text-amber-500">Tours</span>
-                  </div>
-                  <div className="text-[9px] text-slate-500 uppercase tracking-[0.2em] font-bold mt-0.5">
-                    Premium Portal
-                  </div>
-                </div>
-              </a>
+             <Link href="/" className="flex flex-col items-start leading-none group">
+                           <div className="flex items-center gap-1">
+                             <span className="text-[28px] font-[900] text-[#EF4444] tracking-tight">FUN</span>
+                             <div className="w-7 h-7 bg-[#FFB800] rounded-full flex items-center justify-center">
+                                <div className="relative w-4 h-4 border-b-2 border-white rounded-full flex items-center justify-center">
+                                   <div className="absolute top-0 left-0 w-1 h-1 bg-white rounded-full"></div>
+                                   <div className="absolute top-0 right-0 w-1 h-1 bg-white rounded-full"></div>
+                                </div>
+                             </div>
+                             <span className="text-[28px] font-[900] text-[#0047AB] tracking-tight">TOURS</span>
+                           </div>
+                           <span className="text-[10px] font-bold tracking-[0.2em] text-slate-400 mt-0.5 ml-0.5">
+                             DUBAI TOURISM
+                           </span>
+                         </Link>
 
               <p className="text-xs leading-relaxed text-slate-500 font-medium">
                 Premium UAE tourism partner. Creating authentic, safe
@@ -177,23 +178,42 @@ const Footer = () => {
             {/* COLUMN 2: Destinations & Categories (Span 5) */}
             <div className="lg:col-span-5 space-y-8">
               {/* Destinations */}
-              <div>
-                <h3 className="flex items-center gap-2 text-white font-bold text-[11px] uppercase tracking-wider mb-4">
-                  <MapPin size={14} className="text-[#FACC15]" />
-                  Top Destinations
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {DESTINATIONS.map((dest, i) => (
-                    <a
-                      key={i}
-                      href={`/destinations/${dest.toLowerCase()}`}
-                      className="px-3 py-1.5 rounded-md bg-[#0F172A] border border-slate-800 text-slate-400 text-[11px] font-semibold hover:bg-slate-800 hover:text-white hover:border-slate-700 transition-all"
-                    >
-                      {dest}
-                    </a>
-                  ))}
-                </div>
-              </div>
+             {/* Top Destinations */}
+<div>
+  <h3 className="flex items-center gap-2 text-white font-bold text-[11px] uppercase tracking-wider mb-4">
+    <MapPin size={14} className="text-[#FACC15]" />
+    Top Destinations
+  </h3>
+
+  <div className="flex flex-wrap gap-2">
+    {placesLoading &&
+      [1, 2, 3, 4, 5, 6].map((i) => (
+        <div
+          key={i}
+          className="h-7 w-20 bg-[#0F172A] rounded-md animate-pulse border border-slate-800"
+        />
+      ))}
+
+    {!placesLoading && placesError && (
+      <span className="text-xs text-red-400">
+        Failed to load destinations
+      </span>
+    )}
+
+    {!placesLoading &&
+      !placesError &&
+      places.slice(0, 9).map((place) => (
+        <a
+          key={place._id}
+          href={`/places/${place._id}`}
+          className="px-3 py-1.5 rounded-md bg-[#0F172A] border border-slate-800 text-slate-400 text-[11px] font-semibold hover:bg-slate-800 hover:text-white hover:border-slate-700 transition-all"
+        >
+          {place.name}
+        </a>
+      ))}
+  </div>
+</div>
+
 
               {/* Experience Categories */}
               <div>

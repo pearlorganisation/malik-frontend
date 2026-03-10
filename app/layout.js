@@ -7,6 +7,8 @@ import Header from "@/components/Header.jsx";
 import Footer from "@/components/Footer.jsx";
 import { usePathname } from "next/navigation";
 import { Toaster } from "react-hot-toast";
+import InquiryModal from "@/components/Inquiry/InquiryModel.jsx";
+import { useState } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,6 +24,9 @@ export default function RootLayout({ children }) {
   const pathname = usePathname();
   const showHeader = !pathname?.startsWith("/dashboard");
   const addHeaderSpacing = showHeader && pathname !== "/";
+
+    const [isInquiryOpen, setIsInquiryOpen] = useState(false);
+
 
 
   return (
@@ -66,7 +71,13 @@ export default function RootLayout({ children }) {
           </main>
 
           {/* Footer */}
-          <Footer />
+           <Footer onPlanTripClick={() => setIsInquiryOpen(true)} />
+
+      <InquiryModal
+        isOpen={isInquiryOpen}
+        onClose={() => setIsInquiryOpen(false)}
+        selectedTour={null}   // optional, can pass real data later
+      />
         </Providers>
       </body>
     </html>

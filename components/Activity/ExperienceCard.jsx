@@ -29,6 +29,7 @@ export const ExperienceCard = ({ activity, onClick, viewMode = "grid" }) => {
     (activity.pickup?.included ? "Pickup Included" : "Dubai");
 
   const router = useRouter();
+  
 
   const handleRedirect = () => {
     router.push(`/activity/${activity._id}`);
@@ -37,7 +38,8 @@ export const ExperienceCard = ({ activity, onClick, viewMode = "grid" }) => {
   // Logic to simulate the "Badge" look from the reference
   const ribbons = ["BEST SELLER", "POPULAR", "MUST SEE", "LUXURY", "THRILL"];
   // Deterministic "random" based on title length
-  const ribbonIndex = activity.title.length % ribbons.length;
+  const title = activity.title || "Untitled Activity";
+  const ribbonIndex = title.length % ribbons.length;
   const ribbon = ribbons[ribbonIndex];
 
   const isBestSeller = ribbon === "BEST SELLER";
@@ -67,7 +69,7 @@ export const ExperienceCard = ({ activity, onClick, viewMode = "grid" }) => {
       >
         <img
           src={activity.images?.[0]?.url || "https://picsum.photos/400/300"}
-          alt={activity.title}
+          alt={title}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
         {/* Gradient Overlay */}
@@ -109,9 +111,9 @@ export const ExperienceCard = ({ activity, onClick, viewMode = "grid" }) => {
       <div className="p-5 flex-1 flex flex-col">
         <h3
           className={`${isGrid ? "text-[16px]" : "text-xl"} font-extrabold text-[#0f172a] leading-tight mb-2.5 ${isGrid ? "line-clamp-2 md:line-clamp-1" : ""}`}
-          title={activity.title}
+          title={title}
         >
-          {activity.title}
+          {title}
         </h3>
 
         {/* Duration & Location */}

@@ -9,25 +9,41 @@ export default function ActivitiesPage() {
   const [itemsToLoad, setItemsToLoad] = useState(8);
   const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
 
-  // Note: mocked API hooks allow us to simulate the backend behavior client-side
-  const { data, isLoading, isError } = useGetActivitiesQuery({
-    page: 1,
-    limit: 12,
+const categoriesParam =
+  Array.isArray(selectedCategories) && selectedCategories.length > 0
+    ? selectedCategories.join(",")
+    : undefined;
 
-    // ✅ CHANGE: explicitly send NO category filter by default
-    ...(selectedCategories.length > 0 && {
-      categories: selectedCategories.join(","),
-    }),
-  });
+const { data, isLoading, isError } = useGetActivitiesQuery({
+  page: 1,
+  limit: 12,
+  ...(categoriesParam && { categories: categoriesParam }),
+});
+
+const activities = Array.isArray(data?.data?.data)
+  ? data.data.data
+  : [];
+
+const normalizedActivities = activities.map((activity) => ({
+  ...activity,
+  images: Array.isArray(activity.Images)
+    ? activity.Images.map((img) => img.secure_url)
+    : [],
+}));
+
+const displayedActivities = normalizedActivities.slice(0, itemsToLoad);
+
+
 
   const handleSelectCategory = (cat) => {
-    if (!cat || cat === "All Experiences") {
-      setSelectedCategories([]);
-    } else {
-      setSelectedCategories([cat]);
-    }
-    setItemsToLoad(8);
-  };
+  if (!cat) {
+    setSelectedCategories([]);
+  } else {
+    setSelectedCategories([cat._id]); // ✅ send ID
+  }
+  setItemsToLoad(8);
+};
+
 
   const handleCardClick = (id) => {
     console.log(`Navigate to activity: ${id}`);
@@ -57,8 +73,10 @@ export default function ActivitiesPage() {
     );
   }
 
-  const activities = data?.activities || [];
-  const displayedActivities = activities.slice(0, itemsToLoad);
+
+
+const pagination = data?.data?.pagination;
+
 
   return (
     <section className="bg-[#F8FAFC] min-h-screen font-sans" id="tours">
