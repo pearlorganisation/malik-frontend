@@ -3,34 +3,31 @@ import { baseApi } from "@/services/baseApi";
 export const activityApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // ================= GET ALL ACTIVITIES =================
-    getActivities: builder.query({
-      query: ({
-        page = 1,
-        limit = 10,
-        isActive,
-        categories,
-        duration,
-        location,
-      } = {}) => {
-        const params = new URLSearchParams({ page, limit });
+   getActivities: builder.query({
+  query: ({
+    page = 1,
+    limit = 10,
+    isActive,
+    categories,
+    duration,
+    location,
+  } = {}) => {
+    const params = new URLSearchParams({ page, limit });
 
-        if (isActive !== undefined) params.append("isActive", isActive);
+    if (isActive !== undefined) params.append("isActive", isActive);
+    if (categories) {
+      params.append(
+        "categories",
+        Array.isArray(categories) ? categories.join(",") : categories
+      );
+    }
+    if (duration) params.append("duration", duration);
+    if (location) params.append("location", location);
 
-        // Support multiple categories
-        if (categories) {
-          const categoryParam = Array.isArray(categories)
-            ? categories.join(",")
-            : categories;
-          params.append("categories", categoryParam);
-        }
-
-        if (duration) params.append("duration", duration);
-        if (location) params.append("location", location);
-
-        return `/activity?${params.toString()}`;
-      },
-      providesTags: ["Activity"],
-    }),
+    return `/activity/search?${params.toString()}`;
+  },
+  providesTags: ["Activity"],
+}),
 
     // ================= GET ACTIVITIES BY CATEGORY (NEW) =================
     getActivitiesByCategory: builder.query({
@@ -64,10 +61,10 @@ export const activityApi = baseApi.injectEndpoints({
     }),
 
     // ================= GET SINGLE ACTIVITY =================
-    getActivityById: builder.query({
-      query: (id) => `/activity/${id}`,
-      providesTags: (result, error, id) => [{ type: "Activity", id }],
-    }),
+   getActivityById: builder.query({
+  query: (id) => `/activity/get-activity/${id}`,
+  providesTags: (result, error, id) => [{ type: "Activity", id }],
+}),
 
     // ================= CREATE ACTIVITY =================
     createActivity: builder.mutation({
@@ -113,7 +110,7 @@ export const {
   useGetActivitiesQuery,
   useGetActivitiesByCategoryQuery,
   useGetPopularActivitiesQuery,
-  useGetPopularLocationsQuery, // ✅ NEW
+  useGetPopularLocationsQuery,
   useGetActivityByIdQuery,
   useCreateActivityMutation,
   useUpdateActivityMutation,

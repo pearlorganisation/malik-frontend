@@ -8,9 +8,9 @@ export default function CategoryBalls({
   limit = 12,
   showAllLink = true,
   setSelectedCategory,
-  selectedCategory = "All Experiences", // Default
-  viewMode = 'grid',
-  setViewMode
+  selectedCategory = "", // Default
+  viewMode = "grid",
+  setViewMode,
 }) {
   const { data: response, isLoading } = useGetCategoriesQuery({
     page: 1,
@@ -20,8 +20,8 @@ export default function CategoryBalls({
   const categories = response?.data || [];
 
   const allCategories = [
-    { _id: 'all', name: 'All Experiences' },
-    ...categories
+    { _id: "all", name: "All Experiences" },
+    ...categories,
   ];
 
   if (isLoading) {
@@ -39,12 +39,16 @@ export default function CategoryBalls({
 
   return (
     <div className="bg-white rounded-full shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] border border-slate-100 p-2 mb-12 flex items-center justify-between overflow-hidden mx-6">
-      {/* Left: Categories Scroller */}
       <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pr-4">
         {allCategories.map((category) => {
-           const isActive = selectedCategory === category.name || (selectedCategory === "" && category.name === "All Experiences");
-           
-           return (
+          // FIX: Logic to determine if this button is active
+          const isActive =
+            (category.name === "All Experiences" &&
+              (selectedCategory === "" ||
+                selectedCategory === "All Experiences")) ||
+            selectedCategory === category.name;
+
+          return (
             <button
               key={category._id}
               onClick={() => setSelectedCategory(category.name)}
@@ -64,20 +68,20 @@ export default function CategoryBalls({
       {/* Right: View & Filter Controls */}
       <div className="flex items-center gap-1 shrink-0 px-2 md:px-4 border-l border-slate-100">
         <button
-          onClick={() => setViewMode && setViewMode('grid')}
+          onClick={() => setViewMode && setViewMode("grid")}
           className={`p-2.5 rounded-xl transition-all ${
-            viewMode === 'grid' 
-              ? "bg-blue-50 text-[#0047AB]" 
+            viewMode === "grid"
+              ? "bg-blue-50 text-[#0047AB]"
               : "text-slate-400 hover:text-slate-600"
           }`}
         >
           <LayoutGrid className="w-5 h-5" />
         </button>
         <button
-          onClick={() => setViewMode && setViewMode('list')}
+          onClick={() => setViewMode && setViewMode("list")}
           className={`p-2.5 rounded-xl transition-all ${
-            viewMode === 'list' 
-              ? "bg-blue-50 text-[#0047AB]" 
+            viewMode === "list"
+              ? "bg-blue-50 text-[#0047AB]"
               : "text-slate-400 hover:text-slate-600"
           }`}
         >
@@ -85,7 +89,7 @@ export default function CategoryBalls({
         </button>
         <div className="h-6 w-px bg-slate-100 mx-2 hidden md:block"></div>
         <button className="p-2.5 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-all hidden md:flex items-center gap-2">
-            <Filter className="w-5 h-5" />
+          <Filter className="w-5 h-5" />
         </button>
       </div>
     </div>
