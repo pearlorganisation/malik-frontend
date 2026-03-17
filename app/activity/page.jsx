@@ -5,6 +5,8 @@ import {
   Anchor, ArrowRight, Car, Waves, Ticket, MessageCircle, Check, Flame, Map, Menu, X
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useGetCategoriesQuery } from "@/features/category/categoryApi";
 import { useGetAllPlacesQuery } from "@/features/place/placeApi";
 import { useGetActivitiesQuery } from "@/features/activity/activityApi";
@@ -71,6 +73,8 @@ export default function ActivitiesPage() {
 }
 
 function ActivitiesContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState(null); // 'null' means all
   const [activeLocation, setActiveLocation] = useState(null); // 'null' means all
@@ -85,6 +89,23 @@ function ActivitiesContent() {
   useEffect(() => {
   setVisibleCount(12);
 }, [activeCategory, activeLocation]);
+
+useEffect(() => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}, [activeCategory, activeLocation]);
+
+useEffect(() => {
+  const categoryFromUrl = searchParams.get("category");
+  const locationFromUrl = searchParams.get("location");
+
+  if (categoryFromUrl) {
+    setActiveCategory(categoryFromUrl);
+    setActiveLocation(null);
+  } else if (locationFromUrl) {
+    setActiveLocation(locationFromUrl);
+    setActiveCategory(null);
+  }
+}, [searchParams]);
 
   // const { data, isLoading, error } = useGetActivitiesQuery({
   //   page: 1,
@@ -152,6 +173,7 @@ const activities = data?.data?.data || [];
                 onClick={() => {
                   setActiveCategory(cat._id);
                   setActiveLocation(null);
+                  router.push(`/activity?category=${cat._id}`);
                 }
                 }
                 className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all ${isActive ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/10' : 'text-slate-600 hover:bg-slate-50'}`}
@@ -176,7 +198,11 @@ const activities = data?.data?.data || [];
         </h4>
         <div className="space-y-1">
           <button 
-            onClick={() => setActiveLocation(null)} 
+            onClick={() =>{setActiveLocation(null)
+              setActiveCategory(null);
+  router.push(`/activity`);
+            }
+            } 
             className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-bold transition-all ${!activeLocation ? 'bg-orange-50 text-orange-500 border border-orange-100' : 'text-slate-600 hover:bg-slate-50'}`}
           >
             All Locations
@@ -196,6 +222,7 @@ const activities = data?.data?.data || [];
     onClick={() => {
       setActiveLocation(loc._id);
       setActiveCategory(null);
+       router.push(`/activity?location=${loc._id}`);
     }
     } 
     className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-bold transition-all ${
@@ -257,7 +284,10 @@ const activities = data?.data?.data || [];
         <div className="lg:hidden mb-10 -mx-4 px-4 space-y-4">
           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
             <button 
-              onClick={() => setActiveCategory(null)} 
+              onClick={() => {setActiveCategory(null);
+                 setActiveLocation(null);
+  router.push(`/activity`);
+              }} 
               className={`px-5 py-2.5 rounded-xl text-xs font-black whitespace-nowrap border-2 transition-all shadow-sm flex items-center gap-2 ${!activeCategory ? 'bg-slate-950 text-white border-slate-950' : 'bg-white text-slate-500 border-white'}`}
             >
               <LayoutGrid className="w-4 h-4" /> All
@@ -271,6 +301,7 @@ const activities = data?.data?.data || [];
                   onClick={() => {
                     setActiveCategory(cat._id)
                     setActiveLocation(null);
+                      router.push(`/activity?category=${cat._id}`);
                   }
                   }
                   className={`px-5 py-2.5 rounded-xl text-xs font-black whitespace-nowrap border-2 transition-all shadow-sm flex items-center gap-2 ${activeCategory === cat._id ? 'bg-slate-950 text-white border-slate-950' : 'bg-white text-slate-500 border-white'}`}
@@ -282,7 +313,12 @@ const activities = data?.data?.data || [];
           </div>
           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
             <button 
-              onClick={() => setActiveLocation(null)} 
+              // onClick={() => setActiveLocation(null)} 
+              onClick={() => {
+  setActiveLocation(null);
+  setActiveCategory(null);
+  router.push(`/activity`);
+}}
               className={`px-5 py-2.5 rounded-xl text-xs font-black whitespace-nowrap border-2 transition-all shadow-sm flex items-center gap-2 ${!activeLocation ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-slate-500 border-white'}`}
             >
               <Map className="w-4 h-4" /> All Locations
@@ -292,6 +328,7 @@ const activities = data?.data?.data || [];
                 key={loc._id} 
                 onClick={() =>{setActiveLocation(loc._id)
                   setActiveCategory(null);
+                   router.push(`/activity?location=${loc._id}`);
                 }
                 } 
                 className={`px-5 py-2.5 rounded-xl text-xs font-black whitespace-nowrap border-2 transition-all shadow-sm ${activeLocation === loc._id ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-slate-500 border-white'}`}

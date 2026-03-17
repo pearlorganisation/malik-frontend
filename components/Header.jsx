@@ -284,9 +284,10 @@ export default function Header() {
     allCategories.map((category) => (
       <Link
         key={category._id}
-        href={`/category/${encodeURIComponent(
-          category.slug || category.name.toLowerCase()
-        )}`}
+        // href={`/category/${encodeURIComponent(
+        //   category.slug || category.name.toLowerCase()
+        // )}`}
+        href={`/activity?category=${category._id}`}
         onClick={() => setIsMenuOpen(false)}
         className="flex flex-col items-center gap-2 text-center group"
       >

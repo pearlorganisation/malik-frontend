@@ -203,13 +203,14 @@ const places = placesResponse?.data || [];
     {!placesLoading &&
       !placesError &&
       places.slice(0, 9).map((place) => (
-        <a
-          key={place._id}
-          href={`/places/${place._id}`}
-          className="px-3 py-1.5 rounded-md bg-[#0F172A] border border-slate-800 text-slate-400 text-[11px] font-semibold hover:bg-slate-800 hover:text-white hover:border-slate-700 transition-all"
-        >
-          {place.name}
-        </a>
+        <Link
+  key={place._id}
+  href={`/activity?location=${place._id}`}
+  scroll={true}
+  className="px-3 py-1.5 rounded-md bg-[#0F172A] border border-slate-800 text-slate-400 text-[11px] font-semibold hover:bg-slate-800 hover:text-white hover:border-slate-700 transition-all"
+>
+  {place.name}
+</Link>
       ))}
   </div>
 </div>
@@ -236,15 +237,23 @@ const places = placesResponse?.data || [];
                         />
                       ))
                     : displayCategories.map((cat, i) => (
-                        <a
-                          key={i}
-                          href={`/activity?category=${encodeURIComponent(
-                            cat.name
-                          )}`}
-                          className="px-3 py-1.5 rounded-md bg-[#0F172A] border border-slate-800 text-slate-400 text-[11px] font-semibold hover:bg-slate-800 hover:text-white hover:border-slate-700 transition-all"
-                        >
-                          {cat.name}
-                        </a>
+                        // <a
+                        //   key={i}
+                        //   href={`/activity?category=${encodeURIComponent(
+                        //     cat.name
+                        //   )}`}
+                        //   className="px-3 py-1.5 rounded-md bg-[#0F172A] border border-slate-800 text-slate-400 text-[11px] font-semibold hover:bg-slate-800 hover:text-white hover:border-slate-700 transition-all"
+                        // >
+                        //   {cat.name}
+                        // </a>
+       <Link
+  key={cat._id}
+  href={`/activity?category=${cat._id}`}
+  scroll={true}
+  className="px-3 py-1.5 rounded-md bg-[#0F172A] border border-slate-800 text-slate-400 text-[11px] font-semibold hover:bg-slate-800 hover:text-white hover:border-slate-700 transition-all"
+>
+  {cat.name}
+</Link>
                       ))}
                 </div>
               </div>
