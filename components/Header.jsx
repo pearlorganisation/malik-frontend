@@ -33,7 +33,7 @@ import MegaMenu from "./Home/MegaMenu";
 import Image from "next/image";
 import { useGetCategoriesQuery } from "@/features/category/categoryApi";
 
-
+//test
 // Data untouched as requested
 const NAV_ITEMS = [
   { label: "Home", href: "/", icon: Home },
