@@ -9,163 +9,186 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const getStartingPrice = (variants = []) => {
   const prices = [];
+
   variants.forEach((v) =>
-    v.pricing?.forEach((p) => p.price > 0 && prices.push(p.price)),
+    v.pricing?.forEach((p) => p.price > 0 && prices.push(p.price))
   );
+
   return prices.length ? Math.min(...prices) : null;
 };
 
-export const ExperienceCard = ({ activity, onClick, viewMode = "grid" }) => {
-  const price = getStartingPrice(activity.variants);
-  const durationHours = activity.duration?.hours || 6;
-  const rating = activity.rating > 0 ? activity.rating.toFixed(1) : "4.8";
-  const reviewCount = activity.reviewCount || 100;
-  const hasFreeCancellation = activity.cancellationPolicy?.isFreeCancellation;
-  const location =
-    activity.location ||
-    (activity.pickup?.included ? "Pickup Included" : "Dubai");
-
+export const ExperienceCard = ({ activity, viewMode = "grid" }) => {
   const router = useRouter();
-  
+
+  const price = getStartingPrice(activity.variants);
+
+  const title = activity.title || activity.name || "Untitled Activity";
+  const rating = activity.rating || 4.8;
+  const reviewCount = activity.reviewCount || 1200;
+  const durationHours = activity.duration?.hours || 6;
+  const location = activity.location || "Dubai";
+
+  const hasFreeCancellation = activity.cancellationPolicy?.isFreeCancellation;
+
+  const tags = activity.tags?.slice(0, 2) || ["Adventure", "Sightseeing"];
+
+  // const image =
+  //   activity.images?.[0]?.url ||
+  //   activity.images?.[0] ||
+  //   "https://picsum.photos/400/300";
+const image =
+  activity.images?.[0]?.url?.trim() ||
+  activity.images?.[0]?.secure_url?.trim() ||
+  (typeof activity.images?.[0] === "string" && activity.images?.[0].trim()) ||
+  "https://picsum.photos/400/300";
 
   const handleRedirect = () => {
     router.push(`/activity/${activity._id}`);
   };
 
-  // Logic to simulate the "Badge" look from the reference
-  const ribbons = ["BEST SELLER", "POPULAR", "MUST SEE", "LUXURY", "THRILL"];
-  // Deterministic "random" based on title length
-  const title = activity.title || "Untitled Activity";
-  const ribbonIndex = title.length % ribbons.length;
-  const ribbon = ribbons[ribbonIndex];
+  /* Ribbon logic */
+  const ribbons = ["POPULAR", "BEST SELLER", "THRILL", "MUST SEE"];
+  const ribbon = ribbons[title.length % ribbons.length];
 
-  const isBestSeller = ribbon === "BEST SELLER";
-  const isLuxury = ribbon === "LUXURY";
-
-  const ribbonColorClass = isBestSeller
-    ? "bg-[#EF4444] text-white" // Red
-    : isLuxury
-      ? "bg-slate-900 text-white" // Black
-      : "bg-[#FFC107] text-slate-900"; // Orange (default)
-
-  const tags =
-    activity.tags && activity.tags.length > 0
-      ? activity.tags.slice(0, 3)
-      : ["Adventure", "Sightseeing"];
-
-  const isGrid = viewMode === "grid";
+  const ribbonColor =
+    ribbon === "BEST SELLER"
+      ? "bg-red-500 text-white"
+      : ribbon === "POPULAR"
+      ? "bg-yellow-400 text-black"
+      : "bg-yellow-400 text-black";
 
   return (
-    <div className="bg-white rounded-[22px] overflow-hidden shadow-[0_4px_25px_rgba(0,0,0,0.04)] border border-slate-100 transition-all hover:shadow-xl hover:-translate-y-1 group flex flex-col h-full">
-      {/* Image Container */}
-      <div
-        className={`relative overflow-hidden cursor-pointer w-full ${
-          isGrid ? "aspect-[4/3]" : "h-80 md:h-140"
-        }`}
-        onClick={onClick}
-      >
-        <img
-          src={activity.images?.[0]?.url || "https://picsum.photos/400/300"}
-          alt={title}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-        />
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80"></div>
+   <div
+  onClick={handleRedirect}
+  className="group cursor-pointer bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-lg transition-all flex flex-col"
+>
 
-        {/* Ribbon Badge */}
-        <div className="absolute top-0 left-0 w-32 h-32 overflow-hidden pointer-events-none">
+      {/* IMAGE */}
+      <div className="relative h-[170px] sm:h-[180px] lg:h-[190px] overflow-hidden">
+<Image
+  src={image}
+  alt={title}
+  fill
+  className="object-cover transition-transform duration-500 group-hover:scale-110"
+/>
+
+        {/* Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+        {/* Ribbon */}
+        <div className="absolute top-0 left-0 w-[120px] h-[120px] overflow-hidden pointer-events-none">
+
           <div
-            className={`absolute top-[18px] left-[-35px] w-[140px] py-1 text-center text-[9px] font-black uppercase tracking-wider -rotate-45 shadow-sm z-10 ${ribbonColorClass}`}
+            className={`absolute top-[18px] left-[-38px] w-[150px] text-center text-[9px] font-bold py-1 rotate-[-45deg] shadow ${ribbonColor}`}
           >
             {ribbon}
           </div>
+
         </div>
 
-        {/* Heart Icon */}
-        <button className="absolute top-3 right-3 p-2 rounded-full bg-white/20 backdrop-blur-md text-white transition-all hover:bg-white hover:text-red-500 z-10">
-          <Heart className="w-4 h-4" />
+        {/* Heart */}
+        <button className="absolute top-2 right-2 bg-white/20 backdrop-blur-sm text-white p-1.5 rounded-full hover:bg-white hover:text-red-500 transition">
+          <Heart size={14} />
         </button>
 
-        {/* Bottom Overlay Info (Rating & Free Cancel) */}
-        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
-          <div className="flex items-center gap-1.5 text-white">
-            <Star className="w-3.5 h-3.5 text-[#FFC107] fill-[#FFC107]" />
-            <span className="text-[12px] font-black">{rating}</span>
-            <span className="text-[10px] font-bold text-white/80">
-              ({reviewCount.toLocaleString()})
-            </span>
-          </div>
-
-          {hasFreeCancellation && (
-            <div className="bg-white/90 backdrop-blur-sm text-[#065f46] px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1 shadow-sm border border-white/20">
-              <Check className="w-3 h-3 stroke-[3]" /> Free Cancel
-            </div>
-          )}
+        {/* Rating */}
+        <div className="absolute bottom-2 left-2 flex items-center gap-1 text-white text-xs font-bold">
+          <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+          {rating}
+          <span className="opacity-80">({reviewCount})</span>
         </div>
+
+        {/* Free cancel */}
+        {hasFreeCancellation && (
+          <div className="absolute bottom-2 right-2 bg-white/90 text-green-700 text-[10px] px-2 py-[2px] rounded flex items-center gap-1">
+            <Check size={10} />
+            Free Cancel
+          </div>
+        )}
       </div>
 
-      {/* Content Body */}
-      <div className="p-5 flex-1 flex flex-col">
-        <h3
-          className={`${isGrid ? "text-[16px]" : "text-xl"} font-extrabold text-[#0f172a] leading-tight mb-2.5 ${isGrid ? "line-clamp-2 md:line-clamp-1" : ""}`}
-          title={title}
-        >
+      {/* CONTENT */}
+      <div className="px-4 py-3 flex flex-col flex-grow">
+
+        <h3 className="text-[14px] font-extrabold text-slate-900 leading-tight line-clamp-2 mb-2">
           {title}
         </h3>
 
-        {/* Duration & Location */}
-        <div className="flex items-center gap-3 text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-3">
+        {/* Duration & location */}
+        <div className="flex items-center gap-2 text-[10px] text-gray-400 font-bold uppercase mb-2">
+
           <div className="flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5" /> {durationHours}h
+            <Clock size={12} />
+            {durationHours}h
           </div>
-          <span className="text-gray-200">•</span>
-          <div className="flex items-center gap-1 truncate">
-            <MapPin className="w-3.5 h-3.5 text-[#FFC107]" />
-            <span className="truncate">{location}</span>
+
+          <span>•</span>
+
+          <div className="flex items-center gap-1">
+            <MapPin size={12} className="text-yellow-400" />
+            {location}
           </div>
+
         </div>
 
         {/* Tags */}
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {tags.map((tag, idx) => (
+        <div className="flex gap-1 flex-wrap mb-3">
+
+          {tags.map((tag, i) => (
             <span
-              key={idx}
-              className="bg-blue-50 text-[#0047AB] text-[9px] font-bold px-2 py-0.5 rounded-md border border-blue-100"
+              key={i}
+              className="bg-blue-50 text-blue-700 text-[9px] font-bold px-2 py-[2px] rounded"
             >
               {tag}
             </span>
           ))}
+
         </div>
 
-        {/* Footer: Price & Actions */}
-        <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
-          <div>
-            <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">
-              FROM
-            </div>
-            <div className="text-2xl font-black text-[#0047AB] tracking-tighter">
-              {price ? `$${price}` : "On request"}
-            </div>
-          </div>
+        {/* Footer */}
+       <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-100">
 
-          <div className="flex items-center gap-2">
-            <button
-              className="w-10 h-10 rounded-[14px] bg-[#F8FAFC] flex items-center justify-center text-slate-400 border border-slate-100 transition-all hover:bg-[#FFC107] hover:text-slate-900 hover:border-[#FFC107] active:scale-95 group/q"
-              title="Have a question?"
-            >
-              <HelpCircle className="w-5 h-5 group-hover/q:rotate-12 transition-transform" />
-            </button>
-            <button
-              onClick={handleRedirect}
-              className="bg-[#0f172a] text-white rounded-[14px] px-5 py-2.5 flex items-center gap-2 font-black text-[11px] uppercase tracking-wider shadow-lg hover:bg-slate-800 transition-all active:scale-95"
-            >
-              VIEW <ArrowRight className="w-4 h-4 stroke-[2]" />
-            </button>
-          </div>
-        </div>
+  <div>
+    <div className="text-[9px] text-gray-400 font-bold uppercase">
+      FROM
+    </div>
+
+    <div className="text-[18px] font-black text-[#0047AB]">
+      {price ? `$${price}` : "$45"}
+    </div>
+  </div>
+
+  <div className="flex items-center gap-2">
+
+    <button className="w-7 h-7 rounded-md bg-gray-50 flex items-center justify-center border border-gray-200 hover:bg-yellow-400 hover:text-black transition">
+      <HelpCircle size={14} strokeWidth={2} />
+    </button>
+
+    {/* <button
+        onClick={(e) => {
+    e.stopPropagation();
+    handleRedirect();
+  }}
+      className="bg-[#0f172a] text-white text-[10px] font-bold px-4 py-2 rounded-lg flex items-center gap-1 hover:bg-black transition"
+    >
+      VIEW
+      <ArrowRight size={14} />
+    </button> */}
+
+    <button
+  onClick={(e) => e.stopPropagation()}
+  className="absolute top-2 right-2 bg-white/20 backdrop-blur-sm text-white p-1.5 rounded-full hover:bg-white hover:text-red-500 transition"
+>
+  <Heart size={14} />
+</button>
+
+  </div>
+
+</div>
       </div>
     </div>
   );

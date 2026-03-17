@@ -1,54 +1,106 @@
-import React, { useState } from "react";
+import React, { useState,useMemo } from "react";
 import { Plus } from "lucide-react";
 import { useGetActivitiesQuery } from "@/features/activity/activityApi";
 import CategoryBalls from "@/components/Category/CategoryBalls.jsx";
 import { ExperienceCard } from "./ExperienceCard.jsx";
-
 export default function ActivitiesPage() {
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [itemsToLoad, setItemsToLoad] = useState(8);
+  
+  // const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  // const [transferType, setTransferType] = useState("self");
+  const [itemsToLoad, setItemsToLoad] = useState(10);
   const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
 
-const categoriesParam =
-  Array.isArray(selectedCategories) && selectedCategories.length > 0
-    ? selectedCategories.join(",")
-    : undefined;
+// const categoriesParam =
+//   Array.isArray(selectedCategories) && selectedCategories.length > 0
+//     ? selectedCategories.join(",")
+//     : undefined;
+
+// const { data, isLoading, isError } = useGetActivitiesQuery({
+//   page: 1,
+//   limit: 12,
+//   ...(categoriesParam && { categories: categoriesParam }),
+// });
+// const categoryId =
+//   Array.isArray(selectedCategories) && selectedCategories.length > 0
+//     ? selectedCategories[0]
+//     : undefined;
+const categoryId = selectedCategory || undefined;
 
 const { data, isLoading, isError } = useGetActivitiesQuery({
   page: 1,
   limit: 12,
-  ...(categoriesParam && { categories: categoriesParam }),
+  ...(categoryId && { categoryId }),
 });
 
 const activities = Array.isArray(data?.data?.data)
   ? data.data.data
   : [];
 
-const normalizedActivities = activities.map((activity) => ({
-  ...activity,
-  images: Array.isArray(activity.Images)
-    ? activity.Images.map((img) => img.secure_url)
-    : [],
-}));
+
+// const normalizedActivities = activities.map((activity) => ({
+//   ...activity,
+//   images: Array.isArray(activity.Images)
+//     ? activity.Images.map((img) => img.secure_url)
+//     : [],
+// }));
+
+const normalizedActivities = useMemo(() => {
+  return activities.map((activity) => ({
+    _id: activity._id,
+    title: activity.name,
+
+    images: Array.isArray(activity.Images)
+      ? activity.Images.map((img) => ({
+          url: img.secure_url,
+        }))
+      : [],
+
+    location: "Dubai",
+
+    rating: 4.8,
+
+    reviewCount: 1200,
+
+    duration: {
+      hours: 6,
+    },
+
+    cancellationPolicy: {
+      isFreeCancellation: true,
+    },
+
+    variants: [
+      {
+        pricing: [
+          {
+            price: activity.PrivateSUV?.fee || 45,
+          },
+        ],
+      },
+    ],
+
+    tags: activity.Experience?.highlights?.slice(0, 3) || [
+      "Adventure",
+      "Sightseeing",
+    ],
+  }));
+}, [activities]);
 
 const displayedActivities = normalizedActivities.slice(0, itemsToLoad);
 
+// console.log("activites1: ",displayedActivities)
 
-
-  const handleSelectCategory = (cat) => {
-  if (!cat) {
-    setSelectedCategories([]);
-  } else {
-    setSelectedCategories([cat._id]); // ✅ send ID
-  }
+ const handleSelectCategory = (cat) => {
+  setSelectedCategory(cat || "");
   setItemsToLoad(8);
 };
 
 
-  const handleCardClick = (id) => {
-    console.log(`Navigate to activity: ${id}`);
-    // In a real app with router: router.push(`/activity/${id}`);
-  };
+  // const handleCardClick = (id) => {
+  //   console.log(`Navigate to activity: ${id}`);
+  //   // In a real app with router: router.push(`/activity/${id}`);
+  // };
 
   if (isLoading && !data) {
     return (
@@ -94,7 +146,8 @@ const pagination = data?.data?.pagination;
           <div className="flex items-center gap-3 text-xs font-bold text-slate-400">
             Found{" "}
             <span className="text-slate-900 font-black">
-              {activities.length}
+              {/* {activities.length} */}
+              {pagination?.total || activities.length}
             </span>{" "}
             verified results
           </div>
@@ -106,18 +159,20 @@ const pagination = data?.data?.pagination;
             limit={10}
             showAllLink={false}
             setSelectedCategory={handleSelectCategory}
-            selectedCategory={selectedCategories[0] || ""}
+            // selectedCategory={selectedCategories[0] || ""}
+            selectedCategory={selectedCategory}
             viewMode={viewMode}
             setViewMode={setViewMode}
           />
         </div>
 
         {/* Grid/List of Cards */}
-        {activities.length > 0 ? (
+        {/* {activities.length > 0 ? ( */}
+        {displayedActivities.length > 0 ? (
           <div
             className={
               viewMode === "grid"
-                ? "grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4"
+                ? "grid gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
                 : "flex flex-col gap-4"
             }
           >
@@ -125,7 +180,7 @@ const pagination = data?.data?.pagination;
               <ExperienceCard
                 key={activity._id}
                 activity={activity}
-                onClick={() => handleCardClick(activity._id)}
+                // onClick={() => handleCardClick(activity._id)}
                 viewMode={viewMode}
               />
             ))}
@@ -134,13 +189,17 @@ const pagination = data?.data?.pagination;
           <div className="py-20 text-center text-slate-400">
             <p>
               No activities found
-              {selectedCategories.length ? ` for ${selectedCategories[0]}` : ""}
+              {/* {selectedCategories.length ? ` for ${selectedCategories[0]}` : ""} */}
+              {selectedCategory ? ` for ${selectedCategory}` : ""}
             </p>
           </div>
         )}
 
         {/* Load More Button */}
-        {activities.length > itemsToLoad && (
+        {/* {activities.length > itemsToLoad && ( */}
+        {normalizedActivities.length > itemsToLoad && (
+          // Ya agar pagination use kar rahe ho then:  {pagination?.total > itemsToLoad && (
+
           <div className="mt-20 text-center">
             <button
               onClick={() => setItemsToLoad((prev) => prev + 8)}
