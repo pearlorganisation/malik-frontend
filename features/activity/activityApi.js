@@ -8,21 +8,23 @@ export const activityApi = baseApi.injectEndpoints({
     page = 1,
     limit = 10,
     isActive,
-    categories,
+    categoryId,
     duration,
     location,
   } = {}) => {
     const params = new URLSearchParams({ page, limit });
 
     if (isActive !== undefined) params.append("isActive", isActive);
-    if (categories) {
-      params.append(
-        "categories",
-        Array.isArray(categories) ? categories.join(",") : categories
-      );
-    }
+    // if (categories) {
+    //   params.append(
+    //     "categories",
+    //     Array.isArray(categories) ? categories.join(",") : categories
+    //   );
+    // }
+    if (categoryId) params.append("categoryId", categoryId);
     if (duration) params.append("duration", duration);
-    if (location) params.append("location", location);
+    // if (location) params.append("location", location);
+    if (location) params.append("place", location);
 
     return `/activity/search?${params.toString()}`;
   },
