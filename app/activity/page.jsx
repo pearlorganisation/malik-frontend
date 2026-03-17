@@ -92,11 +92,17 @@ function ActivitiesContent() {
   //   categories: activeCategory, 
   //   location: activeLocation,
   // });
-  const { data, isLoading, error } = useGetActivitiesQuery({
+//   const { data, isLoading, error } = useGetActivitiesQuery({
+//   page: 1,
+//   limit: 20,
+//   categoryId: activeCategory,
+//   location: activeLocation,
+// });
+const { data,isLoading } = useGetActivitiesQuery({
   page: 1,
   limit: 20,
-  categoryId: activeCategory,
-  location: activeLocation,
+  ...(activeCategory && { categoryId: activeCategory }),
+  ...(activeLocation && { location: activeLocation }),
 });
 
 const activities = data?.data?.data || [];
@@ -143,7 +149,11 @@ const activities = data?.data?.data || [];
               <button 
                 key={cat._id} 
                 // onClick={() => setActiveCategory(cat.name)} 
-                onClick={() => setActiveCategory(cat._id)}
+                onClick={() => {
+                  setActiveCategory(cat._id);
+                  setActiveLocation(null);
+                }
+                }
                 className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl transition-all ${isActive ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/10' : 'text-slate-600 hover:bg-slate-50'}`}
               >
                 <div className="flex items-center gap-3">
@@ -171,15 +181,32 @@ const activities = data?.data?.data || [];
           >
             All Locations
           </button>
-          {locations.map((loc) => (
+          {/* {locations.map((loc) => (
             <button 
               key={loc._id} 
               onClick={() => setActiveLocation(loc._id)} 
-              className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-bold transition-all ${activeLocation === loc.name ? 'bg-orange-50 text-orange-500 border border-orange-100' : 'text-slate-600 hover:bg-slate-50'}`}
+              className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-bold transition-all ${activeLocation === loc._id ? 'bg-orange-50 text-orange-500 border border-orange-100' : 'text-slate-600 hover:bg-slate-50'}`}
             >
               {loc.name}
             </button>
-          ))}
+          ))} */}
+          {locations.map((loc) => (
+  <button 
+    key={loc._id} 
+    onClick={() => {
+      setActiveLocation(loc._id);
+      setActiveCategory(null);
+    }
+    } 
+    className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-bold transition-all ${
+      activeLocation === loc._id
+        ? 'bg-orange-50 text-orange-500 border border-orange-100'
+        : 'text-slate-600 hover:bg-slate-50'
+    }`}
+  >
+    {loc.name}
+  </button>
+))}
         </div>
       </div>
 
@@ -241,7 +268,11 @@ const activities = data?.data?.data || [];
                 <button 
                   key={cat._id} 
                   // onClick={() => setActiveCategory(cat.name)} 
-                  onClick={() => setActiveCategory(cat._id)}
+                  onClick={() => {
+                    setActiveCategory(cat._id)
+                    setActiveLocation(null);
+                  }
+                  }
                   className={`px-5 py-2.5 rounded-xl text-xs font-black whitespace-nowrap border-2 transition-all shadow-sm flex items-center gap-2 ${activeCategory === cat._id ? 'bg-slate-950 text-white border-slate-950' : 'bg-white text-slate-500 border-white'}`}
                 >
                   <Icon className="w-4 h-4" /> {cat.name}
@@ -259,8 +290,11 @@ const activities = data?.data?.data || [];
             {locations.map(loc => (
               <button 
                 key={loc._id} 
-                onClick={() => setActiveLocation(loc.name)} 
-                className={`px-5 py-2.5 rounded-xl text-xs font-black whitespace-nowrap border-2 transition-all shadow-sm ${activeLocation === loc.name ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-slate-500 border-white'}`}
+                onClick={() =>{setActiveLocation(loc._id)
+                  setActiveCategory(null);
+                }
+                } 
+                className={`px-5 py-2.5 rounded-xl text-xs font-black whitespace-nowrap border-2 transition-all shadow-sm ${activeLocation === loc._id ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-slate-500 border-white'}`}
               >
                 {loc.name}
               </button>

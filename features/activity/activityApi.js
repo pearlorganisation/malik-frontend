@@ -23,7 +23,8 @@ export const activityApi = baseApi.injectEndpoints({
     // }
     if (categoryId) params.append("categoryId", categoryId);
     if (duration) params.append("duration", duration);
-    if (location) params.append("location", location);
+    // if (location) params.append("location", location);
+    if (location) params.append("place", location);
 
     return `/activity/search?${params.toString()}`;
   },

@@ -1,5 +1,5 @@
 import React, { useState,useMemo } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useGetActivitiesQuery } from "@/features/activity/activityApi";
 import CategoryBalls from "@/components/Category/CategoryBalls.jsx";
 import { ExperienceCard } from "./ExperienceCard.jsx";
@@ -186,13 +186,38 @@ const pagination = data?.data?.pagination;
             ))}
           </div>
         ) : (
-          <div className="py-20 text-center text-slate-400">
-            <p>
-              No activities found
-              {/* {selectedCategories.length ? ` for ${selectedCategories[0]}` : ""} */}
-              {selectedCategory ? ` for ${selectedCategory}` : ""}
-            </p>
-          </div>
+          // <div className="py-20 text-center text-slate-400">
+          //   <p>
+          //     No activities found
+          //     {/* {selectedCategories.length ? ` for ${selectedCategories[0]}` : ""} */}
+          //     {selectedCategory ? ` for ${selectedCategory}` : ""}
+          //   </p>
+          // </div>
+          <div className="bg-white rounded-[3rem] p-20 text-center border border-slate-100 shadow-sm">
+  
+  <Search className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+
+  <h3 className="text-xl font-black text-slate-900">
+    No matching adventures found
+  </h3>
+
+  <p className="text-slate-400 mt-2">
+    {selectedCategory
+      ? "Try changing category or clearing filters."
+      : "Try adjusting your search or filters."}
+  </p>
+
+  <button
+    onClick={() => {
+      setSelectedCategory("");
+      setItemsToLoad(10);
+    }}
+    className="mt-6 text-blue-600 font-bold hover:underline"
+  >
+    Clear all filters
+  </button>
+
+</div>
         )}
 
         {/* Load More Button */}
