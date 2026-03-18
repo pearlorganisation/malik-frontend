@@ -409,7 +409,7 @@ export default function ActivityDetailPage() {
           {/* <div className="min-w-0"> */}
           <div className="min-w-0">
             {/* ── Image Gallery ──────────────────────────────────────────── */}
-            <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[240px] sm:h-[320px] md:h-[400px] rounded-2xl overflow-hidden">
+            <div className="grid grid-cols-4 grid-rows-2 gap-2 h-60 sm:h-80 md:h-100 rounded-2xl overflow-hidden">
               {/* Hero */}
               <div className="col-span-2 row-span-2 relative group overflow-hidden cursor-pointer">
                 <img
@@ -483,7 +483,7 @@ export default function ActivityDetailPage() {
             {/* ── Page Tabs (scroll-spy anchor) ───────────────────────────── */}
             <div
               ref={contentRef}
-              className="border-b border-gray-200 overflow-x-auto mt-0 scroll-mt-20 mt-8"
+              className="border-b border-gray-200 overflow-x-auto mt-0 scroll-mt-20"
             >
               <div className="flex whitespace-nowrap">
                 {PAGE_TABS.map((tab) => (
@@ -652,7 +652,7 @@ export default function ActivityDetailPage() {
             key={i}
             className="flex items-start gap-2 text-[11px] text-gray-700"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-gray-500 mt-[7px] shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full bg-gray-500 mt-1.75 shrink-0" />
             {h}
           </div>
         ))}
@@ -1535,7 +1535,7 @@ const guestTypes =
             setTransferType("suv");
             onTabClick(activeTab);
           }}
-          className={`flex py-4 items-center justify-center gap-2 py-1 text-[8px] font-bold uppercase tracking-wider transition-all border-b-2 ${
+          className={`flex items-center justify-center gap-2 py-1 text-[8px] font-bold uppercase tracking-wider transition-all border-b-2 ${
             isSUVActive
               ? "border-blue-700 text-blue-700 bg-white"
               : "border-gray-200 text-gray-400 bg-gray-50 hover:bg-gray-100"

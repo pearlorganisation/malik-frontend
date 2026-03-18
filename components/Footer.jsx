@@ -94,14 +94,15 @@ const places = placesResponse?.data || [];
 
             {/* CTA Right: Buttons */}
             <div className="flex flex-wrap items-center gap-3">
-              <a
-                href="https://wa.me/919876543210?text=Hello%20I%20want%20to%20book%20a%20tour"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 bg-white text-blue-700 font-bold px-6 py-3 rounded-lg hover:bg-gray-50 transition-all shadow-md active:scale-95"
-              >
-                <Phone size={18} />
-                <span>WhatsApp</span>
+               <a 
+                  href="https://wa.me/971501902213" 
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex-1 md:flex-none px-7 py-3.5 bg-white text-fun-blue font-black rounded-xl hover:bg-blue-50 transition-all shadow-xl flex items-center justify-center gap-2.5 group active:scale-95"
+                >
+                   <Phone className="w-4 h-4 text-blue-600"/>
+                    <span className="text-[13px] text-blue-600 tracking-tight">WhatsApp</span>
+
               </a>
 
               <button
@@ -126,14 +127,14 @@ const places = placesResponse?.data || [];
               {/* Logo: DubaiTours */}
              <Link href="/" className="flex flex-col items-start leading-none group">
                            <div className="flex items-center gap-1">
-                             <span className="text-[28px] font-[900] text-[#EF4444] tracking-tight">FUN</span>
+                             <span className="text-[28px] font-black text-[#EF4444] tracking-tight">FUN</span>
                              <div className="w-7 h-7 bg-[#FFB800] rounded-full flex items-center justify-center">
                                 <div className="relative w-4 h-4 border-b-2 border-white rounded-full flex items-center justify-center">
                                    <div className="absolute top-0 left-0 w-1 h-1 bg-white rounded-full"></div>
                                    <div className="absolute top-0 right-0 w-1 h-1 bg-white rounded-full"></div>
                                 </div>
                              </div>
-                             <span className="text-[28px] font-[900] text-[#0047AB] tracking-tight">TOURS</span>
+                             <span className="text-[28px] font-black text-[#0047AB] tracking-tight">TOURS</span>
                            </div>
                            <span className="text-[10px] font-bold tracking-[0.2em] text-slate-400 mt-0.5 ml-0.5">
                              DUBAI TOURISM

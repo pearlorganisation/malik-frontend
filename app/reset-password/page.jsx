@@ -36,8 +36,8 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 sm:px-6 relative overflow-hidden">
       {/* Background decor */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-40 -left-40 w-[400px] sm:w-[500px] h-[400px] sm:h-[500px] rounded-full bg-amber-200/20 blur-3xl" />
-        <div className="absolute -bottom-40 -right-40 w-[400px] sm:w-[500px] h-[400px] sm:h-[500px] rounded-full bg-slate-900/10 blur-3xl" />
+        <div className="absolute -top-40 -left-40 w-100 sm:w-125 h-100 sm:h-125 rounded-full bg-amber-200/20 blur-3xl" />
+        <div className="absolute -bottom-40 -right-40 w-100 sm:w-125 h-100 sm:h-125 rounded-full bg-slate-900/10 blur-3xl" />
       </div>
 
       {/* Card */}

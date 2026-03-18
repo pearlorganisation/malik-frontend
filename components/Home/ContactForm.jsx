@@ -50,7 +50,7 @@ const CallbackForm = () => {
 
   return (
     <div className="lg:mt-0">
-      <div className="relative rounded-2xl bg-linear-to-r from-blue-600 via-purple-600 to-pink-500 p-[2px] shadow-2xl">
+      <div className="relative rounded-2xl bg-linear-to-r from-blue-600 via-purple-600 to-pink-500 p-0.5 shadow-2xl">
         <div className="relative h-full flex flex-col justify-between rounded-[14px] bg-white px-6 py-8 sm:p-10">
           <div>
             {/* Header */}

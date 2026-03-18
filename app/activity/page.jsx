@@ -238,8 +238,8 @@ const activities = data?.data?.data || [];
       </div>
 
       {/* WhatsApp Widget */}
-      <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl shadow-blue-900/10">
-        <MessageCircle className="absolute top-[-20px] right-[-20px] w-32 h-32 text-white opacity-10" />
+      <div className="bg-linear-to-br from-blue-600 to-blue-800 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl shadow-blue-900/10">
+        <MessageCircle className="absolute -top-5 -right-5 w-32 h-32 text-white opacity-10" />
         <h4 className="text-xl font-black mb-3">Custom Trip?</h4>
         <p className="text-blue-100 text-xs font-medium leading-relaxed mb-6">Expert planning via WhatsApp.</p>
         <a 
@@ -256,7 +256,7 @@ const activities = data?.data?.data || [];
 
   return (
     <div className="bg-slate-50/50 min-h-screen py-4 md:py-16 font-sans text-slate-900">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-350 mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header Section */}
         <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -366,7 +366,7 @@ const activities = data?.data?.data || [];
         <div className="group relative bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col h-full">
 
           {/* IMAGE */}
-          <div className="relative aspect-[4/3] overflow-hidden">
+          <div className="relative aspect-4/3 overflow-hidden">
 
             <img
               src={image}
@@ -375,7 +375,7 @@ const activities = data?.data?.data || [];
             />
 
             {/* overlay gradient */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition" />
+            <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition" />
 
             {/* heart */}
             <button className="absolute top-4 right-4 p-2 rounded-full bg-white/80 backdrop-blur hover:bg-white hover:text-red-500 transition">
