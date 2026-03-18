@@ -38,7 +38,7 @@ import { useGetCategoriesQuery } from "@/features/category/categoryApi";
 const NAV_ITEMS = [
   { label: "Home", href: "/", icon: Home },
   { label: "Experiences", href: "/activity", icon: Compass },
-  { label: "Reviews", href: "#", icon: Star },
+  { label: "Reviews", href: "/reviews", icon: Star },
   { label: "AI Planner", href: "#", icon: Sparkles },
   { label: "Contact", href: "/contact", icon: Phone },
 ];

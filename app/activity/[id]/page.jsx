@@ -3,6 +3,8 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useGetActivityByIdQuery } from "@/features/activity/activityApi.js";
 import { useCreateBookingMutation } from "@/features/booking/bookApi.js";
+import ReviewModal from "@/components/Review/ReviewModal";
+// import { useState } from "react";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import {
   Clock,
@@ -1346,6 +1348,10 @@ function PackagesSection({
 
 // ─── Reviews section ──────────────────────────────────────────────────────────
 function ReviewsSection({ activity }) {
+    const [isReviewOpen, setIsReviewOpen] = useState(false);
+
+const openReviewModal = () => setIsReviewOpen(true);
+const closeReviewModal = () => setIsReviewOpen(false);
   // Static sample reviews – real data comes from ActivityReviews component below
   const sampleReviews = [
     {
@@ -1386,9 +1392,38 @@ function ReviewsSection({ activity }) {
             Based on {activity.reviewCount || "45000"} reviews
           </div>
         </div>
-        <button className="px-4 py-2 bg-black text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-800 transition-colors">
+        {/* <button className="px-4 py-2 bg-black text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-800 transition-colors">
           Write a Review
-        </button>
+        </button> */}
+        {/* <button
+  onClick={openReviewModal}
+  className="px-4 py-2 bg-black text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-800 transition-colors"
+>
+  Write a Review
+</button>
+<ReviewModal
+  isOpen={isReviewOpen}
+  onClose={closeReviewModal}
+  activityId={activity?._id}
+/> */}
+
+<>
+  {/* <button onClick={openReviewModal}>Write a Review</button> */}
+      <button
+  onClick={openReviewModal}
+  className="px-4 py-2 bg-black text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-800 transition-colors"
+>
+  Write a Review
+</button>
+
+  {isReviewOpen && (
+    <ReviewModal
+      isOpen={isReviewOpen}
+      onClose={closeReviewModal}
+      activityId={activity?._id}
+    />
+  )}
+</>
       </div>
 
       {/* Review cards */}

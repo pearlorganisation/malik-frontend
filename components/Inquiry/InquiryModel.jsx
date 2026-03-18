@@ -1,12 +1,14 @@
+import { useCreateInquiryMutation } from "@/features/inquiry/inquiryApi";
 
 import React, { useState, useEffect } from 'react';
 import { X, Star, Check, ArrowRight, ArrowLeft, Send, MessageSquare, Sparkles, Mail, User, Phone, Users, ShieldCheck } from 'lucide-react';
-
+import toast from "react-hot-toast";
 
 const InquiryModal = ({ isOpen, onClose, selectedTour }) => {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [createInquiry] = useCreateInquiryMutation();
 
   const [formData, setFormData] = useState({
     adults: 2,
@@ -25,16 +27,52 @@ const InquiryModal = ({ isOpen, onClose, selectedTour }) => {
   }, [isOpen]);
 
   if (!isOpen) return null;
+const handleSubmit = async (e) => {
+    console.log("Selected Tour:", selectedTour);
+  if (e) e.preventDefault();
+  if (!formData.email.includes("@")) {
+  toast.error("Enter valid email ❌");
+  return;
+}
+if (formData.phone.length < 8) {
+  toast.error("Enter valid phone number 📱");
+  return;
+}
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSuccess(true);
-    }, 1500);
+  const payload = {
+    tourId: selectedTour?._id || null,
+    tourName: selectedTour?.name || "",
+    ...formData,
   };
 
+  try {
+    setIsSubmitting(true);
+
+    const res = await createInquiry(payload).unwrap();
+
+    console.log("✅ API Response:", res);
+
+    toast.success("Inquiry submitted successfully 🚀");
+
+    setIsSuccess(true);
+    setFormData({
+  adults: 2,
+  kids: 0,
+  requirement: "",
+  name: "",
+  email: "",
+  phone: "",
+});
+  } catch (err) {
+    console.error("❌ Error:", err);
+
+    toast.error(
+      err?.data?.message || "Something went wrong ❌"
+    );
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   const nextStep = () => setStep(2);
   const prevStep = () => setStep(1);
 
@@ -210,14 +248,16 @@ const InquiryModal = ({ isOpen, onClose, selectedTour }) => {
                 ) : (
                     <div className="flex gap-3">
                         <button type="button" onClick={prevStep} className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all"><ArrowLeft className="w-5 h-5" /></button>
-                        <button 
-                            type="submit"
-                            form="inquiry-form"
-                            disabled={isSubmitting || !formData.name || !formData.phone}
-                            className="flex-1 py-4 bg-[#0047AB] text-white font-black rounded-2xl shadow-xl transition-all disabled:opacity-50 flex items-center justify-center gap-3 uppercase text-[12px] tracking-widest active:scale-95"
-                        >
-                            {isSubmitting ? 'SENDING...' : 'SEND ENQUIRY'} <Send className="w-4 h-4" />
-                        </button>
+                 <button 
+  type="submit"
+  form="inquiry-form"
+  disabled={isSubmitting || !formData.name || !formData.phone}
+  className="flex-1 py-4 bg-[#0047AB] text-white font-black rounded-2xl shadow-xl flex items-center justify-center gap-2"
+>
+  {isSubmitting ? 'SENDING...' : 'SEND ENQUIRY'} 
+  <Send className="w-4 h-4" />
+</button>
+                         
                     </div>
                 )}
             </div>
