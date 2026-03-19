@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { useInquiry } from "@/context/InquiryContext";
 import { Search, MessageCircle, ShieldCheck, Sun } from "lucide-react";
 
 const images = [
@@ -9,6 +10,7 @@ const images = [
 ];
 
 export default function Hero() {
+    const { openInquiry } = useInquiry();
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
@@ -78,9 +80,21 @@ export default function Hero() {
           <button className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-semibold transition">
             ✨ AI Trip Planner
           </button>
-          <button className="px-4 py-2 rounded-md border border-white/40 bg-white/10 text-white text-[13px] font-semibold backdrop-blur hover:bg-white/20 transition">
+          {/* <button className="px-4 py-2 rounded-md border border-white/40 bg-white/10 text-white text-[13px] font-semibold backdrop-blur hover:bg-white/20 transition">
             📄 Get Custom Quote
-          </button>
+          </button> */}
+          {/* <button
+  onClick={() => onPlanTripClick()}
+  className="px-4 py-2 rounded-md border border-white/40 bg-white/10 text-white text-[13px] font-semibold backdrop-blur hover:bg-white/20 transition"
+>
+  📄 Get Custom Quote
+</button> */}
+<button
+  onClick={openInquiry}
+  className="px-4 py-2 rounded-md border border-white/40 bg-white/10 text-white text-[13px] font-semibold backdrop-blur hover:bg-white/20 transition"
+>
+  📄 Get Custom Quote
+</button>
         </div>
       </div>
 
