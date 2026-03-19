@@ -79,6 +79,8 @@ function ActivitiesContent() {
   const [activeCategory, setActiveCategory] = useState(null); // 'null' means all
   const [activeLocation, setActiveLocation] = useState(null); // 'null' means all
   const [visibleCount, setVisibleCount] = useState(12);
+  const [visibleCategories, setVisibleCategories] = useState(6);
+const [visibleLocations, setVisibleLocations] = useState(6);
 
   // Queries
   const { data: categoryResponse } = useGetCategoriesQuery({ page: 1, limit: 50 });
@@ -89,7 +91,13 @@ function ActivitiesContent() {
   useEffect(() => {
   setVisibleCount(12);
 }, [activeCategory, activeLocation]);
+useEffect(() => {
+  setVisibleCategories(6);
+}, [categories]);
 
+useEffect(() => {
+  setVisibleLocations(6);
+}, [locations]);
 useEffect(() => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }, [activeCategory, activeLocation]);
@@ -162,7 +170,8 @@ const activities = data?.data?.data || [];
             {!activeCategory && <Check className="w-4 h-4 text-orange-500" />}
           </button>
           
-          {categories.map((cat) => {
+          {/* {categories.map((cat) => { */}
+          {categories.slice(0, visibleCategories).map((cat) => {
             const Icon = getCategoryIcon(cat.name);
             // const isActive = activeCategory === cat.name;
             const isActive = activeCategory === cat._id;
@@ -186,9 +195,23 @@ const activities = data?.data?.data || [];
                 </div>
                 {isActive && <Check className="w-4 h-4 text-orange-500" />}
               </button>
+
+
             );
           })}
         </div>
+  {categories.length > 6 && (
+  <button
+    onClick={() =>
+      visibleCategories >= categories.length
+        ? setVisibleCategories(6)
+        : setVisibleCategories(prev => prev + 6)
+    }
+    className="w-full mt-3 py-2 text-xs font-bold text-blue-600 hover:underline"
+  >
+    {visibleCategories >= categories.length ? "Show Less" : "Load More Categories"}
+  </button>
+)}
       </div>
 
       {/* Locations */}
@@ -216,7 +239,8 @@ const activities = data?.data?.data || [];
               {loc.name}
             </button>
           ))} */}
-          {locations.map((loc) => (
+          {/* {locations.map((loc) => ( */}
+          {locations.slice(0, visibleLocations).map((loc) => (
   <button 
     key={loc._id} 
     onClick={() => {
@@ -235,6 +259,18 @@ const activities = data?.data?.data || [];
   </button>
 ))}
         </div>
+    {locations.length > 6 && (
+  <button
+    onClick={() =>
+      visibleLocations >= locations.length
+        ? setVisibleLocations(6)
+        : setVisibleLocations(prev => prev + 6)
+    }
+    className="w-full mt-3 py-2 text-xs font-bold text-blue-600 hover:underline"
+  >
+    {visibleLocations >= locations.length ? "Show Less" : "Load More Locations"}
+  </button>
+)}
       </div>
 
       {/* WhatsApp Widget */}
