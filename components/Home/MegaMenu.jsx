@@ -173,7 +173,7 @@ export default function MegaMenu({
             </div>
 
             {/* EXPERIENCE STYLES */}
-            <div className="mt-6">
+            {/* <div className="mt-6">
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles className="w-3.5 h-3.5 text-slate-400" />
                 <h3 className="text-[10.5px] font-bold text-slate-400 uppercase tracking-widest">
@@ -194,7 +194,7 @@ export default function MegaMenu({
                   </div>
                 ))}
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* ================= TOURS ================= */}
