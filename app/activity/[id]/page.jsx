@@ -353,28 +353,49 @@ export default function ActivityDetailPage() {
   console.log("first",activity)
   const title = activity?.name || "Burj Khalifa: At The Top (124 & 125)";
 
+  const fallbackInclude = [
+  "Instant E-Ticket Delivery",
+  "Access to Level 124 & 125",
+  "Use of High-Powered Telescopes",
+  "Free WiFi at the Attraction",
+];
+
+const fallbackExclude = [
+  "Fast Track / Priority Lane",
+  "Level 148 Access",
+  "Hotel Pickup",
+];
+const includeList =
+  activity?.packages?.[0]?.whatInclude?.length > 0
+    ? activity.packages[0].whatInclude
+    : fallbackInclude;
+
+const excludeList =
+  activity?.packages?.[0]?.whatExclude?.length > 0
+    ? activity.packages[0].whatExclude
+    : fallbackExclude;
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900 p-4">
       {/* ── Breadcrumb ────────────────────────────────────────────────────── */}
       <div className="bg-gray-60/10 border-b border-t border-gray-100 sticky top-0 z-40 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-2.5 flex items-center text-xs text-gray-500 gap-1.5 overflow-x-auto whitespace-nowrap">
+        <div className="w-full mx-auto px-4 sm:px-6 py-2.5 flex items-center text-xs text-gray-500 gap-1.5 overflow-x-auto whitespace-nowrap">
           <Home className="w-2.5 h-2.5 text-gray-400 shrink-0" />
           <ChevronRight className="w-3 h-3 text-gray-300 shrink-0" />
-          <span className="hover:text-blue-600 cursor-pointer text-[9px] transition-colors">
+          <span className="hover:text-blue-600 cursor-pointer text-sm transition-colors">
             Home
           </span>
           <ChevronRight className="w-3 h-3 text-gray-300 shrink-0" />
-          <span className="text-black font-bold text-[9px] truncate">
+          <span className="text-black font-bold text-[13px] tracking-widest truncate">
             {activity.name}
           </span>
         </div>
       </div>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6  md:py-8">
+      <main className="w-full mx-auto px-4 sm:px-6 py-2  md:py-4">
         {/* ── Title + Rating ────────────────────────────────────────────────── */}
         <div className="mb-5">
           {/* TITLE TOP */}
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight mb-2">
+          <h1 className="text-2xl md:text-3xl lg:text-5xl font-bold text-black leading-tight mb-2">
             {title}
           </h1>
 
@@ -384,7 +405,7 @@ export default function ActivityDetailPage() {
               {[1, 2, 3, 4, 5].map((s) => (
                 <Star
                   key={s}
-                  className={`w-2.5 h-2.5 ${
+                  className={`w-4 h-4 ${
                     s <= Math.round(rating)
                       ? "text-yellow-400 fill-yellow-400"
                       : "text-gray-200 fill-gray-200"
@@ -393,13 +414,13 @@ export default function ActivityDetailPage() {
               ))}
             </div>
 
-            <span className="text-[9px] font-bold text-gray-800">{rating}</span>
+            <span className="text-sm font-bold text-gray-800">{rating}</span>
 
-            <span className="text-[11px] text-gray-400">
+            {/* <span className="text-[11px] text-gray-400">
               ({reviewCount} reviews)
-            </span>
+            </span> */}
 
-            <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 text-[9px] font-semibold rounded-full border border-blue-100 flex items-center gap-1">
+            <span className="px-4 py-0.5 bg-blue-50 text-blue-900 text-[13px] font-semibold rounded-b border border-blue-100 flex items-center gap-1">
               <ShieldCheck size={11}  /> Official Ticket
             </span>
           </div>
@@ -411,7 +432,7 @@ export default function ActivityDetailPage() {
           {/* <div className="min-w-0"> */}
           <div className="min-w-0">
             {/* ── Image Gallery ──────────────────────────────────────────── */}
-            <div className="grid grid-cols-4 grid-rows-2 gap-2 h-60 sm:h-80 md:h-100 rounded-2xl overflow-hidden">
+            <div className="grid grid-cols-4 grid-rows-2 gap-2 h-60 sm:h-90 md:h-110 rounded-2xl overflow-hidden">
               {/* Hero */}
               <div className="col-span-2 row-span-2 relative group overflow-hidden cursor-pointer">
                 <img
@@ -485,14 +506,14 @@ export default function ActivityDetailPage() {
             {/* ── Page Tabs (scroll-spy anchor) ───────────────────────────── */}
             <div
               ref={contentRef}
-              className="border-b border-gray-200 overflow-x-auto mt-0 scroll-mt-20"
+              className="border-b border-gray-200 overflow-x-auto mt-8 scroll-mt-20"
             >
               <div className="flex whitespace-nowrap">
                 {PAGE_TABS.map((tab) => (
                   <button
                     key={tab.key}
                     onClick={() => handleTabClick(tab.key)}
-                    className={`px-5 py-4 text-[8px] font-semibold tracking-widest uppercase transition-colors border-b-2 ${
+                    className={`px-5 py-4 text-xs font-bold tracking-widest uppercase transition-colors border-b-2 ${
                       activeTab === tab.key
                         ? isVIP
                           ? "border-red-600 text-red-600"
@@ -631,12 +652,12 @@ export default function ActivityDetailPage() {
         isVIP ? "border-red-600" : "border-blue-700"
       }`}
     >
-      <p className="text-base font-bold text-gray-900 leading-snug">
+      <p className="text-[22px] font-bold text-gray-900 leading-snug">
         {activity.Experience?.title ||
           "Instant access to Dubai's most iconic landmarks."}
       </p>
 
-      <p className="text-sm text-gray-500 mt-1">
+      <p className="text-md text-gray-500 mt-1">
         {activity.Experience?.note ||
           "Official QR tickets delivered straight to your smartphone."}
       </p>
@@ -644,7 +665,7 @@ export default function ActivityDetailPage() {
 
     {/* Highlights */}
     <div>
-      <h2 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+      <h2 className="text-[18px] font-bold text-gray-900 mb-4 flex items-center gap-2">
         <span className="text-yellow-400 text-sm">✦</span> Highlights
       </h2>
 
@@ -652,9 +673,9 @@ export default function ActivityDetailPage() {
         {activity.Experience?.highlights?.map((h, i) => (
           <div
             key={i}
-            className="flex items-start gap-2 text-[11px] text-gray-700"
+            className="flex items-start gap-2 text-[17px] text-gray-700"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-gray-500 mt-1.75 shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full bg-gray-900 mt-1.75 shrink-0" />
             {h}
           </div>
         ))}
@@ -662,70 +683,70 @@ export default function ActivityDetailPage() {
     </div>
 
     {/* Include / Exclude (Packages data se) */}
-    <div
-      className={`rounded-2xl border overflow-hidden ${
-        isVIP
-          ? "border-red-200 bg-red-50"
-          : "border-gray-200 bg-white"
-      }`}
-    >
-      <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-200">
-        
-        {/* Included */}
-        <div className="p-6">
-          <h4
-            className={`font-black mb-4 text-[8px] uppercase tracking-widest ${
-              isVIP ? "text-red-600" : "text-blue-700"
-            }`}
+<div
+  className={`rounded-[20px] border overflow-hidden ${
+    isVIP
+      ? "border-red-200 bg-red-50"
+      : "border-blue-200 bg-blue-50"
+  }`}
+>
+  <div className="grid md:grid-cols-2 ">
+    
+    {/* Included */}
+    <div className="p-8">
+      <h4
+        className={`font-bold mb-5 text-[12px] uppercase tracking-wider ${
+          isVIP ? "text-red-600" : "text-blue-900"
+        }`}
+      >
+        WHAT'S INCLUDED
+      </h4>
+
+      <ul className="space-y-4">
+        {includeList.map((inc, i) => (
+          <li
+            key={i}
+            className="text-[16px] flex items-center gap-3 text-gray-700"
           >
-            What's Included
-          </h4>
-
-          <ul className="space-y-2.5">
-            {activity.packages?.[0]?.whatInclude?.map((inc, i) => (
-              <li
-                key={i}
-                className="text-[11px] flex items-center gap-2 text-gray-700"
-              >
-                <Check size={14} className="text-green-500 shrink-0" />
-                {inc}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Excluded */}
-        <div className="p-6">
-          <h4
-            className={`font-black mb-4 text-[8px] uppercase tracking-widest ${
-              isVIP ? "text-red-600" : "text-blue-700"
-            }`}
-          >
-            What's Excluded
-          </h4>
-
-          <ul className="space-y-2.5">
-            {activity.packages?.[0]?.whatExclude?.map((exc, i) => (
-              <li
-                key={i}
-                className="text-[11px] text-gray-600 flex items-center gap-2"
-              >
-                <X size={14} className="text-red-400 shrink-0" />
-                {exc}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+            <Check size={16} className="text-green-500 shrink-0" />
+            {inc}
+          </li>
+        ))}
+      </ul>
     </div>
+
+    {/* Excluded */}
+    <div className="p-8">
+      <h4
+        className={`font-bold mb-5 text-[12px] uppercase tracking-wider ${
+          isVIP ? "text-red-600" : "text-blue-900"
+        }`}
+      >
+        WHAT'S EXCLUDED
+      </h4>
+
+      <ul className="space-y-4">
+        {excludeList.map((exc, i) => (
+          <li
+            key={i}
+            className="text-[16px] text-gray-600 flex items-center gap-3"
+          >
+            <X size={16} className="text-red-400 shrink-0" />
+            {exc}
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</div>
 
     {/* Description */}
     <div>
-      <h2 className="text-sm font-bold text-black mb-2">
-        About this Experience
+      <h2 className="text-[22px] font-bold text-black mb-2">
+        About this Entry
       </h2>
 
-      <p className="text-[11px] text-gray-600 leading-relaxed">
+      <p className="text-[15px] text-gray-600 leading-relaxed">
         {activity.Experience?.description ||
           "Visit the world's tallest building and enjoy panoramic views of Dubai."}
       </p>
@@ -791,17 +812,17 @@ export default function ActivityDetailPage() {
 
 {activeTab === "itinerary" && (
   <div>
-    <h2 className="text-md font-bold text-gray-900 mb-6">
+    <h2 className="text-xl font-bold text-gray-900 my-6">
       Visit Timeline
     </h2>
 
-    <div className="space-y-6">
+    <div className="space-y-12">
       {activity?.Itinerary?.map((stop, idx) => (
-        <div key={stop._id || idx} className="flex gap-4">
+        <div key={stop._id || idx} className="flex gap-6">
 
           {/* timeline dot */}
           <div className="flex flex-col items-center shrink-0">
-            <div className="w-4 h-4 rounded-full bg-gray-900 flex items-center justify-center mt-1">
+            <div className="w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center mt-1">
               <div className="w-2 h-2 rounded-full bg-white" />
             </div>
 
@@ -811,35 +832,44 @@ export default function ActivityDetailPage() {
           </div>
 
           {/* content */}
-          <div className="flex-1 pb-6 last:pb-0 flex gap-4">
+          <div className="flex-1 pb-20 last:pb-0 flex gap-4">
 
             <div className="flex-1">
-              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+              <span className="text-[9px] bg-gray-200 p-[1px] font-black text-gray-400 uppercase tracking-widest">
                 {stop.time}
               </span>
 
-              <h4 className="text-[14px] font-bold text-900 mt-0.5 mb-1">
+              <h4 className="text-[18px] font-extrabold text-900 mt-0.5 mb-0.5">
                 {stop.title}
               </h4>
 
-              <p className="text-[12px] text-gray-500 leading-relaxed">
+              <p className="text-[13px] text-gray-500 font-bold">
                 {stop.description}
               </p>
             </div>
 
             {/* image placeholder */}
-            <div className="w-18 h-14 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+            {/* <div className="w-18 h-14 rounded-xl overflow-hidden bg-gray-100 shrink-0">
               {stop.image ? (
                 <img
-                  src={stop.image}
+                  src={stop?.image || "https://images.unsplash.com/photo-1597659840241-37e2b9c2f55f?q=80&w=200"}
                   alt={stop.title}
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full bg-gray-100" />
               )}
-            </div>
-
+            </div> */}
+<div className="w-18 h-14 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+  <img
+    src={
+      stop?.image ||
+      "https://images.unsplash.com/photo-1597659840241-37e2b9c2f55f?q=80&w=200"
+    }
+    alt={stop?.title || "image"}
+    className="w-full h-full object-cover"
+  />
+</div>
           </div>
         </div>
       ))}
@@ -940,10 +970,10 @@ export default function ActivityDetailPage() {
     <div className="grid sm:grid-cols-2 gap-4">
 
       {/* Entry Point */}
-      <div className="border border-gray-200 rounded-2xl p-5">
+      <div className="border border-gray-200 rounded-2xl p-8 bg-blue-50">
         <div className="flex items-center gap-2 mb-3">
           <MapPin size={15} className="text-blue-600" />
-          <h3 className="font-bold text-gray-900 text-[13px]">
+          <h3 className="font-bold text-gray-900 text-[16px]">
             Pickup Zone
           </h3>
         </div>
@@ -956,9 +986,9 @@ export default function ActivityDetailPage() {
           <a
             href={activity.InfoAndLogistics.pickupZone.mapLink}
             target="_blank"
-            className="flex items-center gap-1.5 text-[8px] font-bold text-gray-400 uppercase tracking-widest"
+            className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest"
           >
-            <Train size={11} /> View on Map
+            <Train size={11} className="text-blue-600"/> View on Map
           </a>
         )}
       </div>
@@ -966,8 +996,8 @@ export default function ActivityDetailPage() {
       {/* Key Info */}
       <div className="border border-gray-200 rounded-2xl p-5">
         <div className="flex items-center gap-2 mb-3">
-          <Clock3 size={15} className="text-blue-600" />
-          <h3 className="font-bold text-gray-900 text-sm">
+          <Clock3 size={15} className="text-blue-600 font-bold" />
+          <h3 className="font-bold text-gray-900 text-md">
             Key Info
           </h3>
         </div>
@@ -976,11 +1006,11 @@ export default function ActivityDetailPage() {
           {activity?.InfoAndLogistics?.keyInfo?.map((item, i) => (
             <li
               key={i}
-              className="flex items-center gap-2 text-[10px] text-gray-600"
+              className="flex items-center gap-2 text-[11px] text-gray-600"
             >
               <CheckCircle2
                 size={13}
-                className="text-blue-400 shrink-0"
+                className="text-blue-600 shrink-0"
               />
               {item}
             </li>
@@ -1027,11 +1057,11 @@ export default function ActivityDetailPage() {
         isVIP ? "border-red-600" : "border-blue-700"
       }`}
     >
-      <p className="text-base font-bold text-gray-900 leading-snug">
+      <p className="text-md font-bold text-gray-900 leading-snug">
         {activity.BBQ_BUFFET?.title}
       </p>
 
-      <p className="text-sm text-gray-500 mt-1">
+      <p className="text-[15px] text-gray-500 mt-1">
         {activity.BBQ_BUFFET?.description}
       </p>
     </div>
@@ -1043,7 +1073,7 @@ export default function ActivityDetailPage() {
           className="rounded-2xl border border-gray-200 bg-white p-6"
         >
           <h4
-            className={`font-black mb-3 text-[8px] uppercase tracking-widest ${
+            className={`font-black mb-3 text-[12px] uppercase tracking-widest ${
               isVIP ? "text-red-600" : "text-blue-700"
             }`}
           >
@@ -1054,7 +1084,7 @@ export default function ActivityDetailPage() {
             {field.items?.map((item, idx) => (
               <li
                 key={idx}
-                className="text-[11px] text-gray-700 flex items-center gap-2"
+                className="text-[14px] text-gray-700 flex items-center gap-2"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-gray-500" />
                 {item}
@@ -1087,7 +1117,7 @@ export default function ActivityDetailPage() {
 
     <div className="rounded-2xl border border-gray-200 bg-white p-6">
 
-      <div className="flex justify-between text-[12px] text-gray-700 mb-2">
+      <div className="flex justify-between text-[15px] text-gray-700 mb-2">
         <span className="font-semibold">Model</span>
         <span>{activity.PrivateSUV?.model}</span>
       </div>
@@ -1377,18 +1407,18 @@ const closeReviewModal = () => setIsReviewOpen(false);
       {/* Rating summary */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <div className="text-2xl font-black text-gray-900">
+          <div className="text-4xl font-black text-gray-900">
             {activity.rating || "4.8"}
           </div>
           <div className="flex items-center gap-0.5 mt-1">
             {[1, 2, 3, 4, 5].map((s) => (
               <Star
                 key={s}
-                className="w-3 h-3 text-yellow-400 fill-yellow-400"
+                className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400"
               />
             ))}
           </div>
-          <div className="text-[9px] text-gray-400 uppercase tracking-widest font-bold mt-1">
+          <div className="text-[11px] text-gray-400 uppercase tracking-widest font-bold mt-1">
             Based on {activity.reviewCount || "45000"} reviews
           </div>
         </div>
@@ -1411,7 +1441,7 @@ const closeReviewModal = () => setIsReviewOpen(false);
   {/* <button onClick={openReviewModal}>Write a Review</button> */}
       <button
   onClick={openReviewModal}
-  className="px-4 py-2 bg-black text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-800 transition-colors"
+  className="px-8 py-2.5 bg-black text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-800 transition-colors"
 >
   Write a Review
 </button>
@@ -1427,22 +1457,22 @@ const closeReviewModal = () => setIsReviewOpen(false);
       </div>
 
       {/* Review cards */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         {sampleReviews.map((review) => (
           <div
             key={review.id}
-            className="bg-gray-60 border border-gray-200 rounded-2xl p-5 shadow-sm"
+            className="bg-gray-100/10 border border-gray-200 rounded-2xl p-8 shadow-sm"
           >
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-600">
+                <div className="w-11 h-11 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600">
                   {review.initial}
                 </div>
                 <div>
-                  <div className="text-[11px] font-bold text-gray-900">
+                  <div className="text-[13px] font-bold text-black">
                     {review.name}
                   </div>
-                  <div className="text-[8px] text-gray-400 uppercase tracking-wider">
+                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                     {review.date}
                   </div>
                 </div>
@@ -1451,15 +1481,15 @@ const closeReviewModal = () => setIsReviewOpen(false);
                 {[1, 2, 3, 4, 5].map((s) => (
                   <Star
                     key={s}
-                    className={`w-2.5 h-2.5 ${s <= review.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-200 fill-gray-200"}`}
+                    className={`w-3.5 h-3.5 ${s <= review.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-200 fill-gray-200"}`}
                   />
                 ))}
               </div>
             </div>
-            <p className="text-[11px] text-gray-600 leading-relaxed italic">
+            <p className="text-[15px] text-gray-600 leading-relaxed italic">
               {review.text}
             </p>
-            <div className="mt-2 flex items-center gap-1.5 text-[7px] font-bold text-gray-400 uppercase tracking-widest cursor-pointer hover:text-gray-600 transition-colors">
+            <div className="mt-3 flex items-center gap-1.5 text-[9px] font-bold text-gray-400 uppercase tracking-widest cursor-pointer hover:text-gray-600 transition-colors">
               <ThumbsUp size={12} /> Helpful
             </div>
           </div>
@@ -1550,7 +1580,7 @@ const guestTypes =
       </div>
 
       {/* ── Transfer tabs ────────────────────────────────────────────────── */}
-       {bookingStep === 1 && (
+       {/* {bookingStep === 1 && (
       <div className="grid grid-cols-2 rounded-full">
         <button
           onClick={() => {
@@ -1580,11 +1610,181 @@ const guestTypes =
           +Private SUV
         </button>
       </div>
+)} */}
+
+
+{bookingStep === 1 && (
+  <>
+    {/* ── Transfer Tabs ── */}
+    <div className="p-3">
+      <div className="grid grid-cols-2 bg-gray-100 rounded-full p-1">
+        <button
+          onClick={() => {
+            setTransferType("self");
+            onTabClick(activeTab);
+          }}
+          className={`flex items-center justify-center gap-2 py-2 rounded-full text-[10px] font-bold transition-all ${
+            !isSUVActive
+              ? "bg-white text-blue-700 shadow"
+              : "text-gray-400"
+          }`}
+        >
+          <Anchor size={14} /> SELF ARRIVAL
+        </button>
+
+        <button
+          onClick={() => {
+            setTransferType("suv");
+            onTabClick(activeTab);
+          }}
+          className={`flex items-center justify-center gap-2 py-2 rounded-full text-[10px] font-bold transition-all ${
+            isSUVActive
+              ? "bg-white text-blue-700 shadow"
+              : "text-gray-400"
+          }`}
+        >
+          <Truck size={14} /> +PRIVATE SUV
+        </button>
+      </div>
+    </div>
+    {isSUVActive && (
+  <div className="px-5">
+    <div className="flex items-center gap-3 bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl px-4 py-3">
+      
+      {/* Icon */}
+      <div className="w-10 h-10 rounded-full bg-[#FACC15] flex items-center justify-center shrink-0">
+        <Truck size={16} className="text-gray-900" />
+      </div>
+
+      {/* Text */}
+      <div>
+        <div className="text-[10px] font-bold text-[#F59E0B] uppercase tracking-wider">
+          INCLUDED
+        </div>
+        <div className="text-[13px] font-semibold text-gray-800">
+          Allocated: 1x SUV
+        </div>
+      </div>
+
+    </div>
+  </div>
 )}
-      {bookingStep === 1 && (
+
+    <div className="px-5 pb-5 space-y-5">
+      {/* ── Price ── */}
+      <div className="flex items-end gap-2">
+        <span className={`text-[32px] font-extrabold ${isVIP ? "text-red-500" : "text-blue-700"}`}>
+          ${displayPrice > 0 ? displayPrice : minPrice || "45"}
+        </span>
+        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+          TOTAL
+        </span>
+      </div>
+
+      {/* ── Date ── */}
+      <div>
+        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+          EXPERIENCE DATE
+        </label>
+
+        <div
+          onClick={() => dateInputRef.current?.showPicker()}
+          className="flex items-center justify-between px-4 py-3 rounded-2xl bg-gray-100 border border-gray-200 cursor-pointer"
+        >
+          <span className="text-[13px] font-semibold text-gray-800">
+            {selectedDate
+              ? new Date(selectedDate)
+                  .toLocaleDateString("en-GB")
+                  .replace(/\//g, "-")
+              : "DD-MM-YYYY"}
+          </span>
+
+          <Calendar size={16} className="text-gray-500" />
+
+          <input
+            ref={dateInputRef}
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="absolute opacity-0 pointer-events-none"
+          />
+        </div>
+      </div>
+
+      {/* ── Ticket Tier ── */}
+      <div>
+        <label className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+          <span>▦</span> TICKET TIER
+        </label>
+
+        <div className="space-y-3">
+          {TICKET_TIERS.map((tier) => {
+            const isActive = selectedTier === tier.key;
+            const TierIcon = tier.icon;
+
+            return (
+              <div
+                key={tier.key}
+                onClick={() => {
+                  setSelectedTier(tier.key);
+                  onTabClick(activeTab);
+                }}
+                className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                  isActive
+                    ? "border-blue-700 bg-white shadow-md"
+                    : "border-gray-200 bg-gray-50"
+                }`}
+              >
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                    isActive ? "bg-blue-700" : "bg-gray-200"
+                  }`}
+                >
+                  <TierIcon
+                    size={18}
+                    className={isActive ? "text-white" : "text-gray-400"}
+                  />
+                </div>
+
+                <div>
+                  <div className="text-[14px] font-bold text-gray-900">
+                    {tier.label}
+                  </div>
+                  <div className="text-[10px] text-gray-400 uppercase font-semibold tracking-wider">
+                    {tier.sub}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── CTA ── */}
+      <button
+        onClick={() => setBookingStep(2)}
+        className="w-full py-4 rounded-full bg-blue-700 text-white text-[12px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg"
+      >
+        NEXT: GUESTS & TIME <ChevronRight size={16} />
+      </button>
+
+      {/* ── Footer ── */}
+      <div className="flex items-center justify-center gap-6 pt-2 border-t border-gray-200">
+        <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider flex items-center gap-1">
+          <Zap size={12} /> Instant Delivery
+        </span>
+
+        <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider flex items-center gap-1">
+          <CheckCircle2 size={12} className="text-blue-600" /> Official Partner
+        </span>
+      </div>
+    </div>
+  </>
+)}
+
+      {/* {bookingStep === 1 && (
         <>
-          {/* ── SUV banner ───────────────────────────────────────────────────── */}
-          {isSUVActive && (
+         {isSUVActive && (
             <div className="mx-4 mt-4 flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
               <div className="w-9 h-9 rounded-full bg-amber-400 flex items-center justify-center shrink-0">
                 <Truck size={15} className="text-white" />
@@ -1600,10 +1800,8 @@ const guestTypes =
             </div>
           )}
           <div className="px-5 py-4 space-y-4">
-            {/* ── Price ──────────────────────────────────────────────────────── */}
             <div className="flex items-baseline gap-1.5">
-              {/* <span className="text-2xl font-black text-blue-700"> */}
-              <span
+             <span
                 className={`text-2xl font-black ${isVIP ? "text-red-600" : "text-blue-700"}`}
               >
                 ${displayPrice > 0 ? displayPrice : minPrice || "45"}
@@ -1613,8 +1811,7 @@ const guestTypes =
               </span>
             </div>
 
-            {/* ── Experience Date ────────────────────────────────────────────── */}
-            <div>
+           <div>
               <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1.5">
                 Experience Date
               </label>
@@ -1647,8 +1844,7 @@ const guestTypes =
               </div>
             </div>
 
-            {/* ── Ticket Tier ────────────────────────────────────────────────── */}
-            <div>
+           <div>
               <label className="flex items-center gap-1.5 text-[8px] font-black text-gray-400 uppercase tracking-widest mb-2">
                 <span>▦</span> Ticket Tier
               </label>
@@ -1659,7 +1855,7 @@ const guestTypes =
                   return (
                     <div
                       key={tier.key}
-                      // onClick={() => setSelectedTier(tier.key)}
+                      
                       onClick={() => {
                         setSelectedTier(tier.key);
                         onTabClick(activeTab);
@@ -1696,8 +1892,7 @@ const guestTypes =
               </div>
             </div>
 
-            {/* ── Time Slots ─────────────────────────────────────────────────── */}
-            {activity?.timeSlots?.length > 0 && (
+        {activity?.timeSlots?.length > 0 && (
               <div>
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">
                   Start Time
@@ -1721,8 +1916,7 @@ const guestTypes =
               </div>
             )}
 
-            {/* ── Guests ─────────────────────────────────────────────────────── */}
-            {(selectedVariant?.pricing || []).filter(
+           {(selectedVariant?.pricing || []).filter(
               (p) => p.type === "per_person",
             ).length > 0 && (
               <div>
@@ -1768,12 +1962,9 @@ const guestTypes =
                 </div>
               </div>
             )}
-
-            {/* ── CTA ────────────────────────────────────────────────────────── */}
-            <div className="space-y-2 pt-1">
+   <div className="space-y-2 pt-1">
               <button
-                // onClick={handleBookNow}
-                onClick={() => {
+               onClick={() => {
                   if (bookingStep === 1) {
                     setBookingStep(2);
                   } else {
@@ -1797,8 +1988,7 @@ const guestTypes =
                   </>
                 ) : (
                   <>
-                    {/* Next: Guests &amp; Time <ChevronRight size={16} /> */}
-                    {bookingStep === 1
+             {bookingStep === 1
                       ? "Next: Guests & Time"
                       : `Book Now for $${displayPrice || 101}`}
                     <ChevronRight size={16} />
@@ -1813,8 +2003,7 @@ const guestTypes =
                 </div>
               )}
             </div>
-            {/* ── Trust badges ───────────────────────────────────────────────── */}
-            <div className="flex items-center justify-center gap-6 pt-2 border-t border-gray-100">
+           <div className="flex items-center justify-center gap-6 pt-2 border-t border-gray-100">
               <span className="text-[8px] text-gray-400 flex items-center gap-1 font-semibold uppercase tracking-wider">
                 <Zap size={11} className="text-gray-400" /> Instant Delivery
               </span>
@@ -1824,14 +2013,14 @@ const guestTypes =
               </span>
             </div>
           </div>{" "}
-          {/* px-5 py-4 */}
+         
         </>
-      )}
+      )} */}
 
 
-      {bookingStep === 2 && (
+      {/* {bookingStep === 2 && (
         <div className="px-5 py-4 space-y-5">
-          {/* HEADER */}
+        
           <div className="flex items-center justify-between">
             <div className="text-[10px] font-black text-gray-400 tracking-widest uppercase">
               Step 2: Details
@@ -1845,7 +2034,7 @@ const guestTypes =
             </button>
           </div>
 
-          {/* Preferred Entry Time */}
+        
           <div>
             <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">
               Preferred Entry Time
@@ -1869,47 +2058,7 @@ const guestTypes =
 </div>
           </div>
 
-          {/* Guests Card */}
-          {/* <div className="bg-gray-100 rounded-2xl p-4 space-y-4">
-            {(selectedVariant?.pricing || [])
-              .filter((p) => p.type === "per_person")
-              .map((p) => (
-                <div key={p._id} className="flex items-center justify-between">
-                
-                  <div>
-                    <div className="text-sm font-semibold text-gray-800">
-                      {p.label}
-                    </div>
-
-                    <div className="text-[9px] text-gray-400 font-semibold uppercase">
-                      AGE {p.label === "Adults" ? "12+" : "3-11"}
-                    </div>
-                  </div>
-
-                 
-                  <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-3 py-1.5">
-                    <button
-                      onClick={() => updateQuantity(p._id, -1)}
-                      disabled={!quantities[p._id]}
-                      className="text-gray-500 text-lg font-bold disabled:opacity-30"
-                    >
-                      −
-                    </button>
-
-                    <span className="w-4 text-center text-sm font-black text-gray-900">
-                      {quantities[p._id] || 0}
-                    </span>
-
-                    <button
-                      onClick={() => updateQuantity(p._id, 1)}
-                      className="text-gray-500 text-lg font-bold"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              ))}
-          </div> */}
+        
 
           {guestTypes.map((p) => (
   <div key={p._id} className="flex items-center justify-between ">
@@ -1949,7 +2098,7 @@ const guestTypes =
   </div>
 ))}
 
-          {/* Price Breakdown */}
+          
           <div className="bg-blue-50 border border-blue-200 rounded-2xl py-3 px-4 flex items-center justify-between">
             <div>
               <div className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
@@ -1972,7 +2121,7 @@ const guestTypes =
             </div>
           </div>
 
-          {/* CTA BUTTON */}
+          
           <button
             onClick={handleBookNow}
             className="w-full py-3 rounded-full bg-blue-900 text-white font-black text-[8px] uppercase tracking-widest hover:bg-blue-800 transition"
@@ -1980,7 +2129,7 @@ const guestTypes =
             BOOK NOW FOR ${displayPrice || 101}
           </button>
 
-          {/* TRUST BADGES */}
+          
           <div className="flex items-center justify-center gap-6 pt-3 border-t border-gray-100">
             <span className="text-[8px] text-gray-400 flex items-center gap-1 font-semibold uppercase tracking-wider">
               <Zap size={11} /> Instant Delivery
@@ -1991,7 +2140,146 @@ const guestTypes =
             </span>
           </div>
         </div>
-      )}
+      )} */}
+
+      {bookingStep === 2 && (
+  <div className="px-5 py-5 space-y-6">
+
+    {/* HEADER */}
+    <div className="flex items-center justify-between">
+      <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+        STEP 2: DETAILS
+      </div>
+
+      <button
+        onClick={() => setBookingStep(1)}
+        className={`text-[11px] font-bold uppercase flex items-center gap-1 ${
+          isVIP ? "text-red-600" : "text-blue-700"
+        }`}
+      >
+        ← BACK
+      </button>
+    </div>
+
+    {/* TIME */}
+    <div>
+      <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+        PREFERRED ENTRY TIME
+      </label>
+
+      <div className="grid grid-cols-3 gap-3">
+        {timeSlots.map((time, i) => (
+          <button
+            key={i}
+            onClick={() => setSelectedTimeSlot(time)}
+            className={`py-3 rounded-xl text-[12px] font-bold border transition-all
+              ${
+                selectedTimeSlot === time
+                  ? isVIP
+                    ? "bg-red-900 text-white border-red-900"
+                    : "bg-blue-900 text-white border-blue-900"
+                  : "bg-gray-100 text-gray-500 border-gray-200"
+              }`}
+          >
+            {time}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    {/* GUEST CARD */}
+    <div className="bg-gray-100 rounded-[22px] p-5 space-y-5">
+      {guestTypes.map((p) => (
+        <div key={p._id} className="flex items-center justify-between">
+
+          {/* LEFT */}
+          <div>
+            <div className="text-[14px] font-bold text-gray-900">
+              {p.label}
+            </div>
+
+            <div className="text-[10px] text-gray-400 font-semibold uppercase">
+              AGE {p.label === "Adults" ? "12+" : "3-11"}
+            </div>
+          </div>
+
+          {/* RIGHT COUNTER */}
+          <div className="flex items-center gap-3 bg-white rounded-xl px-3 py-2 shadow-sm">
+            
+            <button
+              onClick={() => updateQuantity(p._id, -1)}
+              disabled={!quantities[p._id]}
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 text-gray-600 font-bold disabled:opacity-30"
+            >
+              −
+            </button>
+
+            <span className="w-5 text-center text-[13px] font-bold text-gray-900">
+              {quantities[p._id] || 0}
+            </span>
+
+            <button
+              onClick={() => updateQuantity(p._id, 1)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 text-gray-600 font-bold"
+            >
+              +
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* PRICE BOX */}
+    <div className="bg-blue-50 border border-blue-200 rounded-2xl px-5 py-4 flex items-center justify-between">
+      <div>
+        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+          PRICE BREAKDOWN
+        </div>
+
+        <div className="text-[13px] font-semibold text-gray-800 mt-1">
+          Standard Entry (x1)
+        </div>
+      </div>
+
+      <div className="text-right">
+        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+          TOTAL
+        </div>
+
+        <div className="text-[14px] font-bold text-gray-900 mt-1">
+          ${displayPrice || 45}
+        </div>
+      </div>
+    </div>
+
+    {/* CTA */}
+    <button
+      onClick={handleBookNow}
+      className={`w-full py-4 rounded-full text-white text-[13px] font-bold uppercase tracking-wider shadow-lg ${
+        isVIP
+          ? "bg-red-600 hover:bg-red-700"
+          : "bg-blue-700 hover:bg-blue-800"
+      }`}
+    >
+      BOOK NOW FOR ${displayPrice || 45}
+    </button>
+
+    {/* FOOTER */}
+    <div className="flex items-center justify-center gap-6 pt-3 border-t border-gray-200">
+      <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider flex items-center gap-1">
+        <Zap size={12} /> Instant Delivery
+      </span>
+
+      <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider flex items-center gap-1">
+        <CheckCircle2
+          size={12}
+          className={isVIP ? "text-red-500" : "text-blue-600"}
+        />
+        Official Partner
+      </span>
+    </div>
+  </div>
+)}
     </div>
   );
 }

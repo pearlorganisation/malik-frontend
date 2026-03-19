@@ -130,8 +130,8 @@ export default function Header() {
   return (
     <>
       <header className={`fixed top-0 left-0 right-0 z-100 transition-all duration-300 px-2 py-2 bg-white ${scrolled ? " shadow-sm" : ""}`}>
-        {/* <div className="max-w-[1440px] mx-auto px-6"> */}
-        <div className="max-w-330 mx-auto px-4 lg:px-24">
+        <div className="max-w-[1440px] mx-auto px-6">
+        {/* <div className="max-w-330 mx-auto px-4 lg:px-24"> */}
           <div className="h-20 flex items-center justify-between gap-8">
             
             {/* LOGO - Matched to Screenshot */}
