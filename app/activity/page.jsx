@@ -101,20 +101,75 @@ useEffect(() => {
 useEffect(() => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }, [activeCategory, activeLocation]);
+// useEffect(() => {
+//   if (slugFromUrl && activities.length > 0) {
+//     const selected = activities[0];
+
+//     if (selected?.categoryId) {
+//       setActiveCategory(selected.categoryId);
+//     }
+
+//     if (selected?.place?._id) {
+//       setActiveLocation(selected.place._id);
+//     }
+//   }
+// }, [slugFromUrl, activities]);
+
+
+// useEffect(() => {
+//   const slug = searchParams.get("slug");
+//   const category = searchParams.get("category");
+//   const location = searchParams.get("location");
+
+//   if (slug) {
+//     setActiveCategory(null);
+//     setActiveLocation(null);
+//   } else if (category) {
+//     setActiveCategory(category);
+//     setActiveLocation(null);
+//   } else if (location) {
+//     setActiveLocation(location);
+//     setActiveCategory(null);
+//   } else {
+//     setActiveCategory(null);
+//     setActiveLocation(null);
+//   }
+// }, [searchParams]);
+
+
+// useEffect(() => {
+//   const categoryFromUrl = searchParams.get("category");
+//   const locationFromUrl = searchParams.get("location");
+
+//   if (categoryFromUrl) {
+//     setActiveCategory(categoryFromUrl);
+//     setActiveLocation(null);
+//   } else if (locationFromUrl) {
+//     setActiveLocation(locationFromUrl);
+//     setActiveCategory(null);
+//   }
+// }, [searchParams]);
+
 
 useEffect(() => {
-  const categoryFromUrl = searchParams.get("category");
-  const locationFromUrl = searchParams.get("location");
+  const slug = searchParams.get("slug");
+  const category = searchParams.get("category");
+  const location = searchParams.get("location");
 
-  if (categoryFromUrl) {
-    setActiveCategory(categoryFromUrl);
-    setActiveLocation(null);
-  } else if (locationFromUrl) {
-    setActiveLocation(locationFromUrl);
+  if (slug) {
     setActiveCategory(null);
+    setActiveLocation(null);
+  } else if (category) {
+    setActiveCategory(category);
+    setActiveLocation(null);
+  } else if (location) {
+    setActiveLocation(location);
+    setActiveCategory(null);
+  } else {
+    setActiveCategory(null);
+    setActiveLocation(null);
   }
 }, [searchParams]);
-
   // const { data, isLoading, error } = useGetActivitiesQuery({
   //   page: 1,
   //   limit: 20,
@@ -127,11 +182,25 @@ useEffect(() => {
 //   categoryId: activeCategory,
 //   location: activeLocation,
 // });
-const { data,isLoading } = useGetActivitiesQuery({
+const slugFromUrl = searchParams.get("slug");
+// const { data,isLoading } = useGetActivitiesQuery({
+//   page: 1,
+//   limit: 20,
+//   ...(activeCategory && { categoryId: activeCategory }),
+//   ...(activeLocation && { location: activeLocation }),
+//   ...(activeLocation && { place: activeLocation }),
+//    ...(slugFromUrl && { slug: slugFromUrl }),
+// });
+
+const { data, isLoading } = useGetActivitiesQuery({
   page: 1,
   limit: 20,
-  ...(activeCategory && { categoryId: activeCategory }),
-  ...(activeLocation && { location: activeLocation }),
+  ...(slugFromUrl
+    ? { slug: slugFromUrl }
+    : {
+        ...(activeCategory && { categoryId: activeCategory }),
+        ...(activeLocation && { place: activeLocation }),
+      }),
 });
 
 const activities = data?.data?.data || [];

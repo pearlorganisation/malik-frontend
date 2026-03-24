@@ -11,6 +11,7 @@ export const activityApi = baseApi.injectEndpoints({
     categoryId,
     duration,
     location,
+    slug
   } = {}) => {
     const params = new URLSearchParams({ page, limit });
 
@@ -25,6 +26,7 @@ export const activityApi = baseApi.injectEndpoints({
     if (duration) params.append("duration", duration);
     // if (location) params.append("location", location);
     if (location) params.append("place", location);
+    if (slug) params.append("slug", slug);
 
     return `/activity/search?${params.toString()}`;
   },
@@ -96,7 +98,13 @@ export const activityApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Activity"],
     }),
-
+getTopRatedActivities: builder.query({
+  query: () => ({
+    url: "/activity/top-rated",
+    method: "GET",
+  }),
+  providesTags: ["Activity"],
+}),
     // ================= TOGGLE ACTIVE STATUS =================
     toggleActivityStatus: builder.mutation({
       query: (id) => ({
@@ -118,4 +126,5 @@ export const {
   useUpdateActivityMutation,
   useDeleteActivityMutation,
   useToggleActivityStatusMutation,
+    useGetTopRatedActivitiesQuery
 } = activityApi;
