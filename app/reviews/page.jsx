@@ -31,34 +31,34 @@ useEffect(() => {
 };
 
   return (
-    <div className="w-full pt-[90px] bg-[#F8FAFC] min-h-screen">
+    <div className="w-full pt-22.5 bg-[#F8FAFC] min-h-screen">
       
       {/* HERO SECTION */}
-      <div className="max-w-[1320px] mx-auto px-4 lg:px-4 pb-20 flex flex-col lg:flex-row items-center justify-between gap-10">
+      <div className="max-w-330 mx-auto px-4 lg:px-4 pb-20 flex flex-col lg:flex-row items-center justify-between gap-10">
         
         {/* LEFT CONTENT */}
-        <div className="max-w-[650px]">
+        <div className="max-w-162.5">
           <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-[10px] font-bold px-4 py-1.5 rounded-full mb-6">
             ✨ VERIFIED EXPERIENCES
           </div>
 
-          <h1 className="text-[48px] leading-[50px] font-[900] text-slate-900 mb-6">
+          <h1 className="text-[48px] leading-12.5 font-black text-slate-900 mb-6">
             Trusted by{" "}
             <span className="text-[#1D4ED8]">Thousands</span>
             <br />
             of Global Travelers
           </h1>
 
-          <p className="text-slate-600 text-[16px] leading-[28px] max-w-[520px] font-medium">
+          <p className="text-slate-600 text-[16px] leading-7 max-w-130 font-medium">
             Read verified reviews from adventurers who explored the UAE with Fun Tours.
             We pride ourselves on safety, authenticity, and premium service.
           </p>
         </div>
 
         {/* RIGHT CARD */}
-        <div className="bg-white rounded-[28px] shadow-sm border border-slate-100 w-[300px] h-[220px] flex flex-col items-center justify-center text-center">
+        <div className="bg-white rounded-[28px] shadow-sm border border-slate-100 w-75 h-55 flex flex-col items-center justify-center text-center">
           
-          <h2 className="text-[56px] font-[900] text-slate-900 leading-none">
+          <h2 className="text-[56px] font-black text-slate-900 leading-none">
             {averageRating}
           </h2>
 
@@ -86,11 +86,11 @@ useEffect(() => {
       <TrustSection />
 
       {/* REVIEWS SECTION */}
-      <div className="max-w-[2020px] mx-auto px-4 lg:px-6 pb-20 mt-20">
+      <div className="max-w-505 mx-auto px-4 lg:px-6 pb-20 mt-20">
   
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
-          <h2 className="text-[22px] font-[800] text-slate-900">
+          <h2 className="text-[22px] font-extrabold text-slate-900">
             Recent verified feedback
           </h2>
 
@@ -119,7 +119,7 @@ useEffect(() => {
             {allReviews.map((review, index) => (
               <div
                 key={review._id}
-                className="bg-white border border-slate-200 rounded-[28px] p-8 shadow-sm min-h-[450px] hover:shadow-md transition"
+                className="bg-white border border-slate-200 rounded-[28px] p-8 shadow-sm min-h-112.5 hover:shadow-md transition"
               >
                 
                 {/* TOP */}
@@ -188,7 +188,7 @@ useEffect(() => {
                 </div>
 
                 {/* COMMENT */}
-                <p className="text-[14px] text-slate-600 font-[500] mb-6 leading-6 italic">
+                <p className="text-[14px] text-slate-600 font-medium mb-6 leading-6 italic">
                   "{review.comment}"
                 </p>
 
@@ -203,7 +203,7 @@ useEffect(() => {
   </div>
 )} */}
 
-<div className="w-[70px] h-[70px] rounded-xl overflow-hidden mb-16 shadow">
+<div className="w-17.5 h-17.5 rounded-xl overflow-hidden mb-16 shadow">
   <img
     src={
       review.images?.[0]?.secure_url ||
@@ -232,7 +232,7 @@ useEffect(() => {
   <button
     onClick={handleLoadMore}
     disabled={isFetching}
-    className="group flex items-center hover:shadow-md hover:-translate-y-[1px] gap-2 px-6 py-3 rounded-full border border-slate-300 text-[12px] font-bold tracking-wide text-slate-900 bg-white shadow-sm transition-all duration-300 hover:bg-[#0F172A] hover:text-white hover:border-[#0F172A] disabled:opacity-50"
+    className="group flex items-center hover:shadow-md hover:-translate-y-px gap-2 px-6 py-3 rounded-full border border-slate-300 text-[12px] font-bold tracking-wide text-slate-900 bg-white shadow-sm transition-all duration-300 hover:bg-[#0F172A] hover:text-white hover:border-[#0F172A] disabled:opacity-50"
   >
     <svg
       xmlns="http://www.w3.org/2000/svg"

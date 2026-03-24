@@ -10,7 +10,7 @@ const images = [
 ];
 
 export default function Hero() {
-    const { openInquiry } = useInquiry();
+  const { openInquiry } = useInquiry();
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
@@ -21,14 +21,14 @@ export default function Hero() {
   }, []);
 
   return (
-   <section className="relative pb-20 mt-8 pt-10 ">
+    <section className="relative pb-20 mt-8 pt-10 ">
       {/* Background slider */}
       {images.map((img, index) => (
         <div
           key={index}
-          className={`absolute inset-0 transition-opacity duration-1000 ${
+         className={`absolute inset-0 transition-opacity duration-1000 ${
             index === current ? "opacity-100" : "opacity-0"
-          }`}
+            }`}
           style={{
             backgroundImage: `url(${img})`,
             backgroundSize: "cover",
@@ -57,9 +57,9 @@ export default function Hero() {
 
         {/* Subtitle */}
         <div className="mt-3 flex gap-3 max-w-lg">
-          <span className="w-[2px] bg-yellow-400 rounded-full" />
+          <span className="w-0.5 bg-yellow-400 rounded-full" />
           <p className="text-white/90 text-[13px] leading-relaxed">
-            From the peaks of Burj Khalifa to the dunes 
+            From the peaks of Burj Khalifa to the dunes
             of the Red Desert.
             Curated experiences by <strong>Fun Tours Dubai</strong>.
           </p>
@@ -78,7 +78,12 @@ export default function Hero() {
         {/* Buttons */}
         <div className="mt-4 flex gap-3">
           <button className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-semibold transition">
-            ✨ AI Trip Planner
+            <a
+              href="/aitrip-planner"
+
+            >
+              ✨ AI Trip Planner
+            </a>
           </button>
           {/* <button className="px-4 py-2 rounded-md border border-white/40 bg-white/10 text-white text-[13px] font-semibold backdrop-blur hover:bg-white/20 transition">
             📄 Get Custom Quote
@@ -89,55 +94,55 @@ export default function Hero() {
 >
   📄 Get Custom Quote
 </button> */}
-<button
-  onClick={openInquiry}
-  className="px-4 py-2 rounded-md border border-white/40 bg-white/10 text-white text-[13px] font-semibold backdrop-blur hover:bg-white/20 transition"
->
-  📄 Get Custom Quote
-</button>
+          <button
+            onClick={openInquiry}
+            className="px-4 py-2 rounded-md border border-white/40 bg-white/10 text-white text-[13px] font-semibold backdrop-blur hover:bg-white/20 transition"
+          >
+            📄 Get Custom Quote
+          </button>
         </div>
       </div>
 
       {/* Bottom Floating Bar */}
-<div className="absolute left-1/2 -bottom-10 translate-x-[-50%] w-[92%] max-w-4xl z-50 ">
-  <div className="relative rounded-full p-[2px] 
-    bg-gradient-to-r from-white/60 via-white/80 to-white/60
-    shadow-[0_20px_45px_rgba(0,0,0,0.18)] p-8">
+      <div className="absolute left-1/2 -bottom-10 translate-x-[-50%] w-[92%] max-w-4xl z-50 ">
+        <div className="relative rounded-full p-0.5 
+    bg-linear-to-r from-white/60 via-white/80 to-white/60
+    shadow-[0_20px_45px_rgba(0,0,0,0.18)] ">
 
-    <div className="flex justify-between items-center 
+          <div className="flex justify-between items-center 
       px-6 py-3.5 rounded-full 
       bg-white/90 backdrop-blur-xl">
 
-      <Step
-        icon={<Search size={14} />}
-        title="Find"
-        desc="AI or Browse"
-        color="bg-blue-100 text-blue-600"
-      />
-      <Divider />
-      <Step
-        icon={<MessageCircle size={14} />}
-        title="Chat"
-        desc="Expert Help"
-        color="bg-green-100 text-green-600"
-      />
-      <Divider />
-      <Step
-        icon={<ShieldCheck size={14} />}
-        title="Book"
-        desc="100% Secure"
-        color="bg-purple-100 text-purple-600"
-      />
-      <Divider />
-      <Step
-        icon={<Sun size={14} />}
-        title="Enjoy"
-        desc="Hassle-Free"
-        color="bg-yellow-100 text-yellow-600"
-      />
-    </div>
-  </div>
-</div>
+            <Step
+              icon={<Search size={14} />}
+              title="Find"
+              desc="AI or Browse"
+              color="bg-blue-100 text-blue-600"
+            />
+            <Divider />
+            <Step
+              icon={<MessageCircle size={14} />}
+              title="Chat"
+              desc="Expert Help"
+              color="bg-green-100 text-green-600"
+            />
+            <Divider />
+            <Step
+              icon={<ShieldCheck size={14} />}
+              title="Book"
+              desc="100% Secure"
+              color="bg-purple-100 text-purple-600"
+            />
+            <Divider />
+            <Step
+              icon={<Sun size={14} />}
+              title="Enjoy"
+              desc="Hassle-Free"
+              color="bg-yellow-100 text-yellow-600"
+            />
+          </div>
+        </div>
+      </div>
 
     </section>
   );

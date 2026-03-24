@@ -835,7 +835,7 @@ const excludeList =
           <div className="flex-1 pb-20 last:pb-0 flex gap-4">
 
             <div className="flex-1">
-              <span className="text-[9px] bg-gray-200 p-[1px] font-black text-gray-400 uppercase tracking-widest">
+              <span className="text-[9px] bg-gray-200 p-px font-black text-gray-400 uppercase tracking-widest">
                 {stop.time}
               </span>
 
