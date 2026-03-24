@@ -33,13 +33,13 @@ import MegaMenu from "./Home/MegaMenu";
 import Image from "next/image";
 import { useGetCategoriesQuery } from "@/features/category/categoryApi";
 
-
+//test
 // Data untouched as requested
 const NAV_ITEMS = [
   { label: "Home", href: "/", icon: Home },
   { label: "Experiences", href: "/activity", icon: Compass },
-  { label: "Reviews", href: "#", icon: Star },
-  { label: "AI Planner", href: "#", icon: Sparkles },
+  { label: "Reviews", href: "/reviews", icon: Star },
+  { label: "AI Planner", href: "/aitrip-planner", icon: Sparkles },
   { label: "Contact", href: "/contact", icon: Phone },
 ];
 
@@ -129,21 +129,22 @@ export default function Header() {
 
   return (
     <>
-      <header className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 px-2 py-2 bg-white ${scrolled ? " shadow-sm" : ""}`}>
-        <div className="max-w-[1440px] mx-auto px-6">
-          <div className="h-[80px] flex items-center justify-between gap-8">
+      <header className={`fixed top-0 left-0 right-0 z-100 transition-all duration-300 px-2 py-2 bg-white ${scrolled ? " shadow-sm" : ""}`}>
+        <div className="max-w-360 mx-auto px-6">
+        {/* <div className="max-w-330 mx-auto px-4 lg:px-24"> */}
+          <div className="h-20 flex items-center justify-between gap-8">
             
             {/* LOGO - Matched to Screenshot */}
             <Link href="/" className="flex flex-col items-start leading-none group">
               <div className="flex items-center gap-1">
-                <span className="text-[28px] font-[900] text-[#EF4444] tracking-tight">FUN</span>
+                <span className="text-[28px] font-black text-[#EF4444] tracking-tight">FUN</span>
                 <div className="w-7 h-7 bg-[#FFB800] rounded-full flex items-center justify-center">
                    <div className="relative w-4 h-4 border-b-2 border-white rounded-full flex items-center justify-center">
                       <div className="absolute top-0 left-0 w-1 h-1 bg-white rounded-full"></div>
                       <div className="absolute top-0 right-0 w-1 h-1 bg-white rounded-full"></div>
                    </div>
                 </div>
-                <span className="text-[28px] font-[900] text-[#0047AB] tracking-tight">TOURS</span>
+                <span className="text-[28px] font-black text-[#0047AB] tracking-tight">TOURS</span>
               </div>
               <span className="text-[10px] font-bold tracking-[0.2em] text-slate-400 mt-0.5 ml-0.5">
                 DUBAI TOURISM
@@ -151,7 +152,7 @@ export default function Header() {
             </Link>
 
             {/* SEARCH CENTER - Styled like screenshot */}
-            <div ref={searchContainerRef} className="flex-1 max-w-[700px] hidden lg:block relative">
+            <div ref={searchContainerRef} className="flex-1 max-w-175 hidden lg:block relative">
               <form onSubmit={handleSearchSubmit} className="relative group">
                 <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                 <input
@@ -164,7 +165,7 @@ export default function Header() {
                     setIsSearchFocused(true);
                   }}
                   placeholder="What are you looking for? (e.g. Desert Safari, Burj Khalifa)"
-                  className="w-full h-[54px] pl-14 pr-32 rounded-2xl bg-[#F8FAFC] text-[15px] font-medium text-slate-600 border border-transparent focus:bg-white focus:border-slate-200 focus:ring-4 focus:ring-slate-100 transition-all outline-none"
+                  className="w-full h-13.5 pl-14 pr-32 rounded-2xl bg-[#F8FAFC] text-[15px] font-medium text-slate-600 border border-transparent focus:bg-white focus:border-slate-200 focus:ring-4 focus:ring-slate-100 transition-all outline-none"
                 />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none">
                   <span className="bg-white border border-slate-200 px-2 py-1 rounded text-[10px] font-bold text-slate-400 shadow-sm">ESC</span>
@@ -173,7 +174,7 @@ export default function Header() {
               </form>
 
               {isMegaMenuOpen && (
-                <div className="absolute top-full mt-4 left-1/2 -translate-x-1/2 w-[120%] z-[120]">
+                <div className="absolute top-full mt-4 left-1/2 -translate-x-1/2 w-[120%] z-120">
                   <MegaMenu
                     searchQuery={searchQuery}
                     isSearchFocused={isSearchFocused}
@@ -207,7 +208,7 @@ export default function Header() {
 
       {/* MOBILE SEARCH OVERLAY */}
       {isMegaMenuOpen && typeof window !== 'undefined' && window.innerWidth < 1024 && (
-        <div className="fixed inset-0 z-[150] bg-white p-6 pt-24">
+        <div className="fixed inset-0 z-150 bg-white p-6 pt-24">
           <div className="flex items-center gap-3 mb-6 bg-slate-100 p-4 rounded-2xl">
             <Search className="text-slate-400" />
             <input
@@ -228,13 +229,13 @@ export default function Header() {
 
       {/* MOBILE DRAWER - Matched to Screenshot UI */}
       <div
-        className={`fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`fixed inset-0 z-200 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
           isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={() => setIsMenuOpen(false)}
       >
         <div
-          className={`absolute right-0 top-0 h-full w-[350px] bg-white transition-transform duration-500 ease-out flex flex-col ${
+          className={`absolute right-0 top-0 h-full w-87.5 bg-white transition-transform duration-500 ease-out flex flex-col ${
             isMenuOpen ? "translate-x-0" : "translate-x-full"
           }`}
           onClick={(e) => e.stopPropagation()}
@@ -242,11 +243,11 @@ export default function Header() {
           {/* Drawer Header */}
           <div className="p-6 flex justify-between items-center">
              <div className="flex items-center gap-1">
-                <span className="text-xl font-[900] text-[#EF4444]">FUN</span>
+                <span className="text-xl font-black text-[#EF4444]">FUN</span>
                 <div className="w-5 h-5 bg-[#FFB800] rounded-full flex items-center justify-center">
                    <div className="w-2.5 h-2.5 border-b border-white rounded-full"></div>
                 </div>
-                <span className="text-xl font-[900] text-[#0047AB]">TOURS</span>
+                <span className="text-xl font-black text-[#0047AB]">TOURS</span>
               </div>
             <button 
               onClick={() => setIsMenuOpen(false)}
@@ -283,9 +284,10 @@ export default function Header() {
     allCategories.map((category) => (
       <Link
         key={category._id}
-        href={`/category/${encodeURIComponent(
-          category.slug || category.name.toLowerCase()
-        )}`}
+        // href={`/category/${encodeURIComponent(
+        //   category.slug || category.name.toLowerCase()
+        // )}`}
+        href={`/activity?category=${category._id}`}
         onClick={() => setIsMenuOpen(false)}
         className="flex flex-col items-center gap-2 text-center group"
       >
@@ -317,18 +319,34 @@ export default function Header() {
             {/* Bottom Actions */}
             <div className="space-y-3 mt-auto">
               <div className="flex gap-3">
-                <button className="flex-1 bg-[#22C55E] text-white flex items-center justify-center gap-2 h-[52px] rounded-2xl font-bold text-sm shadow-sm active:scale-95 transition">
-                  <MessageCircle size={18} />
+                <button className="flex-1 bg-[#22C55E] text-white flex items-center justify-center gap-2 h-13 rounded-2xl font-bold text-sm shadow-sm active:scale-95 transition">
+                  <a 
+                  href="https://wa.me/971501902213" 
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex-1 md:flex-none px-7 py-3.5 rounded-xl transition-all shadow-xl flex items-center justify-center gap-2.5 group active:scale-95"
+                ><MessageCircle size={18} />
                   WHATSAPP
+                  </a> 
                 </button>
-                <button className="flex-1 bg-[#020617] text-white flex items-center justify-center gap-2 h-[52px] rounded-2xl font-bold text-sm shadow-sm active:scale-95 transition">
+                <button  className="flex-1 bg-[#020617] text-white flex items-center justify-center gap-2 h-13 rounded-2xl font-bold text-sm shadow-sm active:scale-95 transition">
+                  <a 
+                   href="/contact" 
+                  className="flex-1 md:flex-none px-7 py-3.5 rounded-xl transition-all shadow-xl flex items-center justify-center gap-2.5 group active:scale-95"
+                >
                   <PhoneCall size={18} />
                   CALL
+                  </a>
                 </button>
               </div>
-              <button className="w-full bg-[#0047AB] text-white flex items-center justify-center gap-2 h-[56px] rounded-2xl font-bold text-[15px] shadow-lg shadow-blue-200 active:scale-[0.98] transition">
+              <button className="w-full bg-[#0047AB] text-white flex items-center justify-center gap-2 h-14 rounded-2xl font-bold text-[15px] shadow-lg shadow-blue-200 active:scale-[0.98] transition">
+                <a 
+                   href="/aitrip-planner" 
+                  className="flex-1 md:flex-none px-7 py-3.5 rounded-xl transition-all shadow-xl flex items-center justify-center gap-2.5 group active:scale-95"
+                >
                 <PenSquare size={18} />
                 PLAN MY TRIP
+                </a>
               </button>
             </div>
           </div>

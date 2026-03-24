@@ -1,12 +1,14 @@
+import { useCreateInquiryMutation } from "@/features/inquiry/inquiryApi";
 
 import React, { useState, useEffect } from 'react';
 import { X, Star, Check, ArrowRight, ArrowLeft, Send, MessageSquare, Sparkles, Mail, User, Phone, Users, ShieldCheck } from 'lucide-react';
-
+import toast from "react-hot-toast";
 
 const InquiryModal = ({ isOpen, onClose, selectedTour }) => {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [createInquiry] = useCreateInquiryMutation();
 
   const [formData, setFormData] = useState({
     adults: 2,
@@ -25,21 +27,57 @@ const InquiryModal = ({ isOpen, onClose, selectedTour }) => {
   }, [isOpen]);
 
   if (!isOpen) return null;
+const handleSubmit = async (e) => {
+    console.log("Selected Tour:", selectedTour);
+  if (e) e.preventDefault();
+  if (!formData.email.includes("@")) {
+  toast.error("Enter valid email ❌");
+  return;
+}
+if (formData.phone.length < 8) {
+  toast.error("Enter valid phone number 📱");
+  return;
+}
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSuccess(true);
-    }, 1500);
+  const payload = {
+    tourId: selectedTour?._id || null,
+    tourName: selectedTour?.name || "",
+    ...formData,
   };
 
+  try {
+    setIsSubmitting(true);
+
+    const res = await createInquiry(payload).unwrap();
+
+    console.log("✅ API Response:", res);
+
+    toast.success("Inquiry submitted successfully 🚀");
+
+    setIsSuccess(true);
+    setFormData({
+  adults: 2,
+  kids: 0,
+  requirement: "",
+  name: "",
+  email: "",
+  phone: "",
+});
+  } catch (err) {
+    console.error("❌ Error:", err);
+
+    toast.error(
+      err?.data?.message || "Something went wrong ❌"
+    );
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   const nextStep = () => setStep(2);
   const prevStep = () => setStep(1);
 
   const renderTourCard = () => (
-    <div className="bg-[#F8FAFC] rounded-[2rem] p-5 mb-6 border border-slate-100 flex items-center gap-5">
+    <div className="bg-[#F8FAFC] rounded-4xl p-5 mb-6 border border-slate-100 flex items-center gap-5">
         <div className="w-20 h-20 rounded-2xl overflow-hidden shrink-0 shadow-md">
             <img 
                 src={selectedTour?.imageUrl || 'https://images.unsplash.com/photo-1512453979798-5ea90b7cadc9?q=80&w=200'} 
@@ -90,7 +128,7 @@ const InquiryModal = ({ isOpen, onClose, selectedTour }) => {
                   value={formData.requirement}
                   onChange={(e) => setFormData({...formData, requirement: e.target.value})}
                   placeholder="Tell us your specific requirement or ask a question..."
-                  className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0047AB]/20 focus:border-[#0047AB] focus:bg-white transition-all h-28 resize-none"
+                  className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-3xl font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0047AB]/20 focus:border-[#0047AB] focus:bg-white transition-all h-28 resize-none"
               />
           </div>
       </div>
@@ -148,7 +186,7 @@ const InquiryModal = ({ isOpen, onClose, selectedTour }) => {
   );
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-100  flex items-center justify-center p-4 ">
       <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity" onClick={onClose} />
 
       <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md relative z-10 overflow-hidden flex flex-col border border-white/20">
@@ -176,7 +214,7 @@ const InquiryModal = ({ isOpen, onClose, selectedTour }) => {
            {isSuccess ? (
                <div className="text-center py-8 animate-fade-in-up">
                    <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner ring-4 ring-white">
-                       <Check className="w-10 h-10 text-[#25D366] stroke-[3]" />
+                       <Check className="w-10 h-10 text-[#25D366] stroke-3" />
                    </div>
                    <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">Request Sent!</h3>
                    <p className="text-slate-500 font-medium text-sm leading-relaxed mb-8">
@@ -210,14 +248,16 @@ const InquiryModal = ({ isOpen, onClose, selectedTour }) => {
                 ) : (
                     <div className="flex gap-3">
                         <button type="button" onClick={prevStep} className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all"><ArrowLeft className="w-5 h-5" /></button>
-                        <button 
-                            type="submit"
-                            form="inquiry-form"
-                            disabled={isSubmitting || !formData.name || !formData.phone}
-                            className="flex-1 py-4 bg-[#0047AB] text-white font-black rounded-2xl shadow-xl transition-all disabled:opacity-50 flex items-center justify-center gap-3 uppercase text-[12px] tracking-widest active:scale-95"
-                        >
-                            {isSubmitting ? 'SENDING...' : 'SEND ENQUIRY'} <Send className="w-4 h-4" />
-                        </button>
+                 <button 
+  type="submit"
+  form="inquiry-form"
+  disabled={isSubmitting || !formData.name || !formData.phone}
+  className="flex-1 py-4 bg-[#0047AB] text-white font-black rounded-2xl shadow-xl flex items-center justify-center gap-2"
+>
+  {isSubmitting ? 'SENDING...' : 'SEND ENQUIRY'} 
+  <Send className="w-4 h-4" />
+</button>
+                         
                     </div>
                 )}
             </div>

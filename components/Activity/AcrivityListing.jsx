@@ -1,53 +1,70 @@
-import React, { useState } from "react";
-import { Plus } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { Plus, Search, Loader2 } from "lucide-react"; // Added Loader2 for button state
 import { useGetActivitiesQuery } from "@/features/activity/activityApi";
 import CategoryBalls from "@/components/Category/CategoryBalls.jsx";
 import { ExperienceCard } from "./ExperienceCard.jsx";
 
 export default function ActivitiesPage() {
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [itemsToLoad, setItemsToLoad] = useState(8);
-  const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [itemsToLoad, setItemsToLoad] = useState(5); // This now controls the API limit
+  const [viewMode, setViewMode] = useState("grid");
 
-const categoriesParam =
-  Array.isArray(selectedCategories) && selectedCategories.length > 0
-    ? selectedCategories.join(",")
-    : undefined;
+  const categoryId = selectedCategory || undefined;
 
-const { data, isLoading, isError } = useGetActivitiesQuery({
-  page: 1,
-  limit: 12,
-  ...(categoriesParam && { categories: categoriesParam }),
-});
+  // CHANGE: Passing itemsToLoad as 'limit' directly to the RTK Query
+  const { data, isLoading, isFetching, isError } = useGetActivitiesQuery({
+    page: 1,
+    limit: itemsToLoad,
+    ...(categoryId && { categoryId }),
+  });
 
-const activities = Array.isArray(data?.data?.data)
-  ? data.data.data
-  : [];
+  const activities = Array.isArray(data?.data?.data) ? data.data.data : [];
+  const pagination = data?.data?.pagination;
 
-const normalizedActivities = activities.map((activity) => ({
-  ...activity,
-  images: Array.isArray(activity.Images)
-    ? activity.Images.map((img) => img.secure_url)
-    : [],
-}));
+  const normalizedActivities = useMemo(() => {
+    return activities.map((activity) => ({
+      _id: activity._id,
+      title: activity.name,
+      images: Array.isArray(activity.Images)
+        ? activity.Images.map((img) => ({
+            url: img.secure_url,
+          }))
+        : [],
 
-const displayedActivities = normalizedActivities.slice(0, itemsToLoad);
+        location: "Dubai",
 
+      rating: 4.8,
+    
+      reviewCount: 1200,
+     
+      duration: {
+        hours: 6,
+      },
 
+      cancellationPolicy: {
+        isFreeCancellation: true,
+      },
+
+      variants: [
+        {
+          pricing: [
+            {
+              price: activity.PrivateSUV?.fee || 45,
+            },
+          ],
+        },
+      ],
+
+      tags: activity.Experience?.highlights?.slice(0, 3) || [
+        "Adventure",
+        "Sightseeing",
+      ],
+    }));
+  }, [activities]);
 
   const handleSelectCategory = (cat) => {
-  if (!cat) {
-    setSelectedCategories([]);
-  } else {
-    setSelectedCategories([cat._id]); // ✅ send ID
-  }
-  setItemsToLoad(8);
-};
-
-
-  const handleCardClick = (id) => {
-    console.log(`Navigate to activity: ${id}`);
-    // In a real app with router: router.push(`/activity/${id}`);
+    setSelectedCategory(cat || "");
+    setItemsToLoad(10); // Reset limit to 10 when category changes
   };
 
   if (isLoading && !data) {
@@ -73,14 +90,9 @@ const displayedActivities = normalizedActivities.slice(0, itemsToLoad);
     );
   }
 
-
-
-const pagination = data?.data?.pagination;
-
-
   return (
     <section className="bg-[#F8FAFC] min-h-screen font-sans" id="tours">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-16 md:py-24">
+      <div className="max-w-350 mx-auto px-4 sm:px-6 lg:px-10 py-16 md:py-24">
         {/* Header Section */}
         <div className="mb-10 text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
@@ -94,60 +106,83 @@ const pagination = data?.data?.pagination;
           <div className="flex items-center gap-3 text-xs font-bold text-slate-400">
             Found{" "}
             <span className="text-slate-900 font-black">
-              {activities.length}
+              {pagination?.total || normalizedActivities.length}
             </span>{" "}
             verified results
           </div>
         </div>
 
-        {/* Filter Bar (CategoryBalls) */}
+        {/* Filter Bar */}
         <div className="-mx-6 md:mx-0">
           <CategoryBalls
             limit={10}
             showAllLink={false}
             setSelectedCategory={handleSelectCategory}
-            selectedCategory={selectedCategories[0] || ""}
+            selectedCategory={selectedCategory}
             viewMode={viewMode}
             setViewMode={setViewMode}
           />
         </div>
 
         {/* Grid/List of Cards */}
-        {activities.length > 0 ? (
+        {normalizedActivities.length > 0 ? (
           <div
             className={
               viewMode === "grid"
-                ? "grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4"
+                ? "grid gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
                 : "flex flex-col gap-4"
             }
           >
-            {displayedActivities.map((activity) => (
+            {normalizedActivities.map((activity) => (
               <ExperienceCard
                 key={activity._id}
                 activity={activity}
-                onClick={() => handleCardClick(activity._id)}
                 viewMode={viewMode}
               />
             ))}
           </div>
         ) : (
-          <div className="py-20 text-center text-slate-400">
-            <p>
-              No activities found
-              {selectedCategories.length ? ` for ${selectedCategories[0]}` : ""}
+          <div className="bg-white rounded-[3rem] p-20 text-center border border-slate-100 shadow-sm">
+
+            <Search className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+
+            <h3 className="text-xl font-black text-slate-900">
+              No matching adventures found
+            </h3>
+
+            <p className="text-slate-400 mt-2">
+              {selectedCategory
+                ? "Try changing category or clearing filters."
+                : "Try adjusting your search or filters."}
             </p>
+
+            <button
+              onClick={() => {
+                setSelectedCategory("");
+                setItemsToLoad(10);
+              }}
+              className="mt-6 text-blue-600 font-bold hover:underline"
+            >
+              Clear all filters
+            </button>
+
           </div>
         )}
 
-        {/* Load More Button */}
-        {activities.length > itemsToLoad && (
-          <div className="mt-20 text-center">
+        {/* CHANGE: Logic for showing "Load More" based on API total count */}
+        {pagination?.total > normalizedActivities.length && (
+          <div className="mt-12 text-center">
             <button
-              onClick={() => setItemsToLoad((prev) => prev + 8)}
-              className="group px-12 py-4 bg-white border-2 border-slate-900 text-slate-900 font-black rounded-full hover:bg-slate-900 hover:text-white transition-all shadow-xl shadow-slate-900/5 active:scale-95 flex items-center gap-3 mx-auto uppercase text-xs tracking-widest"
+              onClick={() => setItemsToLoad((prev) => prev + 10)}
+              disabled={isFetching}
+              className="group px-12 py-4 bg-white border-2 border-slate-900 text-slate-900 font-black rounded-full hover:bg-slate-900 hover:text-white transition-all shadow-xl shadow-slate-900/5 active:scale-95 flex items-center gap-3 mx-auto uppercase text-xs tracking-widest disabled:opacity-70"
             >
-              <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />{" "}
-              Load More Tours
+              {isFetching ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
+              )}
+              {isFetching ? "Loading..." : "Load More Tours"}
             </button>
           </div>
         )}

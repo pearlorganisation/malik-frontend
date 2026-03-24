@@ -20,7 +20,7 @@ export default function CategoriesPage() {
   const categories = data?.data ?? [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 py-12 px-4">
+    <div className="min-h-screen bg-linear-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 py-12 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header + Search */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
@@ -108,7 +108,7 @@ export default function CategoriesPage() {
                         "
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                      <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent" />
                     </div>
 
                     {/* Text Content */}

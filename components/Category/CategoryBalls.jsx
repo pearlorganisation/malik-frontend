@@ -20,7 +20,8 @@ export default function CategoryBalls({
   const categories = response?.data || [];
 
   const allCategories = [
-    { _id: "all", name: "All Experiences" },
+    // { _id: "all", name: "All Experiences" },
+    { _id: "", name: "All Experiences" },
     ...categories,
   ];
 
@@ -42,16 +43,20 @@ export default function CategoryBalls({
       <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pr-4">
         {allCategories.map((category) => {
           // FIX: Logic to determine if this button is active
+          // const isActive =
+          //   (category.name === "All Experiences" &&
+          //     (selectedCategory === "" ||
+          //       selectedCategory === "All Experiences")) ||
+          //   // selectedCategory === category.name;
+          //   selectedCategory === category._id;
           const isActive =
-            (category.name === "All Experiences" &&
-              (selectedCategory === "" ||
-                selectedCategory === "All Experiences")) ||
-            selectedCategory === category.name;
+  (category._id === "" && selectedCategory === "") ||
+  selectedCategory === category._id;
 
           return (
             <button
               key={category._id}
-              onClick={() => setSelectedCategory(category.name)}
+              onClick={() => setSelectedCategory(category._id)}
               className={`px-6 py-3 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300
                 ${
                   isActive

@@ -47,6 +47,25 @@ export const reviewApi = baseApi.injectEndpoints({
         { type: "Reviews", id: activityId },
       ],
     }),
+    // ✅ ADD THESE
+
+/* ================= GET ALL REVIEWS ================= */
+getAllReviews: builder.query({
+  query: ({ page = 1, limit = 5 }) => ({
+    url: `/reviews/all?page=${page}&limit=${limit}`,
+    method: "GET",
+  }),
+  providesTags: ["Reviews"],
+}),
+
+/* ================= GET REVIEW STATS ================= */
+getReviewStats: builder.query({
+  query: () => ({
+    url: `/reviews/stats`,
+    method: "GET",
+  }),
+  providesTags: ["Reviews"],
+}),
   }),
 });
 
@@ -55,4 +74,6 @@ export const {
   useGetActivityReviewsQuery,
   useUpdateReviewMutation,
   useDeleteReviewMutation,
+    useGetAllReviewsQuery,
+  useGetReviewStatsQuery,
 } = reviewApi;

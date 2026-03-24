@@ -101,7 +101,7 @@ export default function PlaceDetailPage() {
   const { id } = useParams();
   const { data: placeData, isLoading, isError } = useGetPlaceByIdQuery(id);
   const [activeTab, setActiveTab] = useState("");
-
+console.log("placeData1: ",placeData)
   const place = placeData?.data;
 
   // Define tabs in desired order
@@ -183,7 +183,7 @@ export default function PlaceDetailPage() {
   return (
     <>
       {/* Header */}
-      <header className="bg-gradient-to-b from-[#001f3f] to-[#003366] text-white py-20 px-8">
+      <header className="bg-linear-to-b from-[#001f3f] to-[#003366] text-white py-20 px-8">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-extrabold">
             {place.name || "N/A"}
@@ -212,7 +212,7 @@ export default function PlaceDetailPage() {
           </div>
 
           <div className="relative rounded-xl overflow-hidden shadow-xl group cursor-pointer">
-            <div className="bg-gradient-to-br from-gray-900 to-black h-64 md:h-72 flex items-center justify-center">
+            <div className="bg-linear-to-br from-gray-900 to-black h-64 md:h-72 flex items-center justify-center">
               <div className="text-center text-white">
                 <div className="w-16 h-16 bg-orange-600 rounded-full mx-auto mb-4 flex items-center justify-center group-hover:scale-110 transition">
                   <Play className="w-8 h-8 ml-1" fill="white" />
@@ -282,7 +282,7 @@ export default function PlaceDetailPage() {
         </section>
 
         {/* Top Rated Tours Placeholder */}
-        <section className="py-16 bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl">
+        <section className="py-16 bg-linear-to-r from-orange-50 to-amber-50 rounded-2xl">
           <div className="max-w-7xl mx-auto px-8 text-center">
             <Ticket className="w-12 h-12 text-orange-600 mx-auto mb-6" />
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
