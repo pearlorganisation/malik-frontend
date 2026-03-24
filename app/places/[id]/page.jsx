@@ -101,7 +101,7 @@ export default function PlaceDetailPage() {
   const { id } = useParams();
   const { data: placeData, isLoading, isError } = useGetPlaceByIdQuery(id);
   const [activeTab, setActiveTab] = useState("");
-
+console.log("placeData1: ",placeData)
   const place = placeData?.data;
 
   // Define tabs in desired order

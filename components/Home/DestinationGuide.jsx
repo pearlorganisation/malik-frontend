@@ -5,59 +5,39 @@ import { MapPin, Compass, Sparkles, ChevronRight, Tag } from "lucide-react";
 import { useGetAllPlacesQuery } from "@/features/place/placeApi";
 import Link from "next/link";
 import { useGetCategoriesQuery } from "@/features/category/categoryApi";
+import { useRef } from "react"; // ✅ Add this
 
 const popularTags = [
-  "Desert Safari",
-  "Family Friendly",
-  "Kids Park",
-  "Couple Offers",
-  "Luxury Yacht",
-  "Budget Tours",
-  "Evening Shows",
-  "Camel Ride",
-  "Burj Khalifa Tickets",
-  "Water Parks",
-  "City Sightseeing",
-  "Private Car",
-  "Adventure Sports",
+  "Desert Safari", "Family Friendly", "Kids Park", "Couple Offers",
+  "Luxury Yacht", "Budget Tours", "Evening Shows", "Camel Ride",
+  "Burj Khalifa Tickets", "Water Parks", "City Sightseeing",
+  "Private Car", "Adventure Sports",
 ];
 
 export default function DestinationGuide() {
   const { data, isLoading, error } = useGetAllPlacesQuery();
   const destinations = data?.data || [];
 
+  const scrollContainerRef = useRef(null); // ✅ Add this
+
+  // ✅ Scroll handler
+  const handleScrollClick = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 300, behavior: "smooth" });
+    }
+  };
+
   const {
     data: categoryResponse,
     isLoading: categoryLoading,
     error: categoryError,
-  } = useGetCategoriesQuery({
-    page: 1,
-    limit: 24,
-  });
+  } = useGetCategoriesQuery({ page: 1, limit: 24 });
 
   const categories = categoryResponse?.data ?? [];
 
-  if (isLoading) {
-    return (
-      <div className="py-24 text-center text-slate-400 font-medium">
-        Loading destinations...
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="py-24 text-center text-red-400">Error loading data.</div>
-    );
-  }
-
-  if (destinations.length === 0) {
-    return (
-      <div className="py-24 text-center text-slate-500">
-        No destinations available.
-      </div>
-    );
-  }
+  if (isLoading) return <div className="py-24 text-center text-slate-400 font-medium">Loading destinations...</div>;
+  if (error) return <div className="py-24 text-center text-red-400">Error loading data.</div>;
+  if (destinations.length === 0) return <div className="py-24 text-center text-slate-500">No destinations available.</div>;
 
   return (
     <section className="bg-white py-12 md:py-16 font-sans border-t border-gray-100 relative">
@@ -73,19 +53,24 @@ export default function DestinationGuide() {
             </h2>
           </div>
 
-          {/* Desktop Scroll Hint */}
-          <div className="hidden md:flex items-center gap-2 text-xs font-bold text-slate-400 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
+          {/* ✅ Button with onClick */}
+          <button
+            onClick={handleScrollClick}
+            className="hidden md:flex items-center gap-2 text-xs font-bold text-slate-400 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 hover:bg-gray-100 transition-colors cursor-pointer"
+          >
             Scroll to explore <ChevronRight className="w-4 h-4" />
-          </div>
+          </button>
         </div>
 
-        {/* Scroll Container - Added flex-nowrap */}
-        <div className="flex overflow-x-auto flex-nowrap gap-4 pb-8 -mx-4 px-4 md:mx-0 md:px-0 scroll-smooth no-scrollbar snap-x snap-mandatory mb-8">
+        {/* ✅ ref attach karo scroll container pe */}
+        <div
+          ref={scrollContainerRef}
+          className="flex overflow-x-auto flex-nowrap gap-4 pb-8 -mx-4 px-4 md:mx-0 md:px-0 scroll-smooth no-scrollbar snap-x snap-mandatory mb-8"
+        >
           {destinations.map((dest) => (
             <Link
               href={`/places/${dest._id}`}
               key={dest._id}
-              // Changed flex-shrink-0 to flex-none and snap-center to snap-start
               className="group relative h-[220px] md:h-[250px] w-[180px] md:w-[200px] flex-none rounded-2xl overflow-hidden cursor-pointer shadow-md hover:shadow-xl transition-all duration-500 snap-start bg-gray-100 border border-gray-100 block"
             >
               <Image
@@ -95,15 +80,12 @@ export default function DestinationGuide() {
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 priority={false}
               />
-
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
-
               <div className="absolute top-3 left-3 z-20">
                 <div className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest flex items-center gap-1 group-hover:bg-white group-hover:text-blue-600 transition-colors duration-300">
                   <MapPin className="w-2 h-2" /> {dest.country || "UAE"}
                 </div>
               </div>
-
               <div className="absolute bottom-0 left-0 w-full p-4 z-20 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500 text-left">
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-1 text-yellow-400 font-bold text-[9px] uppercase tracking-wider mb-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform -translate-y-2 group-hover:translate-y-0">
@@ -114,48 +96,29 @@ export default function DestinationGuide() {
                   </h3>
                   <div className="h-0.5 w-6 bg-yellow-500 mb-1 group-hover:w-12 transition-all duration-500" />
                   <p className="text-slate-300 text-[9px] font-medium line-clamp-2 opacity-80 group-hover:opacity-100 transition-opacity duration-300 leading-relaxed">
-                    {dest.tagline ||
-                      dest.about ||
-                      "Discover amazing experiences."}
+                    {dest.tagline || dest.about || "Discover amazing experiences."}
                   </p>
                 </div>
               </div>
             </Link>
           ))}
-
-          {/* Spacer for mobile scroll */}
           <div className="w-4 flex-none md:hidden" />
         </div>
 
-        {/* Categories Section */}
+        {/* Categories Section - unchanged */}
         <div className="border-t border-gray-100 pt-4 mt-2">
           <div className="flex items-center gap-2 mb-4">
             <div className="bg-blue-50 p-1.5 rounded-full text-blue-600">
               <Tag className="w-4 h-4" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900">
-              Browse by Interest
-            </h3>
+            <h3 className="text-lg font-bold text-slate-900">Browse by Interest</h3>
           </div>
-
           <div className="flex flex-wrap gap-2">
-            {categoryLoading && (
-              <span className="text-sm text-gray-400">
-                Loading categories...
-              </span>
-            )}
-            {categoryError && (
-              <span className="text-sm text-red-400">
-                Failed to load categories
-              </span>
-            )}
-
+            {categoryLoading && <span className="text-sm text-gray-400">Loading categories...</span>}
+            {categoryError && <span className="text-sm text-red-400">Failed to load categories</span>}
             {!categoryLoading && !categoryError && categories.length === 0 && (
-              <span className="text-sm text-gray-400">
-                No categories available
-              </span>
+              <span className="text-sm text-gray-400">No categories available</span>
             )}
-
             {categories.map((category) => (
               <Link
                 key={category._id}
