@@ -95,7 +95,7 @@ useEffect(() => {
           </h2>
 
           <div className="flex gap-3 flex-wrap">
-            {["ALL", "WITH PHOTOS", "DESERT SAFARI", "YACHT CRUISE", "CITY TOURS"].map((item, i) => (
+            {["ALL"].map((item, i) => (
               <button
                 key={i}
                 className={`px-4 py-1.5 rounded-full text-[12px] font-bold tracking-wide border ${
