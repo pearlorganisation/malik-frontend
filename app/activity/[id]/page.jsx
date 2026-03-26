@@ -73,6 +73,9 @@ export default function ActivityDetailPage() {
   const { data, isLoading, isError } = useGetActivityByIdQuery(id, { skip: !id });
   const activity = data?.data;
 
+  console.log("ttt",activity)
+
+
   const PAGE_TABS = useMemo(() => {
     if (!activity) return[];
     const tabs =[];
@@ -96,6 +99,9 @@ export default function ActivityDetailPage() {
   const[bookingStep, setBookingStep] = useState(1);
   const [isVariantExpanded, setIsVariantExpanded] = useState(true);
 
+  // ─── SUV QUANTITY STATE (user-controlled) ────────────────────────────────
+  const [suvQty, setSuvQty] = useState(1);
+
   const dateInputRef = useRef(null);
   const contentRef = useRef(null);
 
@@ -105,17 +111,25 @@ export default function ActivityDetailPage() {
   
   // ─── YACHT & DURATION LOGIC ──────────────────────────────────────────────
   const isYachtActivity = useMemo(() => {
-    return selectedPackage?.bookingFields?.some(f => 
-      f.name.toLowerCase().includes('duration') || 
-      f.name.toLowerCase().includes('yacht') ||
-      f.name.toLowerCase().includes('vessel')
-    );
+    return selectedPackage?.bookingFields?.some(f => {
+      const n = f.name.toLowerCase();
+      return n.includes('duration') || n.includes('yacht') || n.includes('yatch') || n.includes('vessel') || n.includes('no of') || n.includes('number of');
+    });
   }, [selectedPackage]);
 
   const durationField = selectedPackage?.bookingFields?.find(f => f.name.toLowerCase().includes('duration'));
-  const yachtField = selectedPackage?.bookingFields?.find(f => f.name.toLowerCase().includes('yacht') || f.name.toLowerCase().includes('vessel'));
+  const yachtField = selectedPackage?.bookingFields?.find(f => {
+    const n = f.name.toLowerCase();
+    return n.includes('yacht') || n.includes('yatch') || n.includes('vessel') || n.includes('no of') || n.includes('number of');
+  });
 
-  const durationQty = durationField ? (quantities[durationField._id] || durationField.min || 1) : 1;
+  // ─── DURATION: backend sends minutes, we store/display in hours ──────────
+  // Raw value stored in quantities is in HOURS (float), we convert to minutes only when sending to backend
+  const durationQtyHours = durationField ? (quantities[durationField._id] || durationField.min || 1) : 1;
+  // Convert backend min value to hours for display (backend stores price per minute? No — price per booking unit)
+  // Backend duration field min/max/price are in MINUTES, so we convert min to hours for the UI initial value
+  // We store hours in state, display hours, and convert back to minutes for payload
+
   const yachtQty = yachtField ? (quantities[yachtField._id] || yachtField.min || 1) : 1;
 
   // ─── PRICING LOGIC (Standard vs Yacht) ──────────────────────────────────
@@ -124,24 +138,68 @@ export default function ActivityDetailPage() {
     
     // Condition 2: Yacht / Duration logic
     if (isYachtActivity) {
+      // durationField price is per MINUTE in backend, so:
+      // total = durationQtyHours * 60 (convert to minutes) * yachtQty * pricePerMinute
+      // BUT if backend price is per HOUR unit, just use durationQtyHours directly
+      // We treat price as per-hour since we display hours — adjust if backend differs
       const rate = durationField?.price || yachtField?.price || selectedPackage.price || 0;
-      return durationQty * yachtQty * rate;
+      // durationQtyHours is already in hours (converted from backend minutes at initialization)
+      return durationQtyHours * yachtQty * rate;
     }
 
     // Condition 1: Standard Adult/Child logic
     return selectedPackage.bookingFields.reduce((acc, field) => {
       return acc + (field.price || 0) * (quantities[field._id] || 0);
     }, 0);
-  },[selectedPackage, quantities, isYachtActivity, durationQty, yachtQty, durationField, yachtField]);
+  },[selectedPackage, quantities, isYachtActivity, durationQtyHours, yachtQty, durationField, yachtField]);
 
   const totalQty = useMemo(() => {
     return Object.values(quantities).reduce((a, b) => a + b, 0);
   },[quantities]);
 
   const suvAddonPrice = activity?.PrivateSUV?.fee || 500;
-  const suvCount = Math.ceil(totalQty / 5) || 1; 
-  const suvTotalAddonPrice = suvAddonPrice * suvCount;
+  // Use user-controlled suvQty instead of auto-calculated
+  const suvTotalAddonPrice = suvAddonPrice * suvQty;
   const displayPrice = isSUV ? baseTotalAmount + suvTotalAddonPrice : baseTotalAmount;
+
+  // ─── SUV auto-recalculate when yacht qty changes ─────────────────────────
+  // Each yacht = up to 15 pax (typical), each SUV = 6 pax
+  // So SUVs needed = ceil((yachtQty * yachtCapacity) / suvCapacity)
+  // console.log("2222",activity)
+  // useEffect(() => {
+  //   if (isSUV) {
+  //     let autoCount;
+  //     if (isYachtActivity && yachtQty > 0) {
+  //       // Each yacht assumed 15 seats capacity, each SUV 6 seats
+  //       const yachtCapacity = 15;
+  //       const suvCapacity = 6;
+  //       autoCount = Math.ceil((yachtQty * yachtCapacity) / suvCapacity);
+  //     } else {
+  //       autoCount = Math.ceil(totalQty / 6) || 1;
+  //     }
+  //     setSuvQty(Math.max(1, autoCount));
+  //   }
+  // }, [transferType, yachtQty, totalQty, isYachtActivity]);
+
+  useEffect(() => {
+  if (isSUV) {
+    const suvCapacity =
+      activity?.PrivateSUV?.seat && activity?.PrivateSUV?.seat !== 0
+        ? activity.PrivateSUV.seat
+        : 6;
+
+    let autoCount;
+
+    if (isYachtActivity && yachtQty > 0) {
+      const yachtCapacity = 15;
+      autoCount = Math.ceil((yachtQty * yachtCapacity) / suvCapacity);
+    } else {
+      autoCount = Math.ceil(totalQty / suvCapacity) || 1;
+    }
+console.log("autoCount",autoCount)
+    setSuvQty(Math.max(1, autoCount));
+  }
+}, [transferType, yachtQty, totalQty, isYachtActivity, activity]);
 
   // Initialize Quantities
   useEffect(() => {
@@ -149,7 +207,13 @@ export default function ActivityDetailPage() {
     const pkg = activity.packages[selectedPackageIndex];
     const initialQty = {};
     pkg.bookingFields?.forEach((f) => {
-      initialQty[f._id] = f.min || 0;
+      const lowerName = f.name.toLowerCase();
+      if (lowerName.includes('duration')) {
+        // Backend min is in minutes → convert to hours for UI storage
+        initialQty[f._id] = f.min ? f.min / 60 : 1;
+      } else {
+        initialQty[f._id] = f.min || 0;
+      }
     });
     setQuantities(initialQty);
   }, [selectedPackageIndex, activity]);
@@ -171,11 +235,23 @@ export default function ActivityDetailPage() {
   const updateQuantity = (id, delta) => {
     setQuantities((prev) => {
       const field = selectedPackage?.bookingFields?.find(f => f._id === id);
+      const lowerName = field?.name?.toLowerCase() || '';
+      const isDurationField = lowerName.includes('duration');
       const currentQty = prev[id] || 0;
-      const min = field?.min || 0;
-      const max = field?.max || 20;
+
+      let min, max;
+      if (isDurationField) {
+        // min/max from backend are in minutes → convert to hours for UI
+        min = field?.min ? field.min / 60 : 0.5;
+        max = field?.max ? field.max / 60 : 24;
+      } else {
+        min = field?.min || 0;
+        max = field?.max || 20;
+      }
+
       const newQty = Math.max(min, Math.min(max, currentQty + delta));
-      return { ...prev, [id]: newQty };
+      // Round to 1 decimal to avoid floating point drift
+      return { ...prev, [id]: Math.round(newQty * 10) / 10 };
     });
   };
 
@@ -188,7 +264,7 @@ export default function ActivityDetailPage() {
     }
   };
 
-  const canBook = (isYachtActivity ? (durationQty > 0 && yachtQty > 0) : totalQty > 0) && selectedTimeSlot && selectedDate;
+  const canBook = (isYachtActivity ? (durationQtyHours > 0 && yachtQty > 0) : totalQty > 0) && selectedTimeSlot && selectedDate;
 
   const handleProceedToCheckout = () => {
     if (!canBook) return;
@@ -199,13 +275,18 @@ export default function ActivityDetailPage() {
     try {
       const formattedParticipants = selectedPackage.bookingFields
         .filter((f) => (quantities[f._id] || 0) > 0)
-        .map((f) => ({
-          label: f.name || f.label,
-          quantity: quantities[f._id],
-          price: f.price,
-        }));
+        .map((f) => {
+          const lowerName = f.name.toLowerCase();
+          const isDurationField = lowerName.includes('duration');
+          return {
+            label: f.name || f.label,
+            // Convert hours back to minutes for backend when sending duration
+            quantity: isDurationField ? quantities[f._id] * 60 : quantities[f._id],
+            price: f.price,
+          };
+        });
 
-      let finalAddons = isSUV ?[{ name: "Private SUV", price: suvAddonPrice }] : [];
+      let finalAddons = isSUV ?[{ name: "Private SUV", price: suvAddonPrice, quantity: suvQty }] : [];
       finalAddons =[...finalAddons, ...selectedAddonsData];
 
       const bookingPayload = {
@@ -255,13 +336,13 @@ export default function ActivityDetailPage() {
         displayPrice={displayPrice}
         baseTotalAmount={baseTotalAmount}
         isSUV={isSUV}
-        suvCount={suvCount}
+        suvQty={suvQty}
         suvTotalAddonPrice={suvTotalAddonPrice}
         setBookingStep={setBookingStep}
         handleFinalSubmit={handleFinalSubmit}
         isBooking={isBooking}
         isYachtActivity={isYachtActivity}
-        durationQty={durationQty}
+        durationQtyHours={durationQtyHours}
         yachtQty={yachtQty}
       />
     );
@@ -572,7 +653,9 @@ export default function ActivityDetailPage() {
                 canBook={canBook}
                 handleProceedToCheckout={handleProceedToCheckout}
                 isSUV={isSUV}
-                suvCount={suvCount}
+                suvQty={suvQty}
+                setSuvQty={setSuvQty}
+                suvAddonPrice={suvAddonPrice}
                 suvTotalAddonPrice={suvTotalAddonPrice}
                 isVIP={isVIP}
                 onTabClick={handleTabClick}
@@ -580,7 +663,7 @@ export default function ActivityDetailPage() {
                 bookingStep={bookingStep}
                 setBookingStep={setBookingStep}
                 isYachtActivity={isYachtActivity}
-                durationQty={durationQty}
+                durationQtyHours={durationQtyHours}
                 yachtQty={yachtQty}
               />
             </div>
@@ -726,7 +809,9 @@ function BookingCard({
   canBook,
   handleProceedToCheckout,
   isSUV,
-  suvCount,
+  suvQty,
+  setSuvQty,
+  suvAddonPrice,
   suvTotalAddonPrice,
   isVIP,
   onTabClick,
@@ -734,7 +819,7 @@ function BookingCard({
   bookingStep,
   setBookingStep,
   isYachtActivity,
-  durationQty,
+  durationQtyHours,
   yachtQty
 }) {
   const fallbackTimes =["10:00 AM", "12:00 PM", "02:00 PM", "04:00 PM", "06:00 PM", "08:00 PM"];
@@ -777,9 +862,26 @@ function BookingCard({
                 <div className="w-10 h-10 rounded-full bg-[#FACC15] flex items-center justify-center shrink-0">
                   <Truck size={16} className="text-gray-900" />
                 </div>
-                <div>
+                <div className="flex-1">
                   <div className="text-[10px] font-extrabold text-[#F59E0B] uppercase tracking-[0.15em] mb-0.5">INCLUDED</div>
-                  <div className="text-[14px] font-black text-gray-900">Allocated: 1 x SUV</div>
+                  <div className="text-[14px] font-black text-gray-900">Allocated: {suvQty} x SUV</div>
+                </div>
+                {/* SUV Quantity Controls */}
+                <div className="flex items-center gap-2 bg-white rounded-xl px-2 py-1.5 shadow-sm border border-[#FED7AA]">
+                  <button
+                    onClick={() => setSuvQty(prev => Math.max(1, prev - 1))}
+                    disabled={suvQty <= 1}
+                    className="w-7 h-7 flex items-center justify-center rounded-[8px] bg-[#FFF9F0] text-gray-700 font-black transition-opacity disabled:opacity-40 hover:bg-[#FEF3C7]"
+                  >
+                    −
+                  </button>
+                  <span className="w-6 text-center text-[14px] font-black text-[#111827]">{suvQty}</span>
+                  <button
+                    onClick={() => setSuvQty(prev => prev + 1)}
+                    className="w-7 h-7 flex items-center justify-center rounded-[8px] bg-[#FFF9F0] text-gray-700 font-black hover:bg-[#FEF3C7]"
+                  >
+                    +
+                  </button>
                 </div>
               </div>
             </div>
@@ -890,21 +992,25 @@ function BookingCard({
             <div className="bg-[#F8F9FA] rounded-[24px] p-5 space-y-4">
               {guestTypes.map((p) => {
                 const currentQty = quantities[p._id] || 0;
-                const isMin = currentQty <= (p.min || 0);
-                const isMax = currentQty >= (p.max || 20);
-
                 const lowerName = p.name.toLowerCase();
                 const isDuration = lowerName.includes('duration');
                 const isYacht = lowerName.includes('yacht') || lowerName.includes('vessel');
+
+                // For duration: min/max from backend are in minutes, convert to hours for comparison
+                const minHours = isDuration ? (p.min ? p.min / 60 : 0.5) : (p.min || 0);
+                const maxHours = isDuration ? (p.max ? p.max / 60 : 24) : (p.max || 20);
+
+                const isMin = currentQty <= minHours;
+                const isMax = currentQty >= maxHours;
                 
                 let subtext = `AGE ${lowerName.includes("adult") ? "12+" : "3-11"}`;
-                if (isDuration) subtext = `${currentQty * 60} MINUTE SESSION`;
+                if (isDuration) subtext = `${(currentQty * 60).toFixed(0)} MINUTE SESSION`;
                 else if (isYacht) subtext = "TOTAL VESSELS";
                 else if (lowerName.includes("adult")) subtext = "AGE 12+";
                 else if (lowerName.includes("child")) subtext = "AGE 3-11";
 
-                let displayQty = currentQty;
-                if (isDuration) displayQty = `${Number(currentQty).toFixed(1)}h`;
+                // Display: hours with 1 decimal for duration, integer for rest
+                const displayQty = isDuration ? `${Number(currentQty).toFixed(1)}h` : currentQty;
 
                 return (
                   <div key={p._id} className="flex items-center justify-between">
@@ -937,6 +1043,37 @@ function BookingCard({
                   </div>
                 );
               })}
+
+              {/* ── SUV Quantity Row (only shown when SUV is selected) ── */}
+              {isSUV && (
+                <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+                  <div>
+                    <div className="text-[15px] font-black text-[#111827] flex items-center gap-2">
+                      <Truck size={14} className="text-[#EF4444]" /> Private SUV
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[10px] text-[#9ca3af] font-extrabold uppercase mt-0.5 tracking-wider">
+                      ${suvAddonPrice} / SUV
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 bg-white rounded-xl px-2 py-1.5 shadow-sm border border-gray-100">
+                    <button
+                      onClick={() => setSuvQty(prev => Math.max(1, prev - 1))}
+                      disabled={suvQty <= 1}
+                      className={`w-8 h-8 flex items-center justify-center rounded-[10px] bg-[#F4F5F7] text-[#111827] font-black transition-opacity ${suvQty <= 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-200'}`}
+                    >
+                      −
+                    </button>
+                    <span className="w-8 text-center text-[14px] font-black text-[#111827]">{suvQty}</span>
+                    <button
+                      onClick={() => setSuvQty(prev => prev + 1)}
+                      className="w-8 h-8 flex items-center justify-center rounded-[10px] bg-[#F4F5F7] text-[#111827] font-black hover:bg-gray-200"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* PRICE BREAKDOWN */}
@@ -951,7 +1088,7 @@ function BookingCard({
                   <span className="text-[14px] font-bold text-[#111827]">
                     {selectedPackage?.name?.split(' - ')[0] || "Standard Entry"} 
                     {isYachtActivity ? (
-                      <span className="ml-1 text-[#6b7280]">({Number(durationQty).toFixed(1)}h x {yachtQty})</span>
+                      <span className="ml-1 text-[#6b7280]">({Number(durationQtyHours).toFixed(1)}h x {yachtQty})</span>
                     ) : (
                       <span className="ml-1 text-[#6b7280]">(x{totalQty})</span>
                     )}
@@ -961,7 +1098,7 @@ function BookingCard({
 
                 {isSUV && (
                   <div className="flex justify-between items-center text-[13px] font-bold text-gray-500">
-                    <span>Private SUV (x{suvCount})</span>
+                    <span>Private SUV (x{suvQty})</span>
                     <span>${suvTotalAddonPrice}</span>
                   </div>
                 )}
@@ -991,7 +1128,7 @@ function BookingCard({
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// NEW STEP 3 & 4: CHECKOUT VIEW COMPONENT (INFO -> PAYMENT)
+// STEP 3 & 4: CHECKOUT VIEW COMPONENT (INFO -> PAYMENT)
 // ════════════════════════════════════════════════════════════════════════════
 function CheckoutView({ 
   activity, 
@@ -1002,20 +1139,22 @@ function CheckoutView({
   displayPrice, 
   baseTotalAmount, 
   isSUV, 
-  suvCount,
+  suvQty,
   suvTotalAddonPrice, 
   setBookingStep,
   handleFinalSubmit,
   isBooking,
   isYachtActivity,
-  durationQty,
+  durationQtyHours,
   yachtQty
 }) {
   
   // Checkout Steps: 1 = INFO, 2 = PAYMENT
   const[checkoutStep, setCheckoutStep] = useState(1);
   const [toastMsg, setToastMsg] = useState("");
-
+  const [bookingConfirmed, setBookingConfirmed] = useState(false);
+  const [finalPayload, setFinalPayload] = useState(null);
+const [showQR, setShowQR] = useState(false);
   // Form State
   const [formData, setFormData] = useState({
     firstName: "",
@@ -1045,15 +1184,60 @@ function CheckoutView({
   const finalTotal = displayPrice + addonsTotal;
 
   const onContinueClick = () => {
-    setCheckoutStep(2); // Go to Payment Step
+    setCheckoutStep(2);
   };
 
   const handlePayNow = () => {
-    setToastMsg("Payment is coming soon");
+    // ── Build selected addons list
+    const selectedAddons = fallbackAddons
+      .filter(a => addonQtys[a.id] > 0)
+      .map(a => ({ name: a.name, price: a.price, quantity: addonQtys[a.id], subtotal: a.price * addonQtys[a.id] }));
+
+    // ── Build Final Payload
+    const payload = {
+      activityId: activity?._id,
+      activityName: activity?.name,
+      variantName: selectedPackage?.name,
+      isYachtActivity,
+      timeSlot: selectedTimeSlot,
+      ...(isYachtActivity
+        ? { durationHours: durationQtyHours, numberOfYachts: yachtQty }
+        : { totalGuests: totalQty }
+      ),
+      transferType: isSUV ? "Private SUV" : "Self Arrival",
+      ...(isSUV && { suvCount: suvQty, suvPricePerUnit: activity?.PrivateSUV?.fee || 500, suvTotal: suvTotalAddonPrice }),
+      baseFare: baseTotalAmount,
+      addons: selectedAddons,
+      addonsTotal,
+      grandTotal: finalTotal,
+      customerDetails: {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        pickupHotel: formData.pickupHotel,
+      },
+      bookingReference: `FT-${Math.floor(100000 + Math.random() * 900000)}`,
+      submittedAt: new Date().toISOString(),
+    };
+
+    console.log("════════════════════════════════════════════");
+    console.log("✅ FINAL BOOKING PAYLOAD — Ready for API");
+    console.log("════════════════════════════════════════════");
+    console.log(JSON.stringify(payload, null, 2));
+    console.log("════════════════════════════════════════════");
+
+    setToastMsg("🎉 Booking Confirmed!");
+    setFinalPayload(payload);
     setTimeout(() => {
       setToastMsg("");
-    }, 4000);
+      setBookingConfirmed(true);
+    }, 1500);
   };
+
+  if (bookingConfirmed && finalPayload) {
+    return <BookingConfirmedScreen payload={finalPayload} activity={activity} />;
+  }
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] font-sans relative">
@@ -1199,7 +1383,6 @@ function CheckoutView({
                           CVV
                         </label>
                         <div className="relative flex items-center">
-                          {/* Lock Icon inline SVG */}
                           <svg className="absolute left-4 w-4 h-4 text-[#9ca3af]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                           </svg>
@@ -1212,7 +1395,7 @@ function CheckoutView({
                       </div>
                     </div>
                   </div>
-
+{/* 
                   <div className="mt-8">
                     <button 
                       onClick={handlePayNow}
@@ -1220,8 +1403,68 @@ function CheckoutView({
                     >
                       PAY ${finalTotal} NOW
                     </button>
-                  </div>
+                  </div> */}
+                  {/* <div className="mt-8 space-y-3">
+  <button 
+    onClick={handlePayNow}
+    className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all shadow-[0_6px_20px_rgba(34,197,94,0.3)]"
+  >
+    PAY ${finalTotal} NOW
+  </button>
+  <button 
+    className="w-full bg-white border-2 border-[#004bb5] text-[#004bb5] hover:bg-[#004bb5] hover:text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all"
+  >
+    PAY LATER
+  </button>
+</div> */}
+<div className="mt-8 space-y-4">
 
+  {/* PAY NOW (hide when QR open) */}
+  {!showQR && (
+    <button 
+      onClick={handlePayNow}
+      className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all shadow-[0_6px_20px_rgba(34,197,94,0.3)]"
+    >
+      PAY ${finalTotal} NOW
+    </button>
+  )}
+
+  {/* PAY LATER BUTTON */}
+  {!showQR && (
+    <button 
+      onClick={() => setShowQR(true)}
+      className="w-full bg-white border-2 border-[#004bb5] text-[#004bb5] hover:bg-[#004bb5] hover:text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all"
+    >
+      PAY LATER
+    </button>
+  )}
+
+  {/* QR SECTION */}
+  {showQR && (
+    <div className="flex flex-col items-center gap-4 bg-[#F9FAFB] p-5 rounded-[18px] border border-gray-200">
+
+      {/* QR IMAGE */}
+      <img
+        src="data:image/png;base64,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"
+        alt="QR Code"
+        className="w-40 h-40 object-contain"
+      />
+
+      <p className="text-[11px] text-gray-500 font-semibold text-center">
+        Scan & complete payment, then confirm
+      </p>
+
+      {/* CONFIRM BUTTON */}
+      <button
+        onClick={handlePayNow}
+        className="w-full bg-[#004bb5] hover:bg-[#003a8c] text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest transition-all shadow-[0_6px_20px_rgba(0,75,181,0.3)]"
+      >
+        CONFIRM PAYMENT
+      </button>
+    </div>
+  )}
+
+</div>
                   {/* Back to Details Link */}
                   <div className="mt-5 text-center">
                     <button 
@@ -1247,7 +1490,7 @@ function CheckoutView({
                 <div>
                   <h4 className="text-[14px] font-black text-[#111827] leading-snug mb-1">{activity?.name}</h4>
                   <div className="text-[9px] font-extrabold text-[#004bb5] uppercase tracking-widest">
-                    {selectedPackage?.name?.split('-')[0]?.trim()} {isYachtActivity ? `(${Number(durationQty).toFixed(1)}h x ${yachtQty})` : ''} ({transferType === 'suv' ? 'PRIVATE SUV' : 'SELF ARRIVAL'})
+                    {selectedPackage?.name?.split('-')[0]?.trim()} {isYachtActivity ? `(${Number(durationQtyHours).toFixed(1)}h x ${yachtQty})` : ''} ({transferType === 'suv' ? 'PRIVATE SUV' : 'SELF ARRIVAL'})
                   </div>
                 </div>
               </div>
@@ -1270,7 +1513,7 @@ function CheckoutView({
                 </div>
                 {isSUV && (
                   <div className="flex justify-between items-center text-[13px] font-bold text-gray-500">
-                    <span>Private SUV (x{suvCount})</span>
+                    <span>Private SUV (x{suvQty})</span>
                     <span>${suvTotalAddonPrice}</span>
                   </div>
                 )}
@@ -1291,6 +1534,188 @@ function CheckoutView({
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// BOOKING CONFIRMED SCREEN
+// ════════════════════════════════════════════════════════════════════════════
+function BookingConfirmedScreen({ payload, activity }) {
+  const router = useRouter();
+
+  return (
+    <div className="min-h-screen bg-[#F9FAFB] font-sans flex flex-col items-center justify-start py-12 px-4">
+
+      {/* Success Icon */}
+      <div className="flex flex-col items-center mb-8">
+        <div className="w-14 h-14 rounded-full border-4 border-emerald-500 flex items-center justify-center mb-5 animate-pulse">
+          <CheckCircle2 size={28} className="text-emerald-500" />
+        </div>
+        <h1 className="text-[32px] md:text-[40px] font-black text-[#111827] tracking-tight">Booking Secured!</h1>
+        <p className="text-[14px] text-gray-500 mt-2 text-center">
+          Your adventure is confirmed. An e-ticket has been sent to{" "}
+          <span className="font-bold text-gray-800">{payload.customerDetails?.email || "your email"}</span>.
+        </p>
+      </div>
+
+      {/* Voucher Card */}
+      <div className="w-full max-w-[620px] bg-white rounded-[24px] border border-gray-200 overflow-hidden shadow-[0_4px_30px_rgba(0,0,0,0.06)]">
+
+        {/* Voucher Header */}
+        <div className="px-7 pt-6 pb-4 border-b border-gray-100 flex items-start justify-between">
+          <div>
+            <div className="text-[11px] font-black text-[#004bb5] uppercase tracking-widest">FUN TOURS <span className="text-[#EF4444]">DUBAI</span></div>
+            <div className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Digital Service Voucher</div>
+          </div>
+          <div className="text-right">
+            <div className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Booking Reference</div>
+            <div className="text-[15px] font-black text-[#111827] mt-0.5">{payload.bookingReference}</div>
+          </div>
+        </div>
+
+        {/* Activity Info */}
+        <div className="px-7 py-5 flex gap-4 border-b border-gray-100">
+          <img
+            src={activity?.Images?.[0]?.url || activity?.Images?.[0]?.secure_url || "/placeholder.jpg"}
+            alt="activity"
+            className="w-16 h-16 rounded-[14px] object-cover shrink-0 border border-gray-100"
+          />
+          <div className="flex-1">
+            <h2 className="text-[16px] font-black text-[#111827] leading-snug">{payload.activityName}</h2>
+            <div className="text-[10px] font-extrabold text-[#004bb5] uppercase tracking-widest mt-1">
+              {payload.variantName?.split('-')[0]?.trim()}
+              {payload.isYachtActivity ? ` (${Number(payload.durationHours).toFixed(1)} Hrs Charter)` : ''}
+              {" "}({payload.transferType})
+            </div>
+          </div>
+        </div>
+
+        {/* Details Grid */}
+        <div className="px-7 py-5 grid grid-cols-2 sm:grid-cols-4 gap-4 border-b border-gray-100">
+          <div>
+            <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mb-1">
+              <Calendar size={11} /> Date
+            </div>
+            <div className="text-[13px] font-black text-[#111827]">
+              {new Date(payload.submittedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+            </div>
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mb-1">
+              <Users size={11} /> Guests
+            </div>
+            <div className="text-[13px] font-black text-[#111827]">
+              {payload.isYachtActivity
+                ? `${payload.numberOfYachts} Yacht${payload.numberOfYachts > 1 ? 's' : ''}`
+                : `${payload.totalGuests} Pers.`}
+            </div>
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mb-1">
+              <MapPin size={11} /> Pickup
+            </div>
+            <div className="text-[13px] font-black text-[#111827]">{payload.customerDetails?.pickupHotel || "—"}</div>
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mb-1">
+              <Clock size={11} /> Time Slot
+            </div>
+            <div className="text-[13px] font-black text-[#111827]">{payload.timeSlot || "—"}</div>
+          </div>
+        </div>
+
+        {/* Price Breakdown */}
+        <div className="px-7 py-5 space-y-3 border-b border-gray-100">
+          <div className="flex justify-between text-[13px] text-gray-500 font-bold">
+            <span>Base Experience ({payload.variantName?.split('-')[0]?.trim()}{payload.isYachtActivity ? ` (${Number(payload.durationHours).toFixed(1)} Hrs Charter)` : ''})</span>
+            <span>${payload.baseFare}</span>
+          </div>
+          {payload.transferType === "Private SUV" && (
+            <div className="flex justify-between text-[13px] text-gray-500 font-bold">
+              <span>Private SUV (x{payload.suvCount})</span>
+              <span>${payload.suvTotal}</span>
+            </div>
+          )}
+          {payload.addons?.map((addon, i) => (
+            <div key={i} className="flex justify-between text-[13px] text-gray-500 font-bold">
+              <span>{addon.name} (x{addon.quantity})</span>
+              <span>${addon.subtotal}</span>
+            </div>
+          ))}
+          <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+            <span className="text-[15px] font-black text-[#111827]">Paid Total</span>
+            <span className="text-[24px] font-black text-[#004bb5]">${payload.grandTotal}</span>
+          </div>
+        </div>
+
+        {/* Usage Instructions */}
+        <div className="px-7 py-5 flex items-start gap-4">
+          <div className="w-10 h-10 rounded-[10px] border border-gray-200 flex items-center justify-center shrink-0">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <rect x="1" y="1" width="7" height="7" rx="1" stroke="#9ca3af" strokeWidth="1.5"/>
+              <rect x="12" y="1" width="7" height="7" rx="1" stroke="#9ca3af" strokeWidth="1.5"/>
+              <rect x="1" y="12" width="7" height="7" rx="1" stroke="#9ca3af" strokeWidth="1.5"/>
+              <rect x="13" y="13" width="2" height="2" fill="#9ca3af"/>
+              <rect x="17" y="13" width="2" height="2" fill="#9ca3af"/>
+              <rect x="13" y="17" width="2" height="2" fill="#9ca3af"/>
+              <rect x="17" y="17" width="2" height="2" fill="#9ca3af"/>
+            </svg>
+          </div>
+          <div className="flex-1">
+            <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Usage Instructions</div>
+            <p className="text-[12px] text-gray-500 leading-relaxed">
+              Please present this digital voucher or a printed copy to our guide at the time of pickup. Valid ID may be requested.
+            </p>
+          </div>
+          <div className="w-10 h-10 rounded-[10px] border border-gray-200 flex items-center justify-center shrink-0">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <rect x="1" y="1" width="7" height="7" rx="1" stroke="#9ca3af" strokeWidth="1.5"/>
+              <rect x="12" y="1" width="7" height="7" rx="1" stroke="#9ca3af" strokeWidth="1.5"/>
+              <rect x="1" y="12" width="7" height="7" rx="1" stroke="#9ca3af" strokeWidth="1.5"/>
+              <rect x="13" y="13" width="2" height="2" fill="#9ca3af"/>
+            </svg>
+          </div>
+        </div>
+
+        {/* Voucher Footer */}
+        <div className="bg-[#111827] px-7 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400">
+            <CheckCircle2 size={12} /> Official Voucher
+          </div>
+          <div className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400">Fun Tours Dubai Tourism L.L.C</div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex items-center gap-3 mt-8 flex-wrap justify-center">
+        <button
+          onClick={() => window.print()}
+          className="flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print Receipt
+        </button>
+        <button
+          onClick={() => {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
+            const a = document.createElement("a");
+            a.href = dataStr;
+            a.download = `booking-${payload.bookingReference}.json`;
+            a.click();
+          }}
+          className="flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download PDF
+        </button>
+        <button
+          onClick={() => router.push("/")}
+          className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#111827] text-white text-[11px] font-black uppercase tracking-widest hover:bg-gray-800 transition-colors shadow-sm"
+        >
+          <Home size={13} /> Go Home
+        </button>
       </div>
     </div>
   );
