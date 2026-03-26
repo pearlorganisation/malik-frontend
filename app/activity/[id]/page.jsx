@@ -191,7 +191,10 @@ export default function ActivityDetailPage() {
     let autoCount;
 
     if (isYachtActivity && yachtQty > 0) {
-      const yachtCapacity = 15;
+      const yachtCapacity = selectedPackage.bookingFields.find(
+  (field) => field.unit === "quantity"
+)?.seat;
+      console.log(selectedPackage , "yathc")
       autoCount = Math.ceil((yachtQty * yachtCapacity) / suvCapacity);
     } else {
       autoCount = Math.ceil(totalQty / suvCapacity) || 1;
@@ -867,7 +870,7 @@ function BookingCard({
                   <div className="text-[14px] font-black text-gray-900">Allocated: {suvQty} x SUV</div>
                 </div>
                 {/* SUV Quantity Controls */}
-                <div className="flex items-center gap-2 bg-white rounded-xl px-2 py-1.5 shadow-sm border border-[#FED7AA]">
+                {/* <div className="flex items-center gap-2 bg-white rounded-xl px-2 py-1.5 shadow-sm border border-[#FED7AA]">
                   <button
                     onClick={() => setSuvQty(prev => Math.max(1, prev - 1))}
                     disabled={suvQty <= 1}
@@ -882,7 +885,7 @@ function BookingCard({
                   >
                     +
                   </button>
-                </div>
+                </div> */}
               </div>
             </div>
           )}
