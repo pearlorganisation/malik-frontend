@@ -16,9 +16,7 @@ import {
   Landmark,
   Star,
   Grid2x2,
-  Mountain,
   Bike,
-  TreePine,
   Zap,
   Heart,
   DollarSign,
@@ -26,11 +24,12 @@ import {
   TrendingUp,
   Users,
   Sparkles,
+  Compass,
 } from "lucide-react";
 
 import { useGetCategoriesQuery } from "@/features/category/categoryApi";
 import { useGetAllPlacesQuery } from "@/features/place/placeApi";
-import { useGetPopularActivitiesQuery } from "@/features/activity/activityApi";
+import { useGetTopRatedActivitiesQuery } from "@/features/activity/activityApi";
 
 export default function MegaMenu({
   searchQuery = "",
@@ -45,8 +44,8 @@ export default function MegaMenu({
   const { data: placesRes } = useGetAllPlacesQuery();
   const locations = placesRes?.data || [];
 
-  const { data: actRes } = useGetPopularActivitiesQuery({ limit: 6 });
-  const activities = actRes?.activities || [];
+  const { data: actRes } = useGetTopRatedActivitiesQuery();
+  const activities = actRes?.data || [];
 
   const query = searchQuery.trim().toLowerCase();
 
@@ -58,10 +57,11 @@ export default function MegaMenu({
     l.name?.toLowerCase().includes(query)
   );
 
-  const filteredActivities = activities.filter((a) =>
-    a.title?.toLowerCase().includes(query)
-  );
+  const filteredActivities = activities
+    .filter((a) => a.name?.toLowerCase().includes(query))
+    .slice(0, 5);
 
+    console.log("first",filteredActivities)
   const showContent = isSearchFocused || searchQuery !== "";
   if (!showContent) return null;
 
@@ -110,34 +110,33 @@ export default function MegaMenu({
       className="bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.13)] border border-slate-100 overflow-hidden w-[900px] max-w-[96vw]"
       onMouseDown={(e) => e.stopPropagation()}
     >
-      <div className="p-7 max-h-[78vh] overflow-y-auto">
-        <div className="grid grid-cols-3 gap-8">
+      <div className="px-5 pt-5 pb-0">
+        <div className="grid grid-cols-[200px_200px_1fr] gap-4">
 
           {/* ================= CATEGORIES ================= */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Grid2x2 className="w-3.5 h-3.5 text-slate-400" />
-              <h3 className="text-[10.5px] font-bold text-slate-400 uppercase tracking-widest">
+            <div className="flex items-center gap-1.5 mb-3">
+              <Grid2x2 className="w-3 h-3 text-amber-400" />
+              <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 All Collections
               </h3>
             </div>
 
-            <div className="space-y-0.5">
+            <div className="space-y-0">
               {filteredCategories.map((cat) => {
                 const { Icon, bg, color } = getCategoryConfig(cat.name);
-
                 return (
                   <Link
                     key={cat._id}
                     href={`/activity?category=${cat._id}`}
                     scroll={true}
                     onClick={onClose}
-                    className="flex items-center gap-3 px-2.5 py-2 rounded-xl hover:bg-slate-50 transition-colors group"
+                    className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors group"
                   >
-                    <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center shrink-0`}>
-                      <Icon className={`w-4 h-4 ${color}`} />
+                    <div className={`w-7 h-7 rounded-lg ${bg} flex items-center justify-center shrink-0`}>
+                      <Icon className={`w-3.5 h-3.5 ${color}`} />
                     </div>
-                    <span className="text-[13px] font-semibold text-slate-700 group-hover:text-slate-900 leading-tight">
+                    <span className="text-[12.5px] font-semibold text-slate-700 group-hover:text-slate-900 leading-tight">
                       {cat.name}
                     </span>
                   </Link>
@@ -146,49 +145,48 @@ export default function MegaMenu({
             </div>
           </div>
 
-          {/* ================= LOCATIONS ================= */}
+          {/* ================= LOCATIONS + EXPERIENCE STYLES ================= */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <MapPin className="w-3.5 h-3.5 text-slate-400" />
-              <h3 className="text-[10.5px] font-bold text-slate-400 uppercase tracking-widest">
+            <div className="flex items-center gap-1.5 mb-3">
+              <Compass className="w-3 h-3 text-amber-400" />
+              <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 Key Locations
               </h3>
             </div>
 
-            <div className="space-y-0.5">
+            <div className="space-y-0">
               {filteredLocations.map((loc) => (
                 <Link
                   key={loc._id}
                   href={`/activity?location=${loc._id}`}
                   scroll={true}
                   onClick={onClose}
-                  className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-slate-50 transition-colors group"
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-yellow-200 hover:text-yellow-600 transition-colors group"
                 >
-                  <div className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-blue-400 shrink-0 transition-colors" />
-                  <span className="text-[13px] font-medium text-slate-600 group-hover:text-slate-900">
+                  <Compass className="w-3 h-3 opacity-40 shrink-0 text-slate-500 group-hover:text-amber-500 group-hover:opacity-100 transition-all" />
+                  <span className="text-[12.5px] font-medium text-slate-600 group-hover:text-orange-600">
                     {loc.name}
                   </span>
                 </Link>
               ))}
             </div>
 
-            {/* EXPERIENCE STYLES */}
-            {/* <div className="mt-6">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="w-3.5 h-3.5 text-slate-400" />
-                <h3 className="text-[10.5px] font-bold text-slate-400 uppercase tracking-widest">
+            {/* <div className="mt-4">
+              <div className="flex items-center gap-1.5 mb-3">
+                <Sparkles className="w-3 h-3 text-amber-400" />
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                   Experience Styles
                 </h3>
               </div>
 
-              <div className="space-y-0.5">
+              <div className="space-y-0">
                 {experienceStyles.map(({ label, Icon, color }, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors group"
+                    className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-amber-50 cursor-pointer transition-colors group"
                   >
-                    <Icon className={`w-3.5 h-3.5 ${color} shrink-0`} />
-                    <span className="text-[13px] font-medium text-slate-600 group-hover:text-slate-900">
+                    <Icon className={`w-3 h-3 ${color} shrink-0`} />
+                    <span className="text-[12.5px] font-medium text-slate-600 group-hover:text-slate-900">
                       {label}
                     </span>
                   </div>
@@ -197,11 +195,11 @@ export default function MegaMenu({
             </div> */}
           </div>
 
-          {/* ================= TOURS ================= */}
+          {/* ================= TOP SELLING TOURS ================= */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Star className="w-3.5 h-3.5 text-slate-400" />
-              <h3 className="text-[10.5px] font-bold text-slate-400 uppercase tracking-widest">
+            <div className="flex items-center gap-1.5 mb-3">
+              <Star className="w-3 h-3 text-amber-400" />
+              <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 Top Selling Tours
               </h3>
             </div>
@@ -210,90 +208,94 @@ export default function MegaMenu({
               {filteredActivities.map((act) => (
                 <Link
                   key={act._id}
-                  href={`/activity/${act._id}`}
+                  // href={`/activity/${act.slug}`}
+                  href={`/activity?slug=${act.slug}`}
+                  // href={`/activity/${tour.slug}`}
+                  // href={`/activity`}
                   onClick={onClose}
-                  className="flex items-center gap-3 px-2.5 py-2.5 rounded-xl hover:bg-slate-50 transition-colors group"
+                  className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl bg-white border border-transparent hover:border-blue-200 hover:bg-blue-50 hover:shadow-sm transition-all duration-200 group"
                 >
                   {/* IMAGE */}
-                  <div className="w-[70px] h-[56px] rounded-xl overflow-hidden bg-gray-100 shrink-0">
+                  <div className="w-[52px] h-[46px] rounded-lg overflow-hidden bg-gray-100 shrink-0">
                     <Image
-                      src={act.images?.[0]?.url || "/placeholder.jpg"}
-                      alt={act.title}
-                      width={70}
-                      height={56}
+                      src={act.image || "/placeholder.jpg"}
+                      alt={act.name}
+                      width={52}
+                      height={46}
                       className="object-cover w-full h-full"
                     />
                   </div>
 
                   {/* CONTENT */}
                   <div className="flex-1 min-w-0">
-                    {/* Category tag + rating */}
                     <div className="flex items-center gap-1.5 mb-0.5">
-                      {act.category && (
-                        <span className="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">
-                          {typeof act.category === "object"
-                            ? act.category?.name
-                            : act.category}
+                      <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider">
+                        {act.categoryName}
+                      </span>
+                      <div className="flex items-center gap-0.5">
+                        <Star className="w-2.5 h-2.5 text-yellow-400 fill-yellow-400" />
+                        <span className="text-[9.5px] font-semibold text-slate-700">
+                          {act.rating}
                         </span>
-                      )}
-                      {act.rating && (
-                        <div className="flex items-center gap-0.5">
-                          <Star className="w-2.5 h-2.5 text-yellow-400 fill-yellow-400" />
-                          <span className="text-[10px] font-semibold text-slate-600">
-                            {act.rating}
-                          </span>
-                        </div>
-                      )}
+                      </div>
                     </div>
 
-                    <p className="text-[12.5px] font-bold text-slate-800 line-clamp-2 leading-snug group-hover:text-slate-900">
-                      {act.title}
+                    <p className="text-[12px] font-bold text-slate-800 leading-snug truncate">
+                      {act.name}
                     </p>
 
-                    <div className="flex items-center justify-between mt-1">
-                      <div className="flex items-center gap-1">
+                    <div className="flex items-center justify-between mt-0.5">
+                      <div className="flex items-center gap-0.5">
                         <MapPin className="w-2.5 h-2.5 text-orange-400" />
-                        <span className="text-[10px] font-semibold text-orange-500 uppercase tracking-wide">
-                          {act.location || "Dubai"}
+                        <span className="text-[9px] font-semibold text-orange-500 uppercase tracking-wide">
+                          {act.location}
                         </span>
                       </div>
 
-                      <div className="text-right">
-                        <div className="text-[9px] text-slate-400 font-medium uppercase">
+                      <div className="text-right mr-1">
+                        <div className="text-[8px] text-slate-400 uppercase leading-none">
                           Starting at
                         </div>
-                        <div className="text-[14px] font-bold text-slate-900">
-                          ${act.price || 45}
+                        <div className="text-[13px] font-bold text-slate-900 leading-tight">
+                          ${act.startingPrice || 0}
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Arrow */}
-                  <div className="shrink-0 text-slate-300 group-hover:text-slate-500 transition-colors">
-                    <svg width="6" height="10" viewBox="0 0 6 10" fill="none">
-                      <path d="M1 1l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  {/* RIGHT ARROW */}
+                  <div className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center bg-slate-100 group-hover:bg-blue-600 transition-colors duration-200">
+                    <svg width="5" height="9" viewBox="0 0 6 10" fill="none">
+                      <path
+                        d="M1 1l4 4-4 4"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-slate-400 group-hover:text-white"
+                      />
                     </svg>
                   </div>
                 </Link>
               ))}
             </div>
           </div>
+
         </div>
       </div>
 
       {/* FOOTER BAR */}
-      <div className="flex items-center justify-between px-7 py-3.5 border-t border-slate-100 bg-slate-50">
+      <div className="flex items-center justify-between px-5 py-3 mt-4 border-t border-slate-100 bg-slate-50">
         <div className="flex items-center gap-1.5">
           <span className="text-slate-400 text-[11px]">⚡</span>
-          <span className="text-[10.5px] font-semibold text-slate-400 tracking-wide uppercase">
+          <span className="text-[10px] font-semibold text-slate-400 tracking-wide uppercase">
             Real-Time Availability
           </span>
         </div>
         <Link
           href="/activity"
           onClick={onClose}
-          className="text-[10.5px] font-bold text-blue-600 hover:text-blue-700 tracking-wide uppercase"
+          className="text-[10px] font-bold text-blue-600 hover:text-blue-700 tracking-wide uppercase"
         >
           Explore All Experiences →
         </Link>

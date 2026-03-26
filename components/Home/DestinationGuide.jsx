@@ -5,7 +5,7 @@ import { MapPin, Compass, Sparkles, ChevronRight, Tag } from "lucide-react";
 import { useGetAllPlacesQuery } from "@/features/place/placeApi";
 import Link from "next/link";
 import { useGetCategoriesQuery } from "@/features/category/categoryApi";
-import { useRef } from "react"; // ✅ Add this
+import { useEffect, useRef, useState } from "react";
 
 const popularTags = [
   "Desert Safari", "Family Friendly", "Kids Park", "Couple Offers",
@@ -19,13 +19,24 @@ export default function DestinationGuide() {
   const destinations = data?.data || [];
 
   const scrollContainerRef = useRef(null); // ✅ Add this
-
+const [canScrollLeft, setCanScrollLeft] = useState(false);
+const [canScrollRight, setCanScrollRight] = useState(true);
   // ✅ Scroll handler
   const handleScrollClick = () => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({ left: 300, behavior: "smooth" });
     }
   };
+  const handleScroll = () => {
+  const el = scrollContainerRef.current;
+  if (!el) return;
+
+  const isAtStart = el.scrollLeft === 0;
+  const isAtEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 5;
+
+  setCanScrollLeft(!isAtStart);
+  setCanScrollRight(!isAtEnd);
+};
 
   const {
     data: categoryResponse,
@@ -34,7 +45,9 @@ export default function DestinationGuide() {
   } = useGetCategoriesQuery({ page: 1, limit: 24 });
 
   const categories = categoryResponse?.data ?? [];
-
+useEffect(() => {
+  handleScroll(); // initial check
+}, [destinations]);
   if (isLoading) return <div className="py-24 text-center text-slate-400 font-medium">Loading destinations...</div>;
   if (error) return <div className="py-24 text-center text-red-400">Error loading data.</div>;
   if (destinations.length === 0) return <div className="py-24 text-center text-slate-500">No destinations available.</div>;
@@ -53,18 +66,36 @@ export default function DestinationGuide() {
             </h2>
           </div>
 
-          {/* ✅ Button with onClick */}
-          <button
-            onClick={handleScrollClick}
-            className="hidden md:flex items-center gap-2 text-xs font-bold text-slate-400 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 hover:bg-gray-100 transition-colors cursor-pointer"
-          >
-            Scroll to explore <ChevronRight className="w-4 h-4" />
-          </button>
+          \<div className="hidden md:flex items-center gap-2 ml-auto">
+  {/* Back button pehle */}
+  <button
+    onClick={() => {
+      scrollContainerRef.current?.scrollBy({ left: -300, behavior: "smooth" });
+    }}
+    disabled={!canScrollLeft}
+    className={`flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-full border transition-colors cursor-pointer 
+    ${canScrollLeft ? "text-slate-400 bg-gray-50 hover:bg-gray-100" : "opacity-40 cursor-not-allowed"}`}
+  >
+    Back
+  </button>
+
+  {/* Right scroll button last */}
+  <button
+    onClick={handleScrollClick}
+    disabled={!canScrollRight}
+    className={`flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-full border transition-colors cursor-pointer 
+    ${canScrollRight ? "text-slate-400 bg-gray-50 hover:bg-gray-100" : "opacity-40 cursor-not-allowed"}`}
+  >
+    Scroll to explore <ChevronRight className="w-4 h-4" />
+  </button>
+</div>
+
         </div>
 
         {/* ✅ ref attach karo scroll container pe */}
         <div
           ref={scrollContainerRef}
+           onScroll={handleScroll}
           className="flex overflow-x-auto flex-nowrap gap-4 pb-8 -mx-4 px-4 md:mx-0 md:px-0 scroll-smooth no-scrollbar snap-x snap-mandatory mb-8"
         >
           {destinations.map((dest) => (
