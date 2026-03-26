@@ -1,9 +1,17 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useInquiry } from "@/context/InquiryContext";
-import { Search, MessageCircle, ShieldCheck, Sun } from "lucide-react";
+import { 
+  Search, 
+  MessageCircle, 
+  ShieldCheck, 
+  Sun, 
+  CheckCircle2, 
+  Sparkles, 
+  FileText 
+} from "lucide-react";
 
-const images = [
+const images =[
   "https://images.unsplash.com/photo-1512453979798-5ea266f8880c",
   "/HomeImages/ban2.png",
   "/HomeImages/ban1.png",
@@ -18,152 +26,170 @@ export default function Hero() {
       setCurrent((prev) => (prev + 1) % images.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, []);
+  },[]);
 
   return (
-    <section className="relative pb-20 mt-8 pt-10 ">
-      {/* Background slider */}
-      {images.map((img, index) => (
-        <div
-          key={index}
-         className={`absolute inset-0 transition-opacity duration-1000 ${
-            index === current ? "opacity-100" : "opacity-0"
+    // Removed overflow-hidden here and reduced padding for less height ("hit kam kro")
+    <section className="relative pt-20 pb-20 md:pt-24 md:pb-20 w-full font-sans z-10">
+      
+      {/* Background Wrapper (overflow hidden applied here so it doesn't cut off the floating bar) */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        {/* Background slider */}
+        {images.map((img, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 transition-opacity duration-1000 ${
+              index === current ? "opacity-100" : "opacity-0"
             }`}
-          style={{
-            backgroundImage: `url(${img})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        />
-      ))}
+            style={{
+              backgroundImage: `url(${img})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+        ))}
 
-      {/* Overlays */}
-      <div className="absolute inset-0 bg-black/30" />
+        {/* Gradients to recreate the dark-left to light-right effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#2B3036] via-[#2B3036]/90 to-transparent w-[85%]" />
+        <div className="absolute inset-0 bg-gradient-to-l from-white/30 via-transparent to-transparent opacity-80" />
+      </div>
 
-      <div className="absolute inset-0 bg-black/30" />
-
-      {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-5 lg:px-4 pt-20">
+      {/* Main Content */}
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-8 md:px-12 w-full flex flex-col items-start">
+        
         {/* Badge */}
-        <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/25 text-white text-[11px] font-semibold backdrop-blur">
-          #1 DUBAI TOURISM PORTAL
-        </span>
+        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md shadow-sm mb-5">
+          <div className="w-1.5 h-1.5 rounded-full bg-red-400"></div>
+          <span className="text-[#e2e8f0] text-[10px] font-extrabold tracking-widest uppercase">
+            #1 DUBAI TOURISM PORTAL
+          </span>
+        </div>
 
         {/* Heading */}
-        <h1 className="mt-4 text-[30px] md:text-[40px] font-bold leading-tight text-white">
+        <h1 className="text-[40px] md:text-[54px] lg:text-[64px] font-extrabold leading-[1.05] tracking-tight text-white mb-5">
           Uncover the <br />
-          <span className="text-[#dbeafe]">Wonders of UAE</span>
+          <span className="text-[#B5D1F8]">Wonders of UAE</span>
         </h1>
 
         {/* Subtitle */}
-        <div className="mt-3 flex gap-3 max-w-lg">
-          <span className="w-0.5 bg-yellow-400 rounded-full" />
-          <p className="text-white/90 text-[13px] leading-relaxed">
-            From the peaks of Burj Khalifa to the dunes
-            of the Red Desert.
-            Curated experiences by <strong>Fun Tours Dubai</strong>.
+        <div className="flex gap-3.5 max-w-[500px] mb-6">
+          <span className="w-1 bg-[#EAB308] rounded-full shrink-0" />
+          <p className="text-white/90 text-[13px] md:text-[14px] font-medium leading-relaxed">
+            From the peaks of Burj Khalifa to the dunes of the Red
+            Desert. Curated experiences by <strong className="font-extrabold text-white">Fun Tours Dubai.</strong>
           </p>
         </div>
 
         {/* Info badges */}
-        <div className="mt-3 flex gap-2">
-          <span className="px-2.5 py-0.5 rounded-full bg-green-500 text-white text-[11px] font-semibold">
-            ✔ BEST PRICE GUARANTEE
-          </span>
-          <span className="px-2.5 py-0.5 rounded-full bg-gray-700 text-white text-[11px] font-semibold">
-            ✔ INSTANT CONFIRMATION
-          </span>
+        <div className="flex flex-wrap gap-2.5 mb-7">
+          <div className="px-3 py-1.5 rounded-[6px] bg-[#3B424A]/80 border border-gray-400/20 backdrop-blur-sm flex items-center gap-1.5">
+            <CheckCircle2 size={13} strokeWidth={3} className="text-[#22c55e]" />
+            <span className="text-white text-[9px] font-black uppercase tracking-wider">
+              BEST PRICE GUARANTEE
+            </span>
+          </div>
+          <div className="px-3 py-1.5 rounded-[6px] bg-[#3B424A]/80 border border-gray-400/20 backdrop-blur-sm flex items-center gap-1.5">
+            <CheckCircle2 size={13} strokeWidth={3} className="text-[#22c55e]" />
+            <span className="text-white text-[9px] font-black uppercase tracking-wider">
+              INSTANT CONFIRMATION
+            </span>
+          </div>
         </div>
 
         {/* Buttons */}
-        <div className="mt-4 flex gap-3">
-          <button className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-semibold transition">
-            <a
-              href="/aitrip-planner"
-
-            >
-              ✨ AI Trip Planner
-            </a>
+        <div className="flex flex-wrap gap-3">
+          <button className="px-5 py-2.5 rounded-lg bg-[#004bb5] hover:bg-[#003c94] text-white text-[12px] font-extrabold tracking-wide flex items-center gap-2 transition-all shadow-lg shadow-blue-900/40">
+            <Sparkles size={15} className="text-yellow-400" /> AI Trip Planner
           </button>
-          {/* <button className="px-4 py-2 rounded-md border border-white/40 bg-white/10 text-white text-[13px] font-semibold backdrop-blur hover:bg-white/20 transition">
-            📄 Get Custom Quote
-          </button> */}
-          {/* <button
-  onClick={() => onPlanTripClick()}
-  className="px-4 py-2 rounded-md border border-white/40 bg-white/10 text-white text-[13px] font-semibold backdrop-blur hover:bg-white/20 transition"
->
-  📄 Get Custom Quote
-</button> */}
           <button
             onClick={openInquiry}
-            className="px-4 py-2 rounded-md border border-white/40 bg-white/10 text-white text-[13px] font-semibold backdrop-blur hover:bg-white/20 transition"
+            className="px-5 py-2.5 rounded-lg border border-white/30 bg-white/10 hover:bg-white/20 text-white text-[12px] font-extrabold tracking-wide flex items-center gap-2 backdrop-blur-md transition-all"
           >
-            📄 Get Custom Quote
+            <FileText size={15} className="text-white/80" /> Get Custom Quote
           </button>
         </div>
       </div>
 
-      {/* Bottom Floating Bar */}
-      <div className="absolute left-1/2 -bottom-10 translate-x-[-50%] w-[92%] max-w-4xl z-50 ">
-        <div className="relative rounded-full p-0.5 
-    bg-linear-to-r from-white/60 via-white/80 to-white/60
-    shadow-[0_20px_45px_rgba(0,0,0,0.18)] ">
-
-          <div className="flex justify-between items-center 
-      px-6 py-3.5 rounded-full 
-      bg-white/90 backdrop-blur-xl">
-
+      {/* Bottom Floating Bar - Width decreased and Z-index increased */}
+      <div className="absolute left-1/2 bottom-0 translate-y-1/2 translate-x-[-50%] w-[94%] max-w-[820px] z-[100]">
+        {/* Frost Halo Ring */}
+        <div className="p-2 bg-white/30 backdrop-blur-xl rounded-[40px] border border-white/50 shadow-[0_15px_40px_rgba(0,0,0,0.15)]">
+          
+          {/* Inner Solid Container */}
+          <div className="flex flex-wrap md:flex-nowrap justify-between items-center px-4 md:px-6 py-2.5 rounded-[30px] bg-white shadow-sm w-full gap-4 md:gap-0">
             <Step
-              icon={<Search size={14} />}
+              num="1"
+              icon={<Search size={15} strokeWidth={2.5} />}
               title="Find"
               desc="AI or Browse"
-              color="bg-blue-100 text-blue-600"
+              color="text-[#004bb5]"
+              bgColor="bg-blue-50"
+              numColor="bg-[#004bb5]"
             />
             <Divider />
             <Step
-              icon={<MessageCircle size={14} />}
+              num="2"
+              icon={<MessageCircle size={15} strokeWidth={2.5} />}
               title="Chat"
               desc="Expert Help"
-              color="bg-green-100 text-green-600"
+              color="text-[#22c55e]"
+              bgColor="bg-green-50"
+              numColor="bg-[#22c55e]"
             />
             <Divider />
             <Step
-              icon={<ShieldCheck size={14} />}
+              num="3"
+              icon={<ShieldCheck size={15} strokeWidth={2.5} />}
               title="Book"
               desc="100% Secure"
-              color="bg-purple-100 text-purple-600"
+              color="text-[#a855f7]"
+              bgColor="bg-purple-50"
+              numColor="bg-[#a855f7]"
             />
             <Divider />
             <Step
-              icon={<Sun size={14} />}
+              num="4"
+              icon={<Sun size={15} strokeWidth={2.5} />}
               title="Enjoy"
               desc="Hassle-Free"
-              color="bg-yellow-100 text-yellow-600"
+              color="text-[#f59e0b]"
+              bgColor="bg-yellow-50"
+              numColor="bg-[#f59e0b]"
             />
           </div>
         </div>
       </div>
-
     </section>
   );
 }
 
 /* Helpers */
 
-function Step({ icon, title, desc, color }) {
+function Step({ num, icon, title, desc, color, bgColor, numColor }) {
   return (
-    <div className="flex items-center gap-2">
-      <div className={`w-7 h-7 rounded-full flex items-center justify-center ${color}`}>
+    <div className="flex items-center gap-2.5">
+      {/* Large Icon Circle */}
+      <div className={`w-[36px] h-[36px] rounded-full flex items-center justify-center shrink-0 ${bgColor} ${color}`}>
         {icon}
       </div>
-      <div>
-        <p className="text-[12px] font-semibold text-gray-900">{title}</p>
-        <p className="text-[10px] text-gray-500">{desc}</p>
+      
+      {/* Text Content */}
+      <div className="flex flex-col">
+        {/* Title row with small number bubble */}
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <span className={`w-3.5 h-3.5 rounded-full text-white text-[8px] flex items-center justify-center font-black ${numColor}`}>
+            {num}
+          </span>
+          <p className="text-[13px] font-black text-[#111827] leading-none tracking-tight">{title}</p>
+        </div>
+        
+        {/* Subtitle */}
+        <p className="text-[10px] font-bold text-[#6b7280] leading-none">{desc}</p>
       </div>
     </div>
   );
 }
 
 function Divider() {
-  return <div className="w-px h-4 bg-gray-300" />;
+  return <div className="hidden md:block w-px h-[24px] bg-gray-200 shrink-0 mx-2" />;
 }
