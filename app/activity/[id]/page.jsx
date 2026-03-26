@@ -152,7 +152,7 @@ export default function ActivityDetailPage() {
       return acc + (field.price || 0) * (quantities[field._id] || 0);
     }, 0);
   },[selectedPackage, quantities, isYachtActivity, durationQtyHours, yachtQty, durationField, yachtField]);
-console.log("ww",quantities)
+
   const totalQty = useMemo(() => {
     return Object.values(quantities).reduce((a, b) => a + b, 0);
   },[quantities]);
@@ -183,17 +183,16 @@ console.log("ww",quantities)
 
   useEffect(() => {
   if (isSUV) {
-    const suvCapacity = activity?.PrivateSUV?.seat !== 0
+    const suvCapacity =
+      activity?.PrivateSUV?.seat && activity?.PrivateSUV?.seat !== 0
         ? activity.PrivateSUV.seat
         : 6;
 
     let autoCount;
 
     if (isYachtActivity && yachtQty > 0) {
-      const yachtCapacity = 2;
-      // autoCount = Math.ceil((yachtQty * yachtCapacity) / suvCapacity);
-      autoCount = suvCapacity;
-
+      const yachtCapacity = 15;
+      autoCount = Math.ceil((yachtQty * yachtCapacity) / suvCapacity);
     } else {
       autoCount = Math.ceil(totalQty / suvCapacity) || 1;
     }
