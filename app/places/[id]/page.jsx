@@ -27,11 +27,12 @@ import {
   MapPin,
   Tag
 } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams ,useRouter } from "next/navigation";
 import { useGetPlaceByIdQuery } from "@/features/place/placeApi";
 
 export default function PlaceDetailPage() {
   const { id } = useParams();
+  const router = useRouter();
   const { data: placeData, isLoading, isError } = useGetPlaceByIdQuery(id);
   const [activeTab, setActiveTab] = useState("shoppingAndMalls");
 
@@ -177,7 +178,7 @@ export default function PlaceDetailPage() {
   </div>
 </div>
 
-      <main className="max-w-[1400px] mx-auto px-4 md:px-6 lg:px-8 py-12">
+      <main className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6">
         
   {/* About Section */}
   <section className="grid lg:grid-cols-[1fr_400px] gap-12 items-start mb-24">
@@ -259,6 +260,7 @@ export default function PlaceDetailPage() {
               <img
                 src={spot.image}
                 alt={spot.title}
+                onClick={() => router.push(`/spot/${spot._id}`)}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
             )}
