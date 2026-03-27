@@ -869,13 +869,11 @@ function BookingCard({
                   <div className="text-[9px] font-extrabold text-[#F59E0B] uppercase tracking-[0.15em] mb-0.5">INCLUDED</div>
                   <div className="text-[10px] font-black text-gray-900">Allocated: {suvQty} x SUV</div>
                 </div>
-<<<<<<< HEAD
                 {/* SUV Quantity Controls */}
                 {/* <div className="flex items-center gap-2 bg-white rounded-xl px-2 py-1.5 shadow-sm border border-[#FED7AA]">
-=======
+
                
                 <div className="flex items-center gap-2 bg-white rounded-xl px-1 py-1 shadow-sm border border-[#FED7AA]">
->>>>>>> nitin-code
                   <button
                     onClick={() => setSuvQty(prev => Math.max(1, prev - 1))}
                     disabled={suvQty <= 1}
@@ -890,7 +888,7 @@ function BookingCard({
                   >
                     +
                   </button>
-                </div> */}
+                </div> 
               </div>
             </div>
           )} */}
