@@ -39,7 +39,7 @@ const NAV_ITEMS = [
   { label: "Home", href: "/", icon: Home },
   { label: "Experiences", href: "/activity", icon: Compass },
   { label: "Reviews", href: "/reviews", icon: Star },
-  { label: "AI Planner", href: "#", icon: Sparkles },
+  { label: "AI Planner", href: "/aitrip-planner", icon: Sparkles },
   { label: "Contact", href: "/contact", icon: Phone },
 ];
 
@@ -130,7 +130,7 @@ export default function Header() {
   return (
     <>
       <header className={`fixed top-0 left-0 right-0 z-100 transition-all duration-300 px-2 py-2 bg-white ${scrolled ? " shadow-sm" : ""}`}>
-        <div className="max-w-[1440px] mx-auto px-6">
+        <div className="max-w-360 mx-auto px-6">
         {/* <div className="max-w-330 mx-auto px-4 lg:px-24"> */}
           <div className="h-20 flex items-center justify-between gap-8">
             
@@ -329,14 +329,24 @@ export default function Header() {
                   WHATSAPP
                   </a> 
                 </button>
-                <button className="flex-1 bg-[#020617] text-white flex items-center justify-center gap-2 h-13 rounded-2xl font-bold text-sm shadow-sm active:scale-95 transition">
+                <button  className="flex-1 bg-[#020617] text-white flex items-center justify-center gap-2 h-13 rounded-2xl font-bold text-sm shadow-sm active:scale-95 transition">
+                  <a 
+                   href="/contact" 
+                  className="flex-1 md:flex-none px-7 py-3.5 rounded-xl transition-all shadow-xl flex items-center justify-center gap-2.5 group active:scale-95"
+                >
                   <PhoneCall size={18} />
                   CALL
+                  </a>
                 </button>
               </div>
               <button className="w-full bg-[#0047AB] text-white flex items-center justify-center gap-2 h-14 rounded-2xl font-bold text-[15px] shadow-lg shadow-blue-200 active:scale-[0.98] transition">
+                <a 
+                   href="/aitrip-planner" 
+                  className="flex-1 md:flex-none px-7 py-3.5 rounded-xl transition-all shadow-xl flex items-center justify-center gap-2.5 group active:scale-95"
+                >
                 <PenSquare size={18} />
                 PLAN MY TRIP
+                </a>
               </button>
             </div>
           </div>

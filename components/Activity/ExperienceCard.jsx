@@ -63,7 +63,7 @@ export const ExperienceCard = ({ activity, viewMode = "grid" }) => {
       className="group cursor-pointer bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-lg transition-all flex flex-col"
     >
       {/* IMAGE */}
-      <div className="relative h-[160px] overflow-hidden">
+      <div className="relative h-40 overflow-hidden">
         <Image
           src={image}
           alt={title}
@@ -72,12 +72,12 @@ export const ExperienceCard = ({ activity, viewMode = "grid" }) => {
         />
 
         {/* Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
 
         {/* Ribbon */}
-        <div className="absolute top-0 left-0 w-[110px] h-[110px] overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-0 w-27.5 h-27.5 overflow-hidden pointer-events-none">
           <div
-            className={`absolute top-[20px] left-[-35px] w-[140px] text-center text-[9px] font-bold py-[3px] rotate-[-45deg] shadow-md tracking-wide ${ribbonColor}`}
+            className={`absolute top-5 -left-8.75 w-35 text-center text-[9px] font-bold py-0.75 -rotate-45 shadow-md tracking-wide ${ribbonColor}`}
           >
             {ribbon}
           </div>
@@ -100,7 +100,7 @@ export const ExperienceCard = ({ activity, viewMode = "grid" }) => {
           </div>
 
           {hasFreeCancellation && (
-            <div className="bg-white/90 text-green-700 text-[10px] px-2 py-[2px] rounded flex items-center gap-1 font-semibold">
+            <div className="bg-white/90 text-green-700 text-[10px] px-2 py-0.5 rounded flex items-center gap-1 font-semibold">
               <Check size={10} />
               Free Cancel
             </div>
@@ -109,7 +109,7 @@ export const ExperienceCard = ({ activity, viewMode = "grid" }) => {
       </div>
 
       {/* CONTENT */}
-      <div className="px-3 pt-3 pb-3 flex flex-col flex-grow">
+      <div className="px-3 pt-3 pb-3 flex flex-col grow">
 
         {/* Title */}
         <h3 className="text-[13.5px] font-extrabold text-slate-900 leading-snug line-clamp-2 mb-2">
@@ -118,12 +118,12 @@ export const ExperienceCard = ({ activity, viewMode = "grid" }) => {
 
         {/* Duration & Location */}
         <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-bold uppercase mb-2">
-          <div className="flex items-center gap-[3px]">
+          <div className="flex items-center gap-0.75">
             <Clock size={11} strokeWidth={2.5} />
             {durationHours}H
           </div>
           <span className="text-gray-300">•</span>
-          <div className="flex items-center gap-[3px]">
+          <div className="flex items-center gap-0.75">
             <MapPin size={11} className="text-yellow-400" strokeWidth={2.5} />
             {location}
           </div>
@@ -134,7 +134,7 @@ export const ExperienceCard = ({ activity, viewMode = "grid" }) => {
           {tags.map((tag, i) => (
             <span
               key={i}
-              className="bg-blue-50 text-blue-700 text-[9px] font-bold px-2 py-[2px] rounded-sm"
+              className="bg-blue-50 text-blue-700 text-[9px] font-bold px-2 py-0.5 rounded-sm"
             >
               {tag}
             </span>
