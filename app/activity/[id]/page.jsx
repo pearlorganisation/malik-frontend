@@ -856,36 +856,36 @@ function BookingCard({
             </div>
           </div>
 
-          {isSUV && (
+          {/* {isSUV && (
             <div className="px-6 mt-2.5">
-              <div className="flex items-center gap-3 bg-[#FFF9F0] border border-[#FED7AA] rounded-[20px] px-4 py-3">
-                <div className="w-10 h-10 rounded-full bg-[#FACC15] flex items-center justify-center shrink-0">
-                  <Truck size={16} className="text-gray-900" />
+              <div className="flex items-center gap-3 bg-[#FFF9F0] border border-[#FED7AA] rounded-[20px] px-2 py-1">
+                <div className="w-6 h-6 rounded-full bg-[#FACC15] flex items-center justify-center shrink-0">
+                  <Truck size={13} className="text-gray-900" />
                 </div>
                 <div className="flex-1">
-                  <div className="text-[10px] font-extrabold text-[#F59E0B] uppercase tracking-[0.15em] mb-0.5">INCLUDED</div>
-                  <div className="text-[14px] font-black text-gray-900">Allocated: {suvQty} x SUV</div>
+                  <div className="text-[9px] font-extrabold text-[#F59E0B] uppercase tracking-[0.15em] mb-0.5">INCLUDED</div>
+                  <div className="text-[10px] font-black text-gray-900">Allocated: {suvQty} x SUV</div>
                 </div>
-                {/* SUV Quantity Controls */}
-                <div className="flex items-center gap-2 bg-white rounded-xl px-2 py-1.5 shadow-sm border border-[#FED7AA]">
+               
+                <div className="flex items-center gap-2 bg-white rounded-xl px-1 py-1 shadow-sm border border-[#FED7AA]">
                   <button
                     onClick={() => setSuvQty(prev => Math.max(1, prev - 1))}
                     disabled={suvQty <= 1}
-                    className="w-7 h-7 flex items-center justify-center rounded-[8px] bg-[#FFF9F0] text-gray-700 font-black transition-opacity disabled:opacity-40 hover:bg-[#FEF3C7]"
+                    className="w-5 h-5 flex items-center justify-center rounded-[8px] bg-[#FFF9F0] text-gray-700 font-black transition-opacity disabled:opacity-40 hover:bg-[#FEF3C7]"
                   >
                     −
                   </button>
                   <span className="w-6 text-center text-[14px] font-black text-[#111827]">{suvQty}</span>
                   <button
                     onClick={() => setSuvQty(prev => prev + 1)}
-                    className="w-7 h-7 flex items-center justify-center rounded-[8px] bg-[#FFF9F0] text-gray-700 font-black hover:bg-[#FEF3C7]"
+                    className="w-5 h-5 flex items-center justify-center rounded-[8px] bg-[#FFF9F0] text-gray-700 font-black hover:bg-[#FEF3C7]"
                   >
                     +
                   </button>
                 </div>
               </div>
             </div>
-          )}
+          )} */}
 
           <div className="px-6 pb-0 space-y-5 mt-5">
             <div className="flex items-baseline gap-1.5">
@@ -989,7 +989,7 @@ function BookingCard({
             </div>
 
             {/* GUESTS / YACHT COUNTER */}
-            <div className="bg-[#F8F9FA] rounded-[24px] p-5 space-y-4">
+            <div className="bg-[#F8F9FA] rounded-[24px] p-2 space-y-2.5">
               {guestTypes.map((p) => {
                 const currentQty = quantities[p._id] || 0;
                 const lowerName = p.name.toLowerCase();
@@ -1015,15 +1015,15 @@ function BookingCard({
                 return (
                   <div key={p._id} className="flex items-center justify-between">
                     <div>
-                      <div className="text-[15px] font-black text-[#111827]">{p.name}</div>
-                      <div className="flex items-center gap-1.5 text-[10px] text-[#9ca3af] font-extrabold uppercase mt-0.5 tracking-wider">
-                        {isDuration && <Clock size={11} className="shrink-0" />}
-                        {isYacht && <Anchor size={11} className="shrink-0" />}
+                      <div className="text-[12px] font-black text-[#111827]">{p.name}</div>
+                      <div className="flex items-center gap-1.5 text-[8px] text-[#9ca3af] font-extrabold uppercase mt-0.5 tracking-wider">
+                        {isDuration && <Clock size={9} className="shrink-0" />}
+                        {isYacht && <Anchor size={9} className="shrink-0" />}
                         {subtext}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 bg-white rounded-xl px-2 py-1.5 shadow-sm border border-gray-100">
+                    <div className="flex items-center gap-3 bg-white rounded-xl px-1 py-1 shadow-sm border border-gray-100">
                       <button
                         onClick={() => updateQuantity(p._id, isDuration ? -0.5 : -1)}
                         disabled={isMin}
@@ -1046,12 +1046,12 @@ function BookingCard({
 
               {/* ── SUV Quantity Row (only shown when SUV is selected) ── */}
               {isSUV && (
-                <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+                <div className="flex items-center justify-between pt-3 border-t-1 border-gray-300">
                   <div>
-                    <div className="text-[15px] font-black text-[#111827] flex items-center gap-2">
+                    <div className="text-[12px] font-black text-[#111827] flex items-center gap-2">
                       <Truck size={14} className="text-[#EF4444]" /> Private SUV
                     </div>
-                    <div className="flex items-center gap-1.5 text-[10px] text-[#9ca3af] font-extrabold uppercase mt-0.5 tracking-wider">
+                    <div className="flex items-center gap-1.5 text-[9px] text-[#9ca3af] font-extrabold uppercase mt-0.5 tracking-wider">
                       ${suvAddonPrice} / SUV
                     </div>
                   </div>
@@ -1077,15 +1077,15 @@ function BookingCard({
             </div>
 
             {/* PRICE BREAKDOWN */}
-            <div className="bg-[#F0F5FF] border border-[#D1E0FF] rounded-[24px] px-5 py-5 space-y-4">
-              <div className="flex justify-between items-center text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-[0.15em]">
+            <div className="bg-[#F0F5FF] border border-[#D1E0FF] rounded-[24px] px-3.5 py-2 space-y-3">
+              <div className="flex justify-between items-center text-[9px] font-extrabold text-[#9ca3af] uppercase tracking-[0.15em]">
                 <span>PRICE BREAKDOWN</span>
                 <span>TOTAL</span>
               </div>
 
-              <div className="space-y-3.5">
+              <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-[14px] font-bold text-[#111827]">
+                  <span className="text-[12px] font-bold text-[#111827]">
                     {selectedPackage?.name?.split(' - ')[0] || "Standard Entry"} 
                     {isYachtActivity ? (
                       <span className="ml-1 text-[#6b7280]">({Number(durationQtyHours).toFixed(1)}h x {yachtQty})</span>
@@ -1093,11 +1093,11 @@ function BookingCard({
                       <span className="ml-1 text-[#6b7280]">(x{totalQty})</span>
                     )}
                   </span>
-                  <span className="text-[15px] font-black text-[#111827]">${baseTotalAmount}</span>
+                  <span className="text-[13px] font-black text-[#111827]">${baseTotalAmount}</span>
                 </div>
 
                 {isSUV && (
-                  <div className="flex justify-between items-center text-[13px] font-bold text-gray-500">
+                  <div className="flex justify-between items-center text-[12px] font-bold text-gray-500">
                     <span>Private SUV (x{suvQty})</span>
                     <span>${suvTotalAddonPrice}</span>
                   </div>
