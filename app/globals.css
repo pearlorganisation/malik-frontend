@@ -34,3 +34,32 @@ body {
   -ms-overflow-style: none;  /* IE & Edge */
   scrollbar-width: none;     /* Firefox */
 }
+/* GLOBAL.CSS ME ADD KAREIN */
+@media print {
+  /* Print ke time baaki sab kuch hide kar do */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Sirf Voucher Card aur uske andar ka content dikhao */
+  #voucher-card, #voucher-card * {
+    visibility: visible;
+  }
+  
+  /* Voucher Card ko bilkul upar top-left par set kar do */
+  #voucher-card {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Buttons walo ko hide karo */
+  .no-print {
+    display: none !important;
+  }
+}

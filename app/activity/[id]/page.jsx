@@ -5,6 +5,8 @@ import { useGetActivityByIdQuery } from "@/features/activity/activityApi.js";
 import { useCreateBookingMutation } from "@/features/booking/bookApi.js";
 import ReviewModal from "@/components/Review/ReviewModal";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { toPng } from 'html-to-image';
+import jsPDF from 'jspdf';
 import {
   Clock,
   Users,
@@ -347,6 +349,8 @@ console.log("autoCount",autoCount)
         isYachtActivity={isYachtActivity}
         durationQtyHours={durationQtyHours}
         yachtQty={yachtQty}
+        selectedDate={selectedDate} 
+        quantities={quantities} 
       />
     );
   }
@@ -1152,7 +1156,9 @@ function CheckoutView({
   isBooking,
   isYachtActivity,
   durationQtyHours,
-  yachtQty
+  yachtQty,
+  selectedDate, 
+  quantities  
 }) {
   
   // Checkout Steps: 1 = INFO, 2 = PAYMENT
@@ -1169,6 +1175,8 @@ const [showQR, setShowQR] = useState(false);
     phone: "",
     pickupHotel: ""
   });
+
+  
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -1193,29 +1201,110 @@ const [showQR, setShowQR] = useState(false);
     setCheckoutStep(2);
   };
 
+  // const handlePayNow = () => {
+  //   const selectedAddons = fallbackAddons
+  //     .filter(a => addonQtys[a.id] > 0)
+  //     .map(a => ({ name: a.name, price: a.price, quantity: addonQtys[a.id], subtotal: a.price * addonQtys[a.id] }));
+
+  //   // ── Build Final Payload
+  //   const payload = {
+  //     activityId: activity?._id,
+  //     activityName: activity?.name,
+  //     variantName: selectedPackage?.name,
+  //     isYachtActivity,
+  //     timeSlot: selectedTimeSlot,
+  //     ...(isYachtActivity
+  //       ? { durationHours: durationQtyHours, numberOfYachts: yachtQty }
+  //       : { totalGuests: totalQty }
+  //     ),
+  //     transferType: isSUV ? "Private SUV" : "Self Arrival",
+  //     ...(isSUV && { suvCount: suvQty, suvPricePerUnit: activity?.PrivateSUV?.fee || 500, suvTotal: suvTotalAddonPrice }),
+  //     baseFare: baseTotalAmount,
+  //     addons: selectedAddons,
+  //     addonsTotal,
+  //     grandTotal: finalTotal,
+  //     customerDetails: {
+  //       firstName: formData.firstName,
+  //       lastName: formData.lastName,
+  //       email: formData.email,
+  //       phone: formData.phone,
+  //       pickupHotel: formData.pickupHotel,
+  //     },
+  //     bookingReference: `FT-${Math.floor(100000 + Math.random() * 900000)}`,
+  //     submittedAt: new Date().toISOString(),
+  //   };
+
+  //   console.log("════════════════════════════════════════════");
+  //   console.log("✅ FINAL BOOKING PAYLOAD — Ready for API");
+  //   console.log("════════════════════════════════════════════");
+  //   console.log(JSON.stringify(payload, null, 2));
+  //   console.log("════════════════════════════════════════════");
+
+  //   setToastMsg("🎉 Booking Confirmed!");
+  //   setFinalPayload(payload);
+  //   setTimeout(() => {
+  //     setToastMsg("");
+  //     setBookingConfirmed(true);
+  //   }, 1500);
+  // };
+
+
+  // CheckoutView component ke function parameters me in dono ko add karein:
+
   const handlePayNow = () => {
     // ── Build selected addons list
     const selectedAddons = fallbackAddons
       .filter(a => addonQtys[a.id] > 0)
       .map(a => ({ name: a.name, price: a.price, quantity: addonQtys[a.id], subtotal: a.price * addonQtys[a.id] }));
 
-    // ── Build Final Payload
+    // ── Build exact participant breakdown (Adult, Child, etc.)
+    const formattedParticipants = selectedPackage?.bookingFields
+      ?.filter((f) => (quantities[f._id] || 0) > 0)
+      ?.map((f) => {
+        const isDurationField = f.name.toLowerCase().includes('duration');
+        return {
+          label: f.name || f.label,
+          quantity: quantities[f._id],
+          unit: isDurationField ? 'hours' : 'guests',
+          pricePerUnit: f.price,
+        };
+      }) ||[];
+
+    // ── Build A-to-Z Final Payload
     const payload = {
+      // 1. Activity & Package Info
       activityId: activity?._id,
       activityName: activity?.name,
       variantName: selectedPackage?.name,
-      isYachtActivity,
+      
+      // 2. Schedule Info
+      selectedDate: selectedDate,
       timeSlot: selectedTimeSlot,
+      
+      // 3. Guests & Fleet Info
+      isYachtActivity,
+      participantsBreakdown: formattedParticipants,
       ...(isYachtActivity
         ? { durationHours: durationQtyHours, numberOfYachts: yachtQty }
         : { totalGuests: totalQty }
       ),
+      
+      // 4. Transfer Info
       transferType: isSUV ? "Private SUV" : "Self Arrival",
       ...(isSUV && { suvCount: suvQty, suvPricePerUnit: activity?.PrivateSUV?.fee || 500, suvTotal: suvTotalAddonPrice }),
-      baseFare: baseTotalAmount,
+      
+      // 5. Addons Info
       addons: selectedAddons,
-      addonsTotal,
-      grandTotal: finalTotal,
+      
+      // 6. Pricing Breakdown
+      pricing: {
+        baseFare: baseTotalAmount,
+        addonsTotal: addonsTotal,
+        suvTotal: isSUV ? suvTotalAddonPrice : 0,
+        grandTotal: finalTotal,
+      },
+      
+      // 7. Customer Info
       customerDetails: {
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -1223,12 +1312,15 @@ const [showQR, setShowQR] = useState(false);
         phone: formData.phone,
         pickupHotel: formData.pickupHotel,
       },
+      
+      // 8. Meta Info
       bookingReference: `FT-${Math.floor(100000 + Math.random() * 900000)}`,
       submittedAt: new Date().toISOString(),
     };
 
+    // Yahan Console me apko A-to-Z sab data mil jayega
     console.log("════════════════════════════════════════════");
-    console.log("✅ FINAL BOOKING PAYLOAD — Ready for API");
+    console.log("✅ COMPLETE FINAL BOOKING PAYLOAD");
     console.log("════════════════════════════════════════════");
     console.log(JSON.stringify(payload, null, 2));
     console.log("════════════════════════════════════════════");
@@ -1240,6 +1332,7 @@ const [showQR, setShowQR] = useState(false);
       setBookingConfirmed(true);
     }, 1500);
   };
+
 
   if (bookingConfirmed && finalPayload) {
     return <BookingConfirmedScreen payload={finalPayload} activity={activity} />;
@@ -1428,7 +1521,8 @@ const [showQR, setShowQR] = useState(false);
   {/* PAY NOW (hide when QR open) */}
   {!showQR && (
     <button 
-      onClick={handlePayNow}
+      // onClick={handlePayNow}
+      onClick={() => setShowQR(true)}
       className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all shadow-[0_6px_20px_rgba(34,197,94,0.3)]"
     >
       PAY ${finalTotal} NOW
@@ -1438,7 +1532,8 @@ const [showQR, setShowQR] = useState(false);
   {/* PAY LATER BUTTON */}
   {!showQR && (
     <button 
-      onClick={() => setShowQR(true)}
+      // onClick={() => setShowQR(true)}
+      onClick={handlePayNow}
       className="w-full bg-white border-2 border-[#004bb5] text-[#004bb5] hover:bg-[#004bb5] hover:text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all"
     >
       PAY LATER
@@ -1467,6 +1562,15 @@ const [showQR, setShowQR] = useState(false);
       >
         CONFIRM PAYMENT
       </button>
+       
+     <button 
+      // onClick={() => setShowQR(true)}
+      onClick={handlePayNow}
+      className="w-full bg-white border-2 border-[#004bb5] text-[#004bb5] hover:bg-[#004bb5] hover:text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all"
+    >
+      PAY LATER
+    </button>
+ 
     </div>
   )}
 
@@ -1550,7 +1654,39 @@ const [showQR, setShowQR] = useState(false);
 // ════════════════════════════════════════════════════════════════════════════
 function BookingConfirmedScreen({ payload, activity }) {
   const router = useRouter();
+ const handleDownloadPDF = async () => {
+    const element = document.getElementById("voucher-card");
+    if (!element) return;
 
+    try {
+      // 1. UI element ko pehle high-quality image me convert karna (Modern CSS support ke sath)
+      const dataUrl = await toPng(element, { 
+        quality: 1, 
+        pixelRatio: 2, // 2x quality for clear PDF
+        cacheBust: true
+      });
+
+      // 2. Naya PDF document create karna
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      // 3. Image ko PDF ke width ke hisaab se scale karna
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const imgProps = pdf.getImageProperties(dataUrl);
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      // 4. Image ko PDF me add karke download karna
+      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Booking-Voucher-${payload.bookingReference}.pdf`);
+
+    } catch (error) {
+      console.error("PDF generation failed:", error);
+      alert("Failed to download PDF. Please try again.");
+    }
+  };
   return (
     <div className="min-h-screen bg-[#F9FAFB] font-sans flex flex-col items-center justify-start py-12 px-4">
 
@@ -1567,7 +1703,7 @@ function BookingConfirmedScreen({ payload, activity }) {
       </div>
 
       {/* Voucher Card */}
-      <div className="w-full max-w-[620px] bg-white rounded-[24px] border border-gray-200 overflow-hidden shadow-[0_4px_30px_rgba(0,0,0,0.06)]">
+      <div id="voucher-card" className="w-full max-w-[620px] bg-white rounded-[24px] border border-gray-200 overflow-hidden shadow-[0_4px_30px_rgba(0,0,0,0.06)]">
 
         {/* Voucher Header */}
         <div className="px-7 pt-6 pb-4 border-b border-gray-100 flex items-start justify-between">
@@ -1698,27 +1834,22 @@ function BookingConfirmedScreen({ payload, activity }) {
       <div className="flex items-center gap-3 mt-8 flex-wrap justify-center">
         <button
           onClick={() => window.print()}
-          className="flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+          className="cursor-pointer flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
           Print Receipt
         </button>
-        <button
-          onClick={() => {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
-            const a = document.createElement("a");
-            a.href = dataStr;
-            a.download = `booking-${payload.bookingReference}.json`;
-            a.click();
-          }}
-          className="flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+       <button
+          onClick={handleDownloadPDF}
+          className="cursor-pointer flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
         >
+          {/* Download Icon */}
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Download PDF
         </button>
         <button
           onClick={() => router.push("/")}
-          className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#111827] text-white text-[11px] font-black uppercase tracking-widest hover:bg-gray-800 transition-colors shadow-sm"
+          className="cursor-pointer flex items-center gap-2 px-6 py-3 rounded-full bg-[#111827] text-white text-[11px] font-black uppercase tracking-widest hover:bg-gray-800 transition-colors shadow-sm"
         >
           <Home size={13} /> Go Home
         </button>
