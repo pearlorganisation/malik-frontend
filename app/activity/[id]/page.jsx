@@ -42,7 +42,8 @@ import {
   Navigation,
   LayoutGrid,
   ArrowRight,
-  CreditCard 
+  CreditCard,
+  User 
 } from "lucide-react";
 import ActivityReviews from "@/components/Review/ActivityReviews";
 
@@ -74,9 +75,6 @@ export default function ActivityDetailPage() {
 
   const { data, isLoading, isError } = useGetActivityByIdQuery(id, { skip: !id });
   const activity = data?.data;
-
-  console.log("ttt",activity)
-
 
   const PAGE_TABS = useMemo(() => {
     if (!activity) return[];
@@ -110,14 +108,20 @@ export default function ActivityDetailPage() {
   const selectedPackage = activity?.packages?.[selectedPackageIndex] || activity?.packages?.[0];
   const isVIP = selectedPackage?.name?.toLowerCase().includes("vip");
   const isSUV = transferType === "suv";
-  
-  // ─── YACHT & DURATION LOGIC ──────────────────────────────────────────────
+
+  // ─── BUGGY VS YACHT DETECTION LOGIC ──────────────────────────────────────
+  const isBuggyPkg = useMemo(() => {
+    const pkgName = selectedPackage?.name?.toLowerCase() || "";
+    return pkgName.includes('seater') || pkgName.includes('buggy') || pkgName.includes('polaris') || pkgName.includes('can-am');
+  }, [selectedPackage]);
+
   const isYachtActivity = useMemo(() => {
+    if (isBuggyPkg) return false; // Prevent Buggies from accidentally triggering yacht logic
     return selectedPackage?.bookingFields?.some(f => {
       const n = f.name.toLowerCase();
       return n.includes('duration') || n.includes('yacht') || n.includes('yatch') || n.includes('vessel') || n.includes('no of') || n.includes('number of');
     });
-  }, [selectedPackage]);
+  }, [selectedPackage, isBuggyPkg]);
 
   const durationField = selectedPackage?.bookingFields?.find(f => f.name.toLowerCase().includes('duration'));
   const yachtField = selectedPackage?.bookingFields?.find(f => {
@@ -125,31 +129,18 @@ export default function ActivityDetailPage() {
     return n.includes('yacht') || n.includes('yatch') || n.includes('vessel') || n.includes('no of') || n.includes('number of');
   });
 
-  // ─── DURATION: backend sends minutes, we store/display in hours ──────────
-  // Raw value stored in quantities is in HOURS (float), we convert to minutes only when sending to backend
   const durationQtyHours = durationField ? (quantities[durationField._id] || durationField.min || 1) : 1;
-  // Convert backend min value to hours for display (backend stores price per minute? No — price per booking unit)
-  // Backend duration field min/max/price are in MINUTES, so we convert min to hours for the UI initial value
-  // We store hours in state, display hours, and convert back to minutes for payload
-
   const yachtQty = yachtField ? (quantities[yachtField._id] || yachtField.min || 1) : 1;
 
   // ─── PRICING LOGIC (Standard vs Yacht) ──────────────────────────────────
   const baseTotalAmount = useMemo(() => {
     if (!selectedPackage?.bookingFields) return 0;
     
-    // Condition 2: Yacht / Duration logic
     if (isYachtActivity) {
-      // durationField price is per MINUTE in backend, so:
-      // total = durationQtyHours * 60 (convert to minutes) * yachtQty * pricePerMinute
-      // BUT if backend price is per HOUR unit, just use durationQtyHours directly
-      // We treat price as per-hour since we display hours — adjust if backend differs
       const rate = durationField?.price || yachtField?.price || selectedPackage.price || 0;
-      // durationQtyHours is already in hours (converted from backend minutes at initialization)
       return durationQtyHours * yachtQty * rate;
     }
 
-    // Condition 1: Standard Adult/Child logic
     return selectedPackage.bookingFields.reduce((acc, field) => {
       return acc + (field.price || 0) * (quantities[field._id] || 0);
     }, 0);
@@ -160,37 +151,18 @@ export default function ActivityDetailPage() {
   },[quantities]);
 
   const suvAddonPrice = activity?.PrivateSUV?.fee || 500;
-  // Use user-controlled suvQty instead of auto-calculated
   const suvTotalAddonPrice = suvAddonPrice * suvQty;
   const displayPrice = isSUV ? baseTotalAmount + suvTotalAddonPrice : baseTotalAmount;
 
-  // ─── SUV auto-recalculate when yacht qty changes ─────────────────────────
-  // Each yacht = up to 15 pax (typical), each SUV = 6 pax
-  // So SUVs needed = ceil((yachtQty * yachtCapacity) / suvCapacity)
-  // console.log("2222",activity)
-  // useEffect(() => {
-  //   if (isSUV) {
-  //     let autoCount;
-  //     if (isYachtActivity && yachtQty > 0) {
-  //       // Each yacht assumed 15 seats capacity, each SUV 6 seats
-  //       const yachtCapacity = 15;
-  //       const suvCapacity = 6;
-  //       autoCount = Math.ceil((yachtQty * yachtCapacity) / suvCapacity);
-  //     } else {
-  //       autoCount = Math.ceil(totalQty / 6) || 1;
-  //     }
-  //     setSuvQty(Math.max(1, autoCount));
-  //   }
-  // }, [transferType, yachtQty, totalQty, isYachtActivity]);
-
+  // ─── EXACT BUGGY & SUV AUTO-CALCULATION ──────────────────────────────────
   useEffect(() => {
-  if (isSUV) {
-    const suvCapacity =
-      activity?.PrivateSUV?.seat && activity?.PrivateSUV?.seat !== 0
-        ? activity.PrivateSUV.seat
-        : 6;
+    if (isSUV) {
+      const suvCapacity =
+        activity?.PrivateSUV?.seat && activity?.PrivateSUV?.seat !== 0
+          ? activity.PrivateSUV.seat
+          : 6;
 
-    let autoCount;
+      let autoCount = 1;
 
     if (isYachtActivity && yachtQty > 0) {
       const yachtCapacity = selectedPackage.bookingFields.find(
@@ -214,7 +186,6 @@ console.log("autoCount",autoCount)
     pkg.bookingFields?.forEach((f) => {
       const lowerName = f.name.toLowerCase();
       if (lowerName.includes('duration')) {
-        // Backend min is in minutes → convert to hours for UI storage
         initialQty[f._id] = f.min ? f.min / 60 : 1;
       } else {
         initialQty[f._id] = f.min || 0;
@@ -246,7 +217,6 @@ console.log("autoCount",autoCount)
 
       let min, max;
       if (isDurationField) {
-        // min/max from backend are in minutes → convert to hours for UI
         min = field?.min ? field.min / 60 : 0.5;
         max = field?.max ? field.max / 60 : 24;
       } else {
@@ -255,7 +225,6 @@ console.log("autoCount",autoCount)
       }
 
       const newQty = Math.max(min, Math.min(max, currentQty + delta));
-      // Round to 1 decimal to avoid floating point drift
       return { ...prev, [id]: Math.round(newQty * 10) / 10 };
     });
   };
@@ -285,7 +254,6 @@ console.log("autoCount",autoCount)
           const isDurationField = lowerName.includes('duration');
           return {
             label: f.name || f.label,
-            // Convert hours back to minutes for backend when sending duration
             quantity: isDurationField ? quantities[f._id] * 60 : quantities[f._id],
             price: f.price,
           };
@@ -836,6 +804,15 @@ function BookingCard({
     ? selectedPackage.bookingFields
     :[{ _id: "adult", name: "Adults", price: 65, min: 1, max: 20 }, { _id: "child", name: "Children", price: 45, min: 0, max: 20 }];
 
+  const isBuggyActivity = activity?.packages?.some(p => {
+    const n = p.name.toLowerCase();
+    return n.includes('seater') || n.includes('buggy') || n.includes('polaris') || n.includes('can-am');
+  });
+
+  const sectionLabel = isBuggyActivity ? "MACHINE TYPE" : "TICKET TIER";
+  const SectionIcon = isBuggyActivity ? Car : LayoutGrid;
+  const btnNextText = isBuggyActivity ? "NEXT: DURATION & TIME" : "NEXT: GUESTS & TIME";
+
   return (
     <div className="relative bg-white rounded-[32px] shadow-2xl shadow-gray-200/60 border border-gray-100 overflow-hidden pb-0">
       <div className="absolute top-0 left-0 w-full rounded-full overflow-hidden leading-none">
@@ -856,22 +833,22 @@ function BookingCard({
               </button>
               <button
                 onClick={() => { setTransferType("suv"); onTabClick(activeTab); }}
-                className={`flex items-center justify-center gap-2 py-2 rounded-full text-[10px] font-extrabold tracking-widest transition-all ${isSUV ? "bg-white text-[#EF4444] shadow-sm" : "text-[#9ca3af] hover:text-gray-500"}`}
+                className={`flex items-center justify-center gap-2 py-2 rounded-full text-[10px] font-extrabold tracking-widest transition-all ${isSUV ? "bg-white text-[#004bb5] shadow-sm" : "text-[#9ca3af] hover:text-gray-500"}`}
               >
-                <Truck size={13} strokeWidth={2.5} /> +PRIVATE SUV
+                <ShieldCheck size={13} strokeWidth={2.5} /> PRIVATE SUV
               </button>
             </div>
           </div>
 
-          {/* {isSUV && (
-            <div className="px-6 mt-2.5">
-              <div className="flex items-center gap-3 bg-[#FFF9F0] border border-[#FED7AA] rounded-[20px] px-2 py-1">
-                <div className="w-6 h-6 rounded-full bg-[#FACC15] flex items-center justify-center shrink-0">
-                  <Truck size={13} className="text-gray-900" />
+          {isSUV && (
+            <div className="px-6 mt-4">
+              <div className="flex items-center gap-4 bg-[#FFF9F0] border border-[#FED7AA] rounded-[16px] p-4">
+                <div className="w-[42px] h-[42px] rounded-full bg-[#FACC15] flex items-center justify-center shrink-0">
+                  <Car size={20} className="text-[#111827]" strokeWidth={2.5} />
                 </div>
                 <div className="flex-1">
-                  <div className="text-[9px] font-extrabold text-[#F59E0B] uppercase tracking-[0.15em] mb-0.5">INCLUDED</div>
-                  <div className="text-[10px] font-black text-gray-900">Allocated: {suvQty} x SUV</div>
+                  <div className="text-[10px] font-black text-[#F59E0B] uppercase tracking-[0.1em] mb-0.5">INCLUDED</div>
+                  <div className="text-[13px] font-black text-[#111827]">Allocated: {suvQty} x SUV</div>
                 </div>
                 {/* SUV Quantity Controls */}
                 {/* <div className="flex items-center gap-2 bg-white rounded-xl px-2 py-1.5 shadow-sm border border-[#FED7AA]">
@@ -893,9 +870,10 @@ function BookingCard({
                     +
                   </button>
                 </div> 
+                */}
               </div>
             </div>
-          )} */}
+          )} 
 
           <div className="px-6 pb-0 space-y-5 mt-5">
             <div className="flex items-baseline gap-1.5">
@@ -906,7 +884,7 @@ function BookingCard({
             </div>
 
             <div>
-              <label className="block text-[9px] font-extrabold text-[#9ca3af] uppercase tracking-[0.15em] mb-2">EXPERIENCE DATE</label>
+              <label className="block text-[9px] font-extrabold text-[#9ca3af] uppercase tracking-[0.15em] mb-2">PREFERRED DATE</label>
               <div onClick={() => dateInputRef.current?.showPicker()} className="flex items-center justify-between px-4 py-3 rounded-2xl bg-[#F4F5F7] cursor-pointer">
                 <span className="text-[14px] font-bold text-[#111827]">
                   {selectedDate ? new Date(selectedDate).toLocaleDateString("en-GB").replace(/\//g, "-") : "Select Date"}
@@ -918,33 +896,59 @@ function BookingCard({
 
             <div>
               <label className="flex items-center gap-2 text-[9px] font-extrabold text-[#9ca3af] uppercase tracking-[0.15em] mb-2.5">
-                <LayoutGrid size={13} strokeWidth={2.5} /> TICKET TIER
+                <SectionIcon size={13} strokeWidth={2.5} /> {sectionLabel}
               </label>
               <div className="space-y-2.5">
                 {activity?.packages?.map((pkg, idx) => {
                   const isActive = selectedPackageIndex === idx;
                   const isThisVIP = pkg.name.toLowerCase().includes("vip");
-                  const activeBorder = isThisVIP ? "border-[#EF4444]" : "border-[#004bb5]";
-                  const activeBg = isThisVIP ? "bg-[#EF4444]" : "bg-[#004bb5]";
-                  const TierIcon = isThisVIP ? Crown : Ticket;
+                  const is1Seater = pkg.name.toLowerCase().includes('1-seater') || pkg.name.toLowerCase().includes('1 seater');
+                  const is2Seater = pkg.name.toLowerCase().includes('2-seater') || pkg.name.toLowerCase().includes('2 seater');
+                  const is4Seater = pkg.name.toLowerCase().includes('4-seater') || pkg.name.toLowerCase().includes('4 seater');
+
+                  let TierIcon = isThisVIP ? Crown : Ticket;
+                  if (is1Seater) TierIcon = User;
+                  else if (is2Seater) TierIcon = Users;
+                  else if (is4Seater) TierIcon = Crown;
+
+                  let fallbackSubLabel = "OFFICIAL TICKET";
+                  if (is1Seater) fallbackSubLabel = "SOLO ADRENALINE RUSH";
+                  else if (is2Seater) fallbackSubLabel = "DYNAMIC DUO EXPERIENCE";
+                  else if (is4Seater) fallbackSubLabel = "ULTIMATE GROUP THRILL";
+                  else if (isBuggyActivity) fallbackSubLabel = "ADRENALINE EXPERIENCE";
+
                   const parts = pkg.name.split(' - ');
                   const mainLabel = parts[0] || pkg.name;
-                  const subLabel = parts[1] || "OFFICIAL TICKET";
+                  const subLabel = parts[1] || fallbackSubLabel;
+
+                  const pkgPrice = pkg.price || pkg.bookingFields?.[0]?.price || 0;
+                  const priceColors = ["text-[#004bb5]", "text-[#EF4444]", "text-[#8B5CF6]", "text-[#F59E0B]"];
+                  const currentPriceColor = priceColors[idx % priceColors.length];
 
                   return (
                     <div
                       key={pkg._id}
                       onClick={() => { setSelectedPackageIndex(idx); onTabClick(activeTab); }}
-                      className={`flex items-center gap-3 p-3.5 rounded-[22px] cursor-pointer transition-all ${
-                        isActive ? `border-[2px] ${activeBorder} bg-white shadow-sm` : "border-[1.5px] border-gray-200 bg-white hover:border-gray-300"
+                      className={`flex items-center justify-between p-4 rounded-[22px] cursor-pointer transition-all border-[1.5px] ${
+                        isActive ? `border-[#004bb5] bg-white shadow-sm shadow-[#004bb5]/10` : "border-gray-100 bg-white hover:border-gray-200"
                       }`}
                     >
-                      <div className={`w-[42px] h-[42px] rounded-[12px] flex items-center justify-center shrink-0 ${isActive ? activeBg : "bg-[#F4F5F7]"}`}>
-                        <TierIcon size={17} strokeWidth={2} className={isActive ? "text-white" : "text-[#9ca3af]"} />
+                      <div className="flex items-center gap-4">
+                        <div className={`w-[48px] h-[48px] rounded-full flex items-center justify-center shrink-0 transition-colors ${isActive ? "bg-[#004bb5]" : "bg-[#F4F5F7]"}`}>
+                          <TierIcon size={20} strokeWidth={2.5} className={isActive ? "text-white" : "text-[#9ca3af]"} />
+                        </div>
+                        <div>
+                          <div className="text-[13px] font-black text-[#111827]">{mainLabel}</div>
+                          <div className="text-[9px] text-[#9ca3af] uppercase font-extrabold tracking-widest mt-0.5">{subLabel}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="text-[12px] font-black text-[#111827]">{mainLabel}</div>
-                        <div className="text-[9px] text-[#9ca3af] uppercase font-extrabold tracking-widest mt-0.5">{subLabel}</div>
+                      <div className="text-right shrink-0 pl-2">
+                        <div className={`text-[15px] font-black ${currentPriceColor}`}>
+                          ${pkgPrice}
+                        </div>
+                        <div className="text-[9px] text-[#9ca3af] font-black uppercase mt-0.5 tracking-wider">
+                          / UNIT
+                        </div>
                       </div>
                     </div>
                   );
@@ -959,12 +963,12 @@ function BookingCard({
                   isVIP ? "bg-[#EF4444] shadow-[0_4px_14px_rgba(239,68,68,0.25)]" : "bg-[#004bb5] shadow-[0_4px_14px_rgba(0,75,181,0.25)]"
                 }`}
               >
-                NEXT: GUESTS & TIME <ArrowRight size={16} strokeWidth={3} />
+                {btnNextText} <ArrowRight size={16} strokeWidth={3} />
               </button>
             </div>
           </div>
 
-          <div className="mt-6 bg-[#F8F9FA] px-6 py-3 flex items-center justify-center gap-5">
+          <div className="mt-6 bg-[#F8F9FA] px-6 py-3 flex items-center justify-center gap-5 border-t border-gray-100">
             <span className="text-[9px] text-[#9ca3af] font-extrabold uppercase tracking-widest flex items-center gap-1.5"><Zap size={12} className="text-[#d1d5db]" strokeWidth={2.5} /> INSTANT DELIVERY</span>
             <span className="text-[9px] text-[#9ca3af] font-extrabold uppercase tracking-widest flex items-center gap-1.5"><CheckCircle2 size={12} className={isVIP ? "text-[#EF4444]" : "text-[#004bb5]"} strokeWidth={2.5} /> OFFICIAL PARTNER</span>
           </div>
@@ -1006,7 +1010,6 @@ function BookingCard({
                 const isDuration = lowerName.includes('duration');
                 const isYacht = lowerName.includes('yacht') || lowerName.includes('vessel');
 
-                // For duration: min/max from backend are in minutes, convert to hours for comparison
                 const minHours = isDuration ? (p.min ? p.min / 60 : 0.5) : (p.min || 0);
                 const maxHours = isDuration ? (p.max ? p.max / 60 : 24) : (p.max || 20);
 
@@ -1016,14 +1019,14 @@ function BookingCard({
                 let subtext = `AGE ${lowerName.includes("adult") ? "12+" : "3-11"}`;
                 if (isDuration) subtext = `${(currentQty * 60).toFixed(0)} MINUTE SESSION`;
                 else if (isYacht) subtext = "TOTAL VESSELS";
+                else if (isBuggyActivity) subtext = "TOTAL UNITS";
                 else if (lowerName.includes("adult")) subtext = "AGE 12+";
                 else if (lowerName.includes("child")) subtext = "AGE 3-11";
 
-                // Display: hours with 1 decimal for duration, integer for rest
                 const displayQty = isDuration ? `${Number(currentQty).toFixed(1)}h` : currentQty;
 
                 return (
-                  <div key={p._id} className="flex items-center justify-between">
+                  <div key={p._id} className="flex items-center justify-between p-2">
                     <div>
                       <div className="text-[12px] font-black text-[#111827]">{p.name}</div>
                       <div className="flex items-center gap-1.5 text-[8px] text-[#9ca3af] font-extrabold uppercase mt-0.5 tracking-wider">
@@ -1056,10 +1059,10 @@ function BookingCard({
 
               {/* ── SUV Quantity Row (only shown when SUV is selected) ── */}
               {isSUV && (
-                <div className="flex items-center justify-between pt-3 border-t-1 border-gray-300">
+                <div className="flex items-center justify-between pt-3 pb-2 px-2 border-t border-gray-200 mt-2">
                   <div>
                     <div className="text-[12px] font-black text-[#111827] flex items-center gap-2">
-                      <Truck size={14} className="text-[#EF4444]" /> Private SUV
+                      <Truck size={14} className="text-[#004bb5]" /> Private SUV
                     </div>
                     <div className="flex items-center gap-1.5 text-[9px] text-[#9ca3af] font-extrabold uppercase mt-0.5 tracking-wider">
                       ${suvAddonPrice} / SUV
@@ -1087,7 +1090,7 @@ function BookingCard({
             </div>
 
             {/* PRICE BREAKDOWN */}
-            <div className="bg-[#F0F5FF] border border-[#D1E0FF] rounded-[24px] px-3.5 py-2 space-y-3">
+            <div className="bg-[#F0F5FF] border border-[#D1E0FF] rounded-[24px] px-4 py-3 space-y-3">
               <div className="flex justify-between items-center text-[9px] font-extrabold text-[#9ca3af] uppercase tracking-[0.15em]">
                 <span>PRICE BREAKDOWN</span>
                 <span>TOTAL</span>
@@ -1127,7 +1130,7 @@ function BookingCard({
             </div>
           </div>
 
-          <div className="mt-6 bg-[#F8F9FA] px-6 py-4 flex items-center justify-center gap-6">
+          <div className="mt-6 bg-[#F8F9FA] px-6 py-4 flex items-center justify-center gap-6 border-t border-gray-100">
             <span className="text-[9px] text-[#9ca3af] font-extrabold uppercase tracking-widest flex items-center gap-1.5"><Zap size={12} className="text-[#d1d5db]" strokeWidth={2.5} /> INSTANT DELIVERY</span>
             <span className="text-[9px] text-[#9ca3af] font-extrabold uppercase tracking-widest flex items-center gap-1.5"><CheckCircle2 size={12} className={isVIP ? "text-[#EF4444]" : "text-[#004bb5]"} strokeWidth={2.5} /> OFFICIAL PARTNER</span>
           </div>
@@ -1136,7 +1139,6 @@ function BookingCard({
     </div>
   );
 }
-
 // ════════════════════════════════════════════════════════════════════════════
 // STEP 3 & 4: CHECKOUT VIEW COMPONENT (INFO -> PAYMENT)
 // ════════════════════════════════════════════════════════════════════════════
@@ -1160,14 +1162,12 @@ function CheckoutView({
   selectedDate, 
   quantities  
 }) {
-  
-  // Checkout Steps: 1 = INFO, 2 = PAYMENT
   const[checkoutStep, setCheckoutStep] = useState(1);
   const [toastMsg, setToastMsg] = useState("");
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const [finalPayload, setFinalPayload] = useState(null);
-const [showQR, setShowQR] = useState(false);
-  // Form State
+  const [showQR, setShowQR] = useState(false);
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -1180,7 +1180,6 @@ const [showQR, setShowQR] = useState(false);
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  // Dummy Addons State
   const fallbackAddons =[
     { id: "quad", name: "Quad Bike", price: 150, icon: <Zap size={14} className="text-gray-400"/> },
     { id: "vip_majlis", name: "VIP Majlis", price: 50, icon: <Crown size={14} className="text-gray-400"/> },
@@ -1193,7 +1192,6 @@ const [showQR, setShowQR] = useState(false);
     setAddonQtys(prev => ({ ...prev,[id]: Math.max(0, prev[id] + delta) }));
   };
 
-  // Final Total logic (Base/Display + newly added Addons)
   const addonsTotal = fallbackAddons.reduce((acc, curr) => acc + (curr.price * addonQtys[curr.id]), 0);
   const finalTotal = displayPrice + addonsTotal;
 
@@ -1252,7 +1250,6 @@ const [showQR, setShowQR] = useState(false);
   // CheckoutView component ke function parameters me in dono ko add karein:
 
   const handlePayNow = () => {
-    // ── Build selected addons list
     const selectedAddons = fallbackAddons
       .filter(a => addonQtys[a.id] > 0)
       .map(a => ({ name: a.name, price: a.price, quantity: addonQtys[a.id], subtotal: a.price * addonQtys[a.id] }));
@@ -1340,8 +1337,6 @@ const [showQR, setShowQR] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] font-sans relative">
-      
-      {/* Toast Notification */}
       {toastMsg && (
         <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[999] bg-[#111827] text-white px-6 py-3.5 rounded-full text-[13px] font-bold shadow-[0_10px_40px_rgba(0,0,0,0.2)] flex items-center gap-2 animate-bounce">
           <CheckCircle2 size={16} className="text-emerald-400" />
@@ -1350,8 +1345,6 @@ const [showQR, setShowQR] = useState(false);
       )}
 
       <div className="max-w-[1000px] mx-auto px-4 py-8">
-        
-        {/* Top Header Navigation */}
         <div className="flex justify-between items-center mb-8">
           <button 
             onClick={() => checkoutStep === 2 ? setCheckoutStep(1) : setBookingStep(2)} 
@@ -1364,7 +1357,6 @@ const [showQR, setShowQR] = useState(false);
           </div>
         </div>
 
-        {/* Page Title & Tabs */}
         <div className="mb-10">
           <h1 className="text-3xl md:text-[38px] font-black text-gray-900 tracking-tight">
             Complete <span className="text-[#004bb5]">Booking</span>
@@ -1385,15 +1377,10 @@ const [showQR, setShowQR] = useState(false);
           </div>
         </div>
 
-        {/* Layout Grid */}
         <div className="flex flex-col lg:flex-row gap-8 items-start">
-          
-          {/* Left Column (Forms & Upgrades) */}
           <div className="flex-1 space-y-6 w-full">
-            
             {checkoutStep === 1 ? (
               <>
-                {/* Instant Upgrades Card */}
                 <div className="bg-white rounded-[24px] p-6 shadow-[0_2px_20px_rgba(0,0,0,0.03)] border border-gray-100">
                   <h3 className="flex items-center gap-2 text-[12px] font-black uppercase tracking-widest text-[#111827] mb-5">
                     <Zap size={14} className="text-[#004bb5] fill-[#004bb5]"/> INSTANT UPGRADES
@@ -1417,7 +1404,6 @@ const [showQR, setShowQR] = useState(false);
                   </div>
                 </div>
 
-                {/* Guest Details Card */}
                 <div className="bg-white rounded-[24px] p-6 shadow-[0_2px_20px_rgba(0,0,0,0.03)] border border-gray-100">
                   <h3 className="flex items-center gap-2 text-[12px] font-black uppercase tracking-widest text-[#111827] mb-5">
                     <Users size={14} className="text-gray-400"/> GUEST DETAILS
@@ -1443,14 +1429,12 @@ const [showQR, setShowQR] = useState(false);
               </>
             ) : (
               <>
-                {/* Payment Card Step */}
                 <div className="bg-white rounded-[24px] p-6 sm:p-8 shadow-[0_2px_20px_rgba(0,0,0,0.03)] border border-gray-100">
                   <h3 className="flex items-center gap-2 text-[12px] font-black uppercase tracking-widest text-[#111827] mb-6">
                     <CreditCard size={15} className="text-[#004bb5]"/> SECURE PAYMENT
                   </h3>
                   
                   <div className="space-y-5">
-                    {/* Card Number */}
                     <div>
                       <label className="block text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-[0.15em] mb-2.5">
                         CARD NUMBER
@@ -1465,7 +1449,6 @@ const [showQR, setShowQR] = useState(false);
                       </div>
                     </div>
 
-                    {/* Expiry & CVV */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-[0.15em] mb-2.5">
@@ -1587,10 +1570,8 @@ const [showQR, setShowQR] = useState(false);
                 </div>
               </>
             )}
-
           </div>
 
-          {/* Right Column (Your Booking Summary) */}
           <div className="w-full lg:w-[360px] shrink-0">
             <div className="bg-white rounded-[24px] p-6 shadow-[0_2px_20px_rgba(0,0,0,0.03)] border border-gray-100 sticky top-28">
               <h3 className="text-[10px] font-extrabold uppercase tracking-widest text-[#9ca3af] mb-4">YOUR BOOKING</h3>
@@ -1689,8 +1670,6 @@ function BookingConfirmedScreen({ payload, activity }) {
   };
   return (
     <div className="min-h-screen bg-[#F9FAFB] font-sans flex flex-col items-center justify-start py-12 px-4">
-
-      {/* Success Icon */}
       <div className="flex flex-col items-center mb-8">
         <div className="w-14 h-14 rounded-full border-4 border-emerald-500 flex items-center justify-center mb-5 animate-pulse">
           <CheckCircle2 size={28} className="text-emerald-500" />
@@ -1717,7 +1696,6 @@ function BookingConfirmedScreen({ payload, activity }) {
           </div>
         </div>
 
-        {/* Activity Info */}
         <div className="px-7 py-5 flex gap-4 border-b border-gray-100">
           <img
             src={activity?.Images?.[0]?.url || activity?.Images?.[0]?.secure_url || "/placeholder.jpg"}
@@ -1734,7 +1712,6 @@ function BookingConfirmedScreen({ payload, activity }) {
           </div>
         </div>
 
-        {/* Details Grid */}
         <div className="px-7 py-5 grid grid-cols-2 sm:grid-cols-4 gap-4 border-b border-gray-100">
           <div>
             <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mb-1">
@@ -1768,7 +1745,6 @@ function BookingConfirmedScreen({ payload, activity }) {
           </div>
         </div>
 
-        {/* Price Breakdown */}
         <div className="px-7 py-5 space-y-3 border-b border-gray-100">
           <div className="flex justify-between text-[13px] text-gray-500 font-bold">
             <span>Base Experience ({payload.variantName?.split('-')[0]?.trim()}{payload.isYachtActivity ? ` (${Number(payload.durationHours).toFixed(1)} Hrs Charter)` : ''})</span>
@@ -1792,7 +1768,6 @@ function BookingConfirmedScreen({ payload, activity }) {
           </div>
         </div>
 
-        {/* Usage Instructions */}
         <div className="px-7 py-5 flex items-start gap-4">
           <div className="w-10 h-10 rounded-[10px] border border-gray-200 flex items-center justify-center shrink-0">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -1811,17 +1786,8 @@ function BookingConfirmedScreen({ payload, activity }) {
               Please present this digital voucher or a printed copy to our guide at the time of pickup. Valid ID may be requested.
             </p>
           </div>
-          <div className="w-10 h-10 rounded-[10px] border border-gray-200 flex items-center justify-center shrink-0">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <rect x="1" y="1" width="7" height="7" rx="1" stroke="#9ca3af" strokeWidth="1.5"/>
-              <rect x="12" y="1" width="7" height="7" rx="1" stroke="#9ca3af" strokeWidth="1.5"/>
-              <rect x="1" y="12" width="7" height="7" rx="1" stroke="#9ca3af" strokeWidth="1.5"/>
-              <rect x="13" y="13" width="2" height="2" fill="#9ca3af"/>
-            </svg>
-          </div>
         </div>
 
-        {/* Voucher Footer */}
         <div className="bg-[#111827] px-7 py-3 flex items-center justify-between">
           <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400">
             <CheckCircle2 size={12} /> Official Voucher
@@ -1830,7 +1796,6 @@ function BookingConfirmedScreen({ payload, activity }) {
         </div>
       </div>
 
-      {/* Action Buttons */}
       <div className="flex items-center gap-3 mt-8 flex-wrap justify-center">
         <button
           onClick={() => window.print()}
