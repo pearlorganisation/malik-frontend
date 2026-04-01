@@ -367,7 +367,7 @@ const activities = data?.data?.data || [];
         <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="max-w-xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-wider mb-4 border border-blue-100">
-              <Flame className="w-3 h-3 text-orange-500" /> Handpicked Adventures1
+              <Flame className="w-3 h-3 text-orange-500" /> Handpicked Adventures
             </div>
             <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-none">
               Browse <span className="text-blue-600">Experiences</span>
