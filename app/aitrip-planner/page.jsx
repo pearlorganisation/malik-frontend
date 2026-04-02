@@ -10,6 +10,7 @@ import ReactMarkdown from 'react-markdown';
 import toast from "react-hot-toast";
 import { useCreateInquiryMutation } from "@/features/inquiry/inquiryApi";
 import { useGenerateItineraryMutation } from "@/features/itinerary/itineraryApi"; // ← your RTK hook
+import { useGetCategoriesQuery } from '@/features/category/categoryApi';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PDF DOWNLOAD UTILITY
@@ -332,8 +333,14 @@ const TripPlanner = () => {
   //   setIsPdfLoading(false);
   // };
 
-  const interestOptions = ['Shopping', 'Dune Bashing', 'History', 'Foodie', 'Luxury', 'Theme Parks', 'Nightlife', 'Relaxation'];
+   const { data, isLoadings, isError, error } = useGetCategoriesQuery({
+  page: 1,
+  limit: 50,
+});
 
+const categories = data?.data ?? [];
+
+const interestOptions = categories.map((cat) => cat.name);
   return (
     <div className="bg-white py-12 md:py-20 px-4 sm:px-6 lg:px-8 min-h-screen font-sans">
       <div className="max-w-[1400px] mx-auto">
