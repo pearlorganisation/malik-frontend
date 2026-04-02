@@ -4,16 +4,16 @@ import React from 'react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { 
-  Search, ChevronLeft, MapPin, Star, Clock, 
+  ChevronLeft, MapPin, Star, Clock, 
   Ticket, Navigation, Train, Car, Info, 
-  Waves, ShoppingBag, Camera, Calendar, Hotel, Menu
+  Waves, ShoppingBag, Camera, Calendar, Hotel, ArrowRight
 } from 'lucide-react';
 import { useGetSpotByIdQuery } from "@/features/spot/spotApi";
 
 const SpotDetailsPage = () => {
   const params = useParams();
   const router = useRouter();
-  const id = params.id; // Provided test ID
+  const id = params.id;
   
   const { data: response, isLoading, error } = useGetSpotByIdQuery(id);
   const spot = response?.data;
@@ -36,8 +36,7 @@ const SpotDetailsPage = () => {
         
         <div className="absolute inset-0 p-6 md:p-10 flex flex-col justify-end max-w-6xl mx-auto w-full">
           <button 
-            // onClick={() => router.push('/')}
-              onClick={() => router.back()}
+            onClick={() => router.back()}
             className="absolute top-6 left-6 flex items-center gap-1.5 bg-white/10 backdrop-blur-md text-white px-3 py-1.5 rounded-lg text-xs font-bold border border-white/20 hover:bg-white/20 transition-all"
           >
             <ChevronLeft size={14} /> Back
@@ -45,7 +44,7 @@ const SpotDetailsPage = () => {
 
           <div className="space-y-1.5">
             <span className="inline-block bg-yellow-400 text-slate-950 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest">
-              {spot.category?.name || "SHOPPING & ENTERTAINMENT"}
+              {spot.category?.name || "EXPLORE"}
             </span>
             <h1 className="text-3xl font-black text-white tracking-tight leading-tight">{spot.title}</h1>
             <div className="flex items-center gap-5 text-white/90">
@@ -55,7 +54,7 @@ const SpotDetailsPage = () => {
               </div>
               <div className="flex items-center gap-1.5">
                 <Star size={14} className="text-yellow-400 fill-yellow-400" />
-                <span className="font-bold text-xs">{spot.avgRating || "4.8"} <span className="text-white/50 font-medium ml-0.5 text-[10px]">({spot.totalReviews || "45k+"})</span></span>
+                <span className="font-bold text-xs">{spot.avgRating || "4.8"} <span className="text-white/50 font-medium ml-0.5 text-[10px]">({spot.totalReviews || "0"})</span></span>
               </div>
             </div>
           </div>
@@ -65,7 +64,6 @@ const SpotDetailsPage = () => {
       {/* --- MAIN CONTENT GRID --- */}
       <main className="max-w-6xl mx-auto px-6 md:px-10 py-10 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
         
-        {/* LEFT COLUMN: Scrolls normally */}
         <div className="lg:col-span-8 space-y-12">
           <section>
             <h2 className="text-lg font-black mb-3">Overview</h2>
@@ -110,10 +108,8 @@ const SpotDetailsPage = () => {
           </section>
         </div>
 
-        {/* RIGHT COLUMN: STICKY (Stays in place while scrolling) */}
         <aside className="lg:col-span-4 lg:sticky lg:top-24 space-y-6 self-start">
           
-          {/* Visitor Info Card */}
           <div className="bg-white rounded-[32px] shadow-xl shadow-slate-200/40 p-7 border border-slate-50">
             <h2 className="text-base font-black mb-8 text-slate-800">Visitor Info</h2>
             <div className="space-y-6">
@@ -147,32 +143,38 @@ const SpotDetailsPage = () => {
             </button>
           </div>
 
-          {/* Where to Stay Card (Now stays under Visitor Info while scrolling) */}
+          {/* --- DYNAMIC WHERE TO STAY SECTION --- */}
           <div className="bg-white rounded-[32px] shadow-lg shadow-slate-100 p-7 border border-slate-50">
             <div className="flex items-center gap-2 mb-6">
               <Hotel size={16} className="text-blue-600" />
               <h2 className="text-base font-black text-slate-800">Where to Stay</h2>
             </div>
             <div className="space-y-3">
-              {[
-                { name: "Address Dubai Mall", price: "$450", rating: 4.9, dist: "Direct Access" },
-                { name: "Palace Downtown", price: "$380", rating: 4.8, dist: "5 min walk" },
-                { name: "Rove Downtown", price: "$120", rating: 4.6, dist: "10 min walk" },
-              ].map((hotel, i) => (
-                <div key={i} className="group p-3.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition-all flex items-center justify-between cursor-pointer">
-                  <div className="space-y-0.5">
-                    <h4 className="font-bold text-xs text-slate-800">{hotel.name}</h4>
-                    <div className="flex items-center gap-2 text-[9px] text-slate-400 font-bold uppercase">
-                      <span>{hotel.dist}</span>
-                      <span className="flex items-center text-yellow-600">{hotel.rating} <Star size={9} className="fill-yellow-600 ml-0.5" /></span>
+              {spot.whereToStay && spot.whereToStay.length > 0 ? (
+                spot.whereToStay.map((hotel) => (
+                  <div 
+                    key={hotel._id} 
+                    onClick={() => router.push(`/places/${hotel._id}`)}
+                    className="group p-3.5 rounded-xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all flex items-center justify-between cursor-pointer"
+                  >
+                    <div className="space-y-0.5 flex-1 pr-4">
+                      <h4 className="font-bold text-xs text-slate-800 group-hover:text-blue-700 transition-colors">{hotel.name}</h4>
+                      <div className="flex items-center gap-2 text-[9px] text-slate-400 font-bold uppercase">
+                        <span className="line-clamp-1">{hotel.tagline || hotel.region}</span>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="w-7 h-7 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                        <ArrowRight size={14} />
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs font-black text-slate-900 leading-none">{hotel.price}</p>
-                    <p className="text-[8px] font-bold text-slate-400 mt-0.5">/night</p>
-                  </div>
+                ))
+              ) : (
+                <div className="py-4 text-center">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">No nearby locations listed</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
 

@@ -5,6 +5,8 @@ import { useGetActivityByIdQuery } from "@/features/activity/activityApi.js";
 import { useCreateBookingMutation } from "@/features/booking/bookApi.js";
 import ReviewModal from "@/components/Review/ReviewModal";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { toPng } from 'html-to-image';
+import jsPDF from 'jspdf';
 import {
   Clock,
   Users,
@@ -80,7 +82,14 @@ export default function ActivityDetailPage() {
     if (activity.Experience) tabs.push({ key: "experience", label: "EXPERIENCE" });
     if (activity.Itinerary?.length) tabs.push({ key: "itinerary", label: "ITINERARY" });
     if (activity.InfoAndLogistics) tabs.push({ key: "logistics", label: "INFO & LOGISTICS" });
-    if (activity.BBQ_BUFFET) tabs.push({ key: "bbq_buffet", label: "BBQ BUFFET" });
+    const hasBBQContent = activity.BBQ_BUFFET && (
+      (activity.BBQ_BUFFET.title && activity.BBQ_BUFFET.title.trim() !== "") || 
+      (activity.BBQ_BUFFET.fields && activity.BBQ_BUFFET.fields.length > 0)
+    );
+
+    if (hasBBQContent) {
+      tabs.push({ key: "bbq_buffet", label: "BBQ BUFFET" });
+    }
     if (activity.PrivateSUV?.available) tabs.push({ key: "private_suv", label: "PRIVATE SUV" });
     tabs.push({ key: "reviews", label: "REVIEWS" });
     return tabs;
@@ -162,47 +171,19 @@ export default function ActivityDetailPage() {
 
       let autoCount = 1;
 
-      // 1. STRICT BUGGY RULES (As requested)
-      if (isBuggyPkg) {
-        const pkgName = selectedPackage?.name?.toLowerCase() || "";
-        const is1Seater = pkgName.includes('1-seater') || pkgName.includes('1 seater') || pkgName.includes('solo');
-        const is2Seater = pkgName.includes('2-seater') || pkgName.includes('2 seater') || pkgName.includes('duo');
-        const is4Seater = pkgName.includes('4-seater') || pkgName.includes('4 seater') || pkgName.includes('family');
-
-        if (is1Seater) {
-          if (totalQty <= 3) autoCount = 1;
-          else if (totalQty <= 7) autoCount = 2;
-          else if (totalQty <= 13) autoCount = 3;
-          else autoCount = Math.ceil(totalQty / 4); 
-        } else if (is2Seater) {
-          if (totalQty <= 3) autoCount = 1;
-          else if (totalQty <= 4) autoCount = 2;
-          else if (totalQty <= 7) autoCount = 3;
-          else if (totalQty <= 11) autoCount = 4;
-          else autoCount = Math.ceil(totalQty / 2.5);
-        } else if (is4Seater) {
-          if (totalQty <= 1) autoCount = 1;
-          else if (totalQty <= 2) autoCount = 2;
-          else if (totalQty <= 4) autoCount = 3;
-          else if (totalQty <= 5) autoCount = 4;
-          else autoCount = Math.ceil(totalQty / 1.25);
-        } else {
-          autoCount = Math.ceil(totalQty / suvCapacity) || 1;
-        }
-      } 
-      // 2. YACHT RULES (Untouched)
-      else if (isYachtActivity && yachtQty > 0) {
-        const yachtCapacity = 15;
-        autoCount = Math.ceil((yachtQty * yachtCapacity) / suvCapacity);
-      } 
-      // 3. STANDARD PACKAGES (Untouched)
-      else {
-        autoCount = Math.ceil(totalQty / suvCapacity) || 1;
-      }
-
-      setSuvQty(Math.max(1, autoCount || 1));
+    if (isYachtActivity && yachtQty > 0) {
+      const yachtCapacity = selectedPackage.bookingFields.find(
+  (field) => field.unit === "quantity"
+)?.seat;
+      console.log(selectedPackage , "yathc")
+      autoCount = Math.ceil((yachtQty * yachtCapacity) / suvCapacity);
+    } else {
+      autoCount = Math.ceil(totalQty / suvCapacity) || 1;
     }
-  }, [transferType, yachtQty, totalQty, isYachtActivity, isBuggyPkg, activity, selectedPackage]);
+console.log("autoCount",autoCount)
+    setSuvQty(Math.max(1, autoCount));
+  }
+}, [transferType, yachtQty, totalQty, isYachtActivity, activity]);
 
   // Initialize Quantities
   useEffect(() => {
@@ -343,6 +324,8 @@ export default function ActivityDetailPage() {
         isYachtActivity={isYachtActivity}
         durationQtyHours={durationQtyHours}
         yachtQty={yachtQty}
+        selectedDate={selectedDate} 
+        quantities={quantities} 
       />
     );
   }
@@ -874,9 +857,30 @@ function BookingCard({
                   <div className="text-[10px] font-black text-[#F59E0B] uppercase tracking-[0.1em] mb-0.5">INCLUDED</div>
                   <div className="text-[13px] font-black text-[#111827]">Allocated: {suvQty} x SUV</div>
                 </div>
+                {/* SUV Quantity Controls */}
+                {/* <div className="flex items-center gap-2 bg-white rounded-xl px-2 py-1.5 shadow-sm border border-[#FED7AA]">
+
+               
+                <div className="flex items-center gap-2 bg-white rounded-xl px-1 py-1 shadow-sm border border-[#FED7AA]">
+                  <button
+                    onClick={() => setSuvQty(prev => Math.max(1, prev - 1))}
+                    disabled={suvQty <= 1}
+                    className="w-5 h-5 flex items-center justify-center rounded-[8px] bg-[#FFF9F0] text-gray-700 font-black transition-opacity disabled:opacity-40 hover:bg-[#FEF3C7]"
+                  >
+                    −
+                  </button>
+                  <span className="w-6 text-center text-[14px] font-black text-[#111827]">{suvQty}</span>
+                  <button
+                    onClick={() => setSuvQty(prev => prev + 1)}
+                    className="w-5 h-5 flex items-center justify-center rounded-[8px] bg-[#FFF9F0] text-gray-700 font-black hover:bg-[#FEF3C7]"
+                  >
+                    +
+                  </button>
+                </div> 
+                */}
               </div>
             </div>
-          )}
+          )} 
 
           <div className="px-6 pb-0 space-y-5 mt-5">
             <div className="flex items-baseline gap-1.5">
@@ -1142,7 +1146,6 @@ function BookingCard({
     </div>
   );
 }
-
 // ════════════════════════════════════════════════════════════════════════════
 // STEP 3 & 4: CHECKOUT VIEW COMPONENT (INFO -> PAYMENT)
 // ════════════════════════════════════════════════════════════════════════════
@@ -1162,7 +1165,9 @@ function CheckoutView({
   isBooking,
   isYachtActivity,
   durationQtyHours,
-  yachtQty
+  yachtQty,
+  selectedDate, 
+  quantities  
 }) {
   const[checkoutStep, setCheckoutStep] = useState(1);
   const [toastMsg, setToastMsg] = useState("");
@@ -1177,6 +1182,8 @@ function CheckoutView({
     phone: "",
     pickupHotel: ""
   });
+
+  
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -1199,27 +1206,109 @@ function CheckoutView({
     setCheckoutStep(2);
   };
 
+  // const handlePayNow = () => {
+  //   const selectedAddons = fallbackAddons
+  //     .filter(a => addonQtys[a.id] > 0)
+  //     .map(a => ({ name: a.name, price: a.price, quantity: addonQtys[a.id], subtotal: a.price * addonQtys[a.id] }));
+
+  //   // ── Build Final Payload
+  //   const payload = {
+  //     activityId: activity?._id,
+  //     activityName: activity?.name,
+  //     variantName: selectedPackage?.name,
+  //     isYachtActivity,
+  //     timeSlot: selectedTimeSlot,
+  //     ...(isYachtActivity
+  //       ? { durationHours: durationQtyHours, numberOfYachts: yachtQty }
+  //       : { totalGuests: totalQty }
+  //     ),
+  //     transferType: isSUV ? "Private SUV" : "Self Arrival",
+  //     ...(isSUV && { suvCount: suvQty, suvPricePerUnit: activity?.PrivateSUV?.fee || 500, suvTotal: suvTotalAddonPrice }),
+  //     baseFare: baseTotalAmount,
+  //     addons: selectedAddons,
+  //     addonsTotal,
+  //     grandTotal: finalTotal,
+  //     customerDetails: {
+  //       firstName: formData.firstName,
+  //       lastName: formData.lastName,
+  //       email: formData.email,
+  //       phone: formData.phone,
+  //       pickupHotel: formData.pickupHotel,
+  //     },
+  //     bookingReference: `FT-${Math.floor(100000 + Math.random() * 900000)}`,
+  //     submittedAt: new Date().toISOString(),
+  //   };
+
+  //   console.log("════════════════════════════════════════════");
+  //   console.log("✅ FINAL BOOKING PAYLOAD — Ready for API");
+  //   console.log("════════════════════════════════════════════");
+  //   console.log(JSON.stringify(payload, null, 2));
+  //   console.log("════════════════════════════════════════════");
+
+  //   setToastMsg("🎉 Booking Confirmed!");
+  //   setFinalPayload(payload);
+  //   setTimeout(() => {
+  //     setToastMsg("");
+  //     setBookingConfirmed(true);
+  //   }, 1500);
+  // };
+
+
+  // CheckoutView component ke function parameters me in dono ko add karein:
+
   const handlePayNow = () => {
     const selectedAddons = fallbackAddons
       .filter(a => addonQtys[a.id] > 0)
       .map(a => ({ name: a.name, price: a.price, quantity: addonQtys[a.id], subtotal: a.price * addonQtys[a.id] }));
 
+    // ── Build exact participant breakdown (Adult, Child, etc.)
+    const formattedParticipants = selectedPackage?.bookingFields
+      ?.filter((f) => (quantities[f._id] || 0) > 0)
+      ?.map((f) => {
+        const isDurationField = f.name.toLowerCase().includes('duration');
+        return {
+          label: f.name || f.label,
+          quantity: quantities[f._id],
+          unit: isDurationField ? 'hours' : 'guests',
+          pricePerUnit: f.price,
+        };
+      }) ||[];
+
+    // ── Build A-to-Z Final Payload
     const payload = {
+      // 1. Activity & Package Info
       activityId: activity?._id,
       activityName: activity?.name,
       variantName: selectedPackage?.name,
-      isYachtActivity,
+      
+      // 2. Schedule Info
+      selectedDate: selectedDate,
       timeSlot: selectedTimeSlot,
+      
+      // 3. Guests & Fleet Info
+      isYachtActivity,
+      participantsBreakdown: formattedParticipants,
       ...(isYachtActivity
         ? { durationHours: durationQtyHours, numberOfYachts: yachtQty }
         : { totalGuests: totalQty }
       ),
+      
+      // 4. Transfer Info
       transferType: isSUV ? "Private SUV" : "Self Arrival",
       ...(isSUV && { suvCount: suvQty, suvPricePerUnit: activity?.PrivateSUV?.fee || 500, suvTotal: suvTotalAddonPrice }),
-      baseFare: baseTotalAmount,
+      
+      // 5. Addons Info
       addons: selectedAddons,
-      addonsTotal,
-      grandTotal: finalTotal,
+      
+      // 6. Pricing Breakdown
+      pricing: {
+        baseFare: baseTotalAmount,
+        addonsTotal: addonsTotal,
+        suvTotal: isSUV ? suvTotalAddonPrice : 0,
+        grandTotal: finalTotal,
+      },
+      
+      // 7. Customer Info
       customerDetails: {
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -1227,9 +1316,18 @@ function CheckoutView({
         phone: formData.phone,
         pickupHotel: formData.pickupHotel,
       },
+      
+      // 8. Meta Info
       bookingReference: `FT-${Math.floor(100000 + Math.random() * 900000)}`,
       submittedAt: new Date().toISOString(),
     };
+
+    // Yahan Console me apko A-to-Z sab data mil jayega
+    console.log("════════════════════════════════════════════");
+    console.log("✅ COMPLETE FINAL BOOKING PAYLOAD");
+    console.log("════════════════════════════════════════════");
+    console.log(JSON.stringify(payload, null, 2));
+    console.log("════════════════════════════════════════════");
 
     setToastMsg("🎉 Booking Confirmed!");
     setFinalPayload(payload);
@@ -1238,6 +1336,7 @@ function CheckoutView({
       setBookingConfirmed(true);
     }, 1500);
   };
+
 
   if (bookingConfirmed && finalPayload) {
     return <BookingConfirmedScreen payload={finalPayload} activity={activity} />;
@@ -1385,46 +1484,88 @@ function CheckoutView({
                       </div>
                     </div>
                   </div>
+{/* 
+                  <div className="mt-8">
+                    <button 
+                      onClick={handlePayNow}
+                      className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all shadow-[0_6px_20px_rgba(34,197,94,0.3)]"
+                    >
+                      PAY ${finalTotal} NOW
+                    </button>
+                  </div> */}
+                  {/* <div className="mt-8 space-y-3">
+  <button 
+    onClick={handlePayNow}
+    className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all shadow-[0_6px_20px_rgba(34,197,94,0.3)]"
+  >
+    PAY ${finalTotal} NOW
+  </button>
+  <button 
+    className="w-full bg-white border-2 border-[#004bb5] text-[#004bb5] hover:bg-[#004bb5] hover:text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all"
+  >
+    PAY LATER
+  </button>
+</div> */}
+<div className="mt-8 space-y-4">
 
-                  <div className="mt-8 space-y-4">
-                    {!showQR && (
-                      <button 
-                        onClick={handlePayNow}
-                        className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all shadow-[0_6px_20px_rgba(34,197,94,0.3)]"
-                      >
-                        PAY ${finalTotal} NOW
-                      </button>
-                    )}
+  {/* PAY NOW (hide when QR open) */}
+  {!showQR && (
+    <button 
+      // onClick={handlePayNow}
+      onClick={() => setShowQR(true)}
+      className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all shadow-[0_6px_20px_rgba(34,197,94,0.3)]"
+    >
+      PAY ${finalTotal} NOW
+    </button>
+  )}
 
-                    {!showQR && (
-                      <button 
-                        onClick={() => setShowQR(true)}
-                        className="w-full bg-white border-2 border-[#004bb5] text-[#004bb5] hover:bg-[#004bb5] hover:text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all"
-                      >
-                        PAY LATER
-                      </button>
-                    )}
+  {/* PAY LATER BUTTON */}
+  {!showQR && (
+    <button 
+      // onClick={() => setShowQR(true)}
+      onClick={handlePayNow}
+      className="w-full bg-white border-2 border-[#004bb5] text-[#004bb5] hover:bg-[#004bb5] hover:text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all"
+    >
+      PAY LATER
+    </button>
+  )}
 
-                    {showQR && (
-                      <div className="flex flex-col items-center gap-4 bg-[#F9FAFB] p-5 rounded-[18px] border border-gray-200">
-                        <img
-                          src="data:image/png;base64,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"
-                          alt="QR Code"
-                          className="w-40 h-40 object-contain"
-                        />
-                        <p className="text-[11px] text-gray-500 font-semibold text-center">
-                          Scan & complete payment, then confirm
-                        </p>
-                        <button
-                          onClick={handlePayNow}
-                          className="w-full bg-[#004bb5] hover:bg-[#003a8c] text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest transition-all shadow-[0_6px_20px_rgba(0,75,181,0.3)]"
-                        >
-                          CONFIRM PAYMENT
-                        </button>
-                      </div>
-                    )}
-                  </div>
+  {/* QR SECTION */}
+  {showQR && (
+    <div className="flex flex-col items-center gap-4 bg-[#F9FAFB] p-5 rounded-[18px] border border-gray-200">
 
+      {/* QR IMAGE */}
+      <img
+        src="data:image/png;base64,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"
+        alt="QR Code"
+        className="w-40 h-40 object-contain"
+      />
+
+      <p className="text-[11px] text-gray-500 font-semibold text-center">
+        Scan & complete payment, then confirm
+      </p>
+
+      {/* CONFIRM BUTTON */}
+      <button
+        onClick={handlePayNow}
+        className="w-full bg-[#004bb5] hover:bg-[#003a8c] text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest transition-all shadow-[0_6px_20px_rgba(0,75,181,0.3)]"
+      >
+        CONFIRM PAYMENT
+      </button>
+       
+     <button 
+      // onClick={() => setShowQR(true)}
+      onClick={handlePayNow}
+      className="w-full bg-white border-2 border-[#004bb5] text-[#004bb5] hover:bg-[#004bb5] hover:text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all"
+    >
+      PAY LATER
+    </button>
+ 
+    </div>
+  )}
+
+</div>
+                  {/* Back to Details Link */}
                   <div className="mt-5 text-center">
                     <button 
                       onClick={() => setCheckoutStep(1)}
@@ -1501,7 +1642,39 @@ function CheckoutView({
 // ════════════════════════════════════════════════════════════════════════════
 function BookingConfirmedScreen({ payload, activity }) {
   const router = useRouter();
+ const handleDownloadPDF = async () => {
+    const element = document.getElementById("voucher-card");
+    if (!element) return;
 
+    try {
+      // 1. UI element ko pehle high-quality image me convert karna (Modern CSS support ke sath)
+      const dataUrl = await toPng(element, { 
+        quality: 1, 
+        pixelRatio: 2, // 2x quality for clear PDF
+        cacheBust: true
+      });
+
+      // 2. Naya PDF document create karna
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      // 3. Image ko PDF ke width ke hisaab se scale karna
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const imgProps = pdf.getImageProperties(dataUrl);
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      // 4. Image ko PDF me add karke download karna
+      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Booking-Voucher-${payload.bookingReference}.pdf`);
+
+    } catch (error) {
+      console.error("PDF generation failed:", error);
+      alert("Failed to download PDF. Please try again.");
+    }
+  };
   return (
     <div className="min-h-screen bg-[#F9FAFB] font-sans flex flex-col items-center justify-start py-12 px-4">
       <div className="flex flex-col items-center mb-8">
@@ -1515,7 +1688,10 @@ function BookingConfirmedScreen({ payload, activity }) {
         </p>
       </div>
 
-      <div className="w-full max-w-[620px] bg-white rounded-[24px] border border-gray-200 overflow-hidden shadow-[0_4px_30px_rgba(0,0,0,0.06)]">
+      {/* Voucher Card */}
+      <div id="voucher-card" className="w-full max-w-[620px] bg-white rounded-[24px] border border-gray-200 overflow-hidden shadow-[0_4px_30px_rgba(0,0,0,0.06)]">
+
+        {/* Voucher Header */}
         <div className="px-7 pt-6 pb-4 border-b border-gray-100 flex items-start justify-between">
           <div>
             <div className="text-[11px] font-black text-[#004bb5] uppercase tracking-widest">FUN TOURS <span className="text-[#EF4444]">DUBAI</span></div>
@@ -1630,27 +1806,22 @@ function BookingConfirmedScreen({ payload, activity }) {
       <div className="flex items-center gap-3 mt-8 flex-wrap justify-center">
         <button
           onClick={() => window.print()}
-          className="flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+          className="cursor-pointer flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
           Print Receipt
         </button>
-        <button
-          onClick={() => {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
-            const a = document.createElement("a");
-            a.href = dataStr;
-            a.download = `booking-${payload.bookingReference}.json`;
-            a.click();
-          }}
-          className="flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+       <button
+          onClick={handleDownloadPDF}
+          className="cursor-pointer flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
         >
+          {/* Download Icon */}
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Download PDF
         </button>
         <button
           onClick={() => router.push("/")}
-          className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#111827] text-white text-[11px] font-black uppercase tracking-widest hover:bg-gray-800 transition-colors shadow-sm"
+          className="cursor-pointer flex items-center gap-2 px-6 py-3 rounded-full bg-[#111827] text-white text-[11px] font-black uppercase tracking-widest hover:bg-gray-800 transition-colors shadow-sm"
         >
           <Home size={13} /> Go Home
         </button>
