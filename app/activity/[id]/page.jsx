@@ -82,7 +82,14 @@ export default function ActivityDetailPage() {
     if (activity.Experience) tabs.push({ key: "experience", label: "EXPERIENCE" });
     if (activity.Itinerary?.length) tabs.push({ key: "itinerary", label: "ITINERARY" });
     if (activity.InfoAndLogistics) tabs.push({ key: "logistics", label: "INFO & LOGISTICS" });
-    if (activity.BBQ_BUFFET) tabs.push({ key: "bbq_buffet", label: "BBQ BUFFET" });
+    const hasBBQContent = activity.BBQ_BUFFET && (
+      (activity.BBQ_BUFFET.title && activity.BBQ_BUFFET.title.trim() !== "") || 
+      (activity.BBQ_BUFFET.fields && activity.BBQ_BUFFET.fields.length > 0)
+    );
+
+    if (hasBBQContent) {
+      tabs.push({ key: "bbq_buffet", label: "BBQ BUFFET" });
+    }
     if (activity.PrivateSUV?.available) tabs.push({ key: "private_suv", label: "PRIVATE SUV" });
     tabs.push({ key: "reviews", label: "REVIEWS" });
     return tabs;

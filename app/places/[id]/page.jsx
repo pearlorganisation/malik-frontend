@@ -89,7 +89,7 @@ export default function PlaceDetailPage() {
   
   // 3. Fetch Activities
   const { data: activitiesRes, isLoading: isActivitiesLoading } = useGetActivitiesQuery({
-    place: id,
+    location: id,
     ...(activeTourCategory && { categoryId: activeTourCategory }),
     limit: 20
   });

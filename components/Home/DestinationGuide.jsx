@@ -66,7 +66,7 @@ useEffect(() => {
             </h2>
           </div>
 
-          \<div className="hidden md:flex items-center gap-2 ml-auto">
+          <div className="hidden md:flex items-center gap-2 ml-auto">
   {/* Back button pehle */}
   <button
     onClick={() => {
