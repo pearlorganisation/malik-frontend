@@ -321,16 +321,16 @@ const TripPlanner = () => {
     }
   };
 
-  const handleDownloadPDF = async () => {
-    setIsPdfLoading(true);
-    await downloadItineraryAsPDF(itineraryContentRef, {
-      days:      formData.days,
-      budget:    formData.budget,
-      travelers: formData.travelers,
-      interests: formData.interests,
-    });
-    setIsPdfLoading(false);
-  };
+  // const handleDownloadPDF = async () => {
+  //   setIsPdfLoading(true);
+  //   await downloadItineraryAsPDF(itineraryContentRef, {
+  //     days:      formData.days,
+  //     budget:    formData.budget,
+  //     travelers: formData.travelers,
+  //     interests: formData.interests,
+  //   });
+  //   setIsPdfLoading(false);
+  // };
 
   const interestOptions = ['Shopping', 'Dune Bashing', 'History', 'Foodie', 'Luxury', 'Theme Parks', 'Nightlife', 'Relaxation'];
 
@@ -490,12 +490,12 @@ const TripPlanner = () => {
                     </div>
 
                     <div className="flex items-center gap-3 shrink-0">
-                      <button onClick={handleDownloadPDF} disabled={isPdfLoading}
+                      {/* <button onClick={handleDownloadPDF} disabled={isPdfLoading}
                         className="flex items-center gap-2 text-xs font-black text-white bg-[#0047AB] px-5 py-3 rounded-xl shadow-md hover:bg-blue-800 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed">
                         {isPdfLoading
                           ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating...</>
                           : <><Download className="w-4 h-4" /> Save PDF</>}
-                      </button>
+                      </button> */}
                       <button onClick={() => setItinerary(null)}
                         className="flex items-center text-xs font-black text-slate-400 hover:text-[#0047AB] px-5 py-3 rounded-xl bg-white border border-slate-100 shadow-sm transition-all">
                         <RefreshCw className="w-4 h-4 mr-2" /> Reset
