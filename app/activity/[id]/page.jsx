@@ -46,7 +46,7 @@ import {
   User 
 } from "lucide-react";
 import ActivityReviews from "@/components/Review/ActivityReviews";
-
+import { useCreateTourMutation } from "@/features/tour/tourApi";
 export default function ActivityDetailPage() {
   const fallbackHighlights =[
     "Experience breathtaking 360-degree views of Dubai",
@@ -1398,8 +1398,8 @@ function CheckoutView({
 
 
   // CheckoutView component ke function parameters me in dono ko add karein:
-
-  const handlePayNow = () => {
+const [createTour, { isLoading: isCreatingTour }] = useCreateTourMutation();
+  const handlePayNow = async () => {
     const selectedAddons = fallbackAddons
       .filter(a => addonQtys[a.id] > 0)
       .map(a => ({ name: a.name, price: a.price, quantity: addonQtys[a.id], subtotal: a.price * addonQtys[a.id] }));
@@ -1465,20 +1465,26 @@ function CheckoutView({
       submittedAt: new Date().toISOString(),
     };
 
-    // Yahan Console me apko A-to-Z sab data mil jayega
-    console.log("════════════════════════════════════════════");
-    console.log("✅ COMPLETE FINAL BOOKING PAYLOAD");
-    console.log("════════════════════════════════════════════");
-    console.log(JSON.stringify(payload, null, 2));
-    console.log("════════════════════════════════════════════");
 
-    setToastMsg("🎉 Booking Confirmed!");
-    setFinalPayload(payload);
-    setTimeout(() => {
-      setToastMsg("");
-      setBookingConfirmed(true);
-    }, 1500);
-  };
+    
+    try {
+    const response = await createTour(payload).unwrap();
+    
+    if (response.success) {
+      setToastMsg("🎉 Booking Confirmed!");
+      setFinalPayload(payload); // Storing local payload for UI display
+      
+      setTimeout(() => {
+        setToastMsg("");
+        setBookingConfirmed(true);
+      }, 1500);
+    }
+  } catch (error) {
+    console.error("Booking Error:", error);
+    setToastMsg("❌ Booking Failed. Please try again.");
+    setTimeout(() => setToastMsg(""), 3000);
+  }
+};
 
 
   if (bookingConfirmed && finalPayload) {
@@ -1664,13 +1670,20 @@ function CheckoutView({
 
   {/* PAY LATER BUTTON */}
   {!showQR && (
+    // <button 
+    //   // onClick={() => setShowQR(true)}
+    //   onClick={handlePayNow}
+    //   className="w-full bg-white border-2 border-[#004bb5] text-[#004bb5] hover:bg-[#004bb5] hover:text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all"
+    // >
+    //   PAY LATER
+    // </button>
     <button 
-      // onClick={() => setShowQR(true)}
-      onClick={handlePayNow}
-      className="w-full bg-white border-2 border-[#004bb5] text-[#004bb5] hover:bg-[#004bb5] hover:text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all"
-    >
-      PAY LATER
-    </button>
+  onClick={handlePayNow}
+  disabled={isCreatingTour}
+  className="w-full bg-white border-2 border-[#004bb5] text-[#004bb5] hover:bg-[#004bb5] hover:text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all disabled:opacity-50"
+>
+  {isCreatingTour ? "PLEASE WAIT..." : "PAY LATER"}
+</button>
   )}
 
   {/* QR SECTION */}
@@ -1689,20 +1702,40 @@ function CheckoutView({
       </p>
 
       {/* CONFIRM BUTTON */}
-      <button
+      {/* <button
         onClick={handlePayNow}
         className="w-full bg-[#004bb5] hover:bg-[#003a8c] text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest transition-all shadow-[0_6px_20px_rgba(0,75,181,0.3)]"
       >
         CONFIRM PAYMENT
-      </button>
+      </button> */}
+
+      <button
+  onClick={handlePayNow}
+  disabled={isCreatingTour}
+  className="w-full bg-[#004bb5] hover:bg-[#003a8c] text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest transition-all shadow-[0_6px_20px_rgba(0,75,181,0.3)] disabled:opacity-70 flex items-center justify-center gap-2"
+>
+  {isCreatingTour ? (
+    <> <Loader2 className="animate-spin" size={18} /> PROCESSING... </>
+  ) : (
+    "CONFIRM PAYMENT"
+  )}
+</button>
        
-     <button 
+     {/* <button 
       // onClick={() => setShowQR(true)}
       onClick={handlePayNow}
       className="w-full bg-white border-2 border-[#004bb5] text-[#004bb5] hover:bg-[#004bb5] hover:text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all"
     >
       PAY LATER
-    </button>
+    </button> */}
+
+    <button 
+  onClick={handlePayNow}
+  disabled={isCreatingTour}
+  className="w-full bg-white border-2 border-[#004bb5] text-[#004bb5] hover:bg-[#004bb5] hover:text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all disabled:opacity-50"
+>
+  {isCreatingTour ? "PLEASE WAIT..." : "PAY LATER"}
+</button>
  
     </div>
   )}
