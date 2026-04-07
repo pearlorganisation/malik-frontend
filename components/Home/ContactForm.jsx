@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { User, Mail, Phone, Clock, ShieldCheck } from "lucide-react";
+import { User, Mail, Phone, Clock, ShieldCheck } from "lucide-react";
 import { useCreateContactMutation } from "@/features/contact/contactApi.js";
 import toast from "react-hot-toast";
 
@@ -11,6 +12,7 @@ const CallbackForm = () => {
     phone: "",
   });
 
+  const [createContact, { isLoading }] = useCreateContactMutation();
   const [createContact, { isLoading }] = useCreateContactMutation();
 
   const handleChange = (e) => {
@@ -26,7 +28,10 @@ const CallbackForm = () => {
       await createContact(formData).unwrap();
       toast.success("Request submitted successfully");
       setFormData({ name: "", email: "", phone: "" });
+      toast.success("Request submitted successfully");
+      setFormData({ name: "", email: "", phone: "" });
     } catch (err) {
+      toast.error("Failed to submit request");
       toast.error("Failed to submit request");
     }
   };

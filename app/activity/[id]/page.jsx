@@ -112,6 +112,13 @@ export default function ActivityDetailPage() {
   const dateInputRef = useRef(null);
   const contentRef = useRef(null);
 
+  // 1. Image switching ke liye index state
+const [imgOffset, setImgOffset] = useState(0);
+// 2. Lightbox/Preview ke liye state
+const [previewImage, setPreviewImage] = useState(null);
+
+
+
   const selectedPackage = activity?.packages?.[selectedPackageIndex] || activity?.packages?.[0];
   const isVIP = selectedPackage?.name?.toLowerCase().includes("vip");
   const isSUV = transferType === "suv";
@@ -245,6 +252,22 @@ console.log("autoCount",autoCount)
     }
   };
 
+
+  // 3. Gallery items ki calculation
+const totalImages = images?.length || 0;
+const itemsPerPage = 5; // Total slots (1 Large + 4 Small)
+const hasMore = totalImages > (imgOffset + itemsPerPage);
+
+// Images switch karne ka function
+const handleSwitchImages = (e) => {
+  e.stopPropagation(); // Gallery click se bachne ke liye
+  if (hasMore) {
+    setImgOffset(prev => prev + itemsPerPage);
+  } else {
+    setImgOffset(0); // Wapas pehli images pe le aayega
+  }
+};
+
   const canBook = (isYachtActivity ? (durationQtyHours > 0 && yachtQty > 0) : totalQty > 0) && selectedTimeSlot && selectedDate;
 
   const handleProceedToCheckout = () => {
@@ -366,7 +389,7 @@ console.log("autoCount",autoCount)
         <div className="grid lg:grid-cols-[minmax(0,1fr)_360px] gap-8 lg:gap-10">
           <div className="min-w-0">
             {/* ── Image Gallery ──────────────────────────────────────────── */}
-            <div className="grid grid-cols-4 grid-rows-2 gap-2 h-60 sm:h-90 md:h-110 rounded-2xl overflow-hidden">
+            {/* <div className="grid grid-cols-4 grid-rows-2 gap-2 h-60 sm:h-90 md:h-110 rounded-2xl overflow-hidden">
               <div className="col-span-2 row-span-2 relative group overflow-hidden cursor-pointer">
                 <img src={images?.[0]?.url || "/placeholder.jpg"} alt="Main" loading="lazy" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
               </div>
@@ -391,7 +414,65 @@ console.log("autoCount",autoCount)
                   </div>
                 )}
               </div>
-            </div>
+            </div> */}
+
+            {/* ── Image Gallery ──────────────────────────────────────────── */}
+<div className="grid grid-cols-4 grid-rows-2 gap-2 h-60 sm:h-90 md:h-110 rounded-2xl overflow-hidden relative">
+  
+  {/* Slot 1: Large Main Image (Hamesha current offset ki pehli image) */}
+  <div 
+    onClick={() => setPreviewImage(images[imgOffset]?.url)}
+    className="col-span-2 row-span-2 relative group overflow-hidden cursor-pointer"
+  >
+    <img src={images[imgOffset]?.url || "/placeholder.jpg"} alt="Main" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+  </div>
+
+  {/* Slot 2, 3, 4, 5: Small slots */}
+  {[1, 2, 3, 4].map((idx) => {
+    const currentImgIndex = imgOffset + idx;
+    const isLastSlot = idx === 4;
+    const item = images[currentImgIndex];
+
+    return (
+      <div key={idx} className="relative group overflow-hidden cursor-pointer">
+        {/* Agar video hai aur slot 2 hai to video dikhao (purane logic jaisa) */}
+        {idx === 2 && video ? (
+          <video className="w-full h-full object-cover" muted loop playsInline autoPlay>
+            <source src={video} type="video/mp4" />
+          </video>
+        ) : item ? (
+          <>
+            <img 
+              src={item.url} 
+              onClick={() => setPreviewImage(item.url)}
+              alt={`Gallery ${currentImgIndex}`} 
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+            />
+            
+            {/* Last Slot Overlay (+X More) */}
+            {isLastSlot && (totalImages > imgOffset + 5 || imgOffset > 0) && (
+              <div 
+                onClick={handleSwitchImages}
+                className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white"
+              >
+                <span className="text-lg font-black tracking-tighter">
+                  {hasMore ? `+${totalImages - (imgOffset + 5)}` : "←"}
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-widest">
+                  {hasMore ? "More" : "Back"}
+                </span>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-300">
+             <Camera size={20} />
+          </div>
+        )}
+      </div>
+    );
+  })}
+</div>
 
             {/* ── Page Tabs ───────────────────────────── */}
             <div ref={contentRef} className="border-b border-gray-200 overflow-x-auto mt-8 scroll-mt-20">
@@ -652,11 +733,27 @@ console.log("autoCount",autoCount)
           </div>
         </div>
 
-        {activeTab === "reviews" && (
+        {/* {activeTab === "reviews" && (
           <div className="mt-10 pb-20 lg:pb-10">
             <ActivityReviews activityId={activity._id} />
           </div>
-        )}
+        )} */}
+
+ {/* {activeTab === "reviews" && (
+  <div className="mt-10 pb-20 lg:pb-10 flex justify-start items-start">
+    <div className="w-full lg:w-2/5 xl:w-1/3">
+      <ActivityReviews activityId={activity._id} />
+    </div>
+  </div>
+)} */}
+
+{activeTab === "reviews" && (
+  <div className="mt-10 pb-20 lg:pb-10 flex justify-start">
+    <div className="w-full lg:w-3/4 xl:w-2/3">
+      <ActivityReviews activityId={activity._id} />
+    </div>
+  </div>
+)}
       </main>
 
       {/* MOBILE FLOATING BAR */}
@@ -678,6 +775,22 @@ console.log("autoCount",autoCount)
           {canBook ? "Book Now" : "Select Options"} <ChevronRight size={15} />
         </button>
       </div>
+      {/* ── Image Preview Modal (Lightbox) ────────────────────────── */}
+{previewImage && (
+  <div 
+    className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 backdrop-blur-sm"
+    onClick={() => setPreviewImage(null)}
+  >
+    <button className="absolute top-6 right-6 text-white hover:rotate-90 transition-transform">
+      <X size={32} strokeWidth={3} />
+    </button>
+    <img 
+      src={previewImage} 
+      className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-300" 
+      alt="Preview"
+    />
+  </div>
+)}
     </div>
   );
 }
@@ -984,7 +1097,8 @@ function BookingCard({
 
       {bookingStep === 2 && (
         <>
-          <div className="px-6 pt-5 pb-0 space-y-6">
+          {/* <div className="px-6 pt-5 pb-0 space-y-6"> */}
+          <div className="px-5 pt-3 pb-0 space-y-4">
             <div className="flex items-center justify-between mb-2">
               <div className="text-[9px] font-extrabold text-[#9ca3af] uppercase tracking-[0.15em]">STEP 2: DETAILS</div>
               <button onClick={() => setBookingStep(1)} className={`text-[11px] font-extrabold uppercase tracking-widest flex items-center gap-1 hover:opacity-70 transition-opacity ${isVIP ? "text-[#EF4444]" : "text-[#004bb5]"}`}>
@@ -994,7 +1108,7 @@ function BookingCard({
 
             {/* TIME */}
             <div>
-              <label className="block text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-[0.15em] mb-3 mt-6">PREFERRED ENTRY TIME</label>
+              {/* <label className="block text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-[0.15em] mb-3 mt-2">PREFERRED ENTRY TIME</label>
               <div className="grid grid-cols-3 gap-2.5">
                 {timeSlots.map((time, i) => (
                   <button
@@ -1006,11 +1120,39 @@ function BookingCard({
                     {time}
                   </button>
                 ))}
-              </div>
+              </div> */}
+         <div>
+  <label className="block text-[8px] font-extrabold text-[#9ca3af] uppercase tracking-[0.15em] mb-2 mt-2">
+    PREFERRED ENTRY TIME
+  </label>
+
+  <div className="relative">
+    {/* TIME SLOTS */}
+    <div
+      // className="flex gap-2.5 overflow-x-auto scrollbar-none py-1 px-8 scroll-smooth"
+      className="flex gap-2 overflow-x-auto py-1 px-2 scroll-smooth thin-scroll"
+    >
+      {timeSlots.map((time, i) => (
+        <button
+          key={i}
+          onClick={() => setSelectedTimeSlot(time)}
+          className={`flex-shrink-0 px-3 py-2 text-[11px] rounded-[12px] text-[12px] font-bold transition-all border
+            ${selectedTimeSlot === time
+              ? "bg-[#111827] text-white border-[#111827]"
+              : "bg-white text-[#6b7280] border-gray-200 hover:border-gray-300"
+            }`}
+        >
+          {time}
+        </button>
+      ))}
+    </div>
+  </div>
+</div>
             </div>
 
             {/* GUESTS / YACHT COUNTER */}
-            <div className="bg-[#F8F9FA] rounded-[24px] p-2 space-y-2.5">
+            {/* <div className="bg-[#F8F9FA] rounded-[24px] p-2 space-y-2.5"> */}
+            <div className="bg-[#F8F9FA] rounded-[20px] p-2 space-y-2">
               {guestTypes.map((p) => {
                 const currentQty = quantities[p._id] || 0;
                 const lowerName = p.name.toLowerCase();
@@ -1033,7 +1175,8 @@ function BookingCard({
                 const displayQty = isDuration ? `${Number(currentQty).toFixed(1)}h` : currentQty;
 
                 return (
-                  <div key={p._id} className="flex items-center justify-between p-2">
+                  // <div key={p._id} className="flex items-center justify-between p-2">
+                  <div key={p._id} className="flex items-center justify-between py-1 px-2">
                     <div>
                       <div className="text-[12px] font-black text-[#111827]">{p.name}</div>
                       <div className="flex items-center gap-1.5 text-[8px] text-[#9ca3af] font-extrabold uppercase mt-0.5 tracking-wider">
@@ -1047,15 +1190,15 @@ function BookingCard({
                       <button
                         onClick={() => updateQuantity(p._id, isDuration ? -0.5 : -1)}
                         disabled={isMin}
-                        className={`w-8 h-8 flex items-center justify-center rounded-[10px] bg-[#F4F5F7] text-[#111827] font-black transition-opacity ${isMin ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-200'}`}
+                        className={`w-7 h-7 flex items-center justify-center rounded-[10px] bg-[#F4F5F7] text-[#111827] font-black transition-opacity ${isMin ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-200'}`}
                       >
                         −
                       </button>
-                      <span className="w-8 text-center text-[14px] font-black text-[#111827]">{displayQty}</span>
+                      <span className="w-8 text-center text-[13px] font-black text-[#111827]">{displayQty}</span>
                       <button
                         onClick={() => updateQuantity(p._id, isDuration ? 0.5 : 1)}
                         disabled={isMax}
-                        className={`w-8 h-8 flex items-center justify-center rounded-[10px] bg-[#F4F5F7] text-[#111827] font-black transition-opacity ${isMax ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-200'}`}
+                        className={`w-7 h-7 flex items-center justify-center rounded-[10px] bg-[#F4F5F7] text-[#111827] font-black transition-opacity ${isMax ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-200'}`}
                       >
                         +
                       </button>
@@ -1066,7 +1209,7 @@ function BookingCard({
 
               {/* ── SUV Quantity Row (only shown when SUV is selected) ── */}
               {isSUV && (
-                <div className="flex items-center justify-between pt-3 pb-2 px-2 border-t border-gray-200 mt-2">
+                <div className="flex items-center justify-between  px-2 border-t border-gray-200 pt-2 pb-1 mt-1">
                   <div>
                     <div className="text-[12px] font-black text-[#111827] flex items-center gap-2">
                       <Truck size={14} className="text-[#004bb5]" /> Private SUV
@@ -1097,7 +1240,7 @@ function BookingCard({
             </div>
 
             {/* PRICE BREAKDOWN */}
-            <div className="bg-[#F0F5FF] border border-[#D1E0FF] rounded-[24px] px-4 py-3 space-y-3">
+            <div className="bg-[#F0F5FF] border border-[#D1E0FF] rounded-[24px] px-3 py-2 space-y-2">
               <div className="flex justify-between items-center text-[9px] font-extrabold text-[#9ca3af] uppercase tracking-[0.15em]">
                 <span>PRICE BREAKDOWN</span>
                 <span>TOTAL</span>
@@ -1105,7 +1248,7 @@ function BookingCard({
 
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-[12px] font-bold text-[#111827]">
+                  <span className="text-[11px] font-bold text-[#111827]">
                     {selectedPackage?.name?.split(' - ')[0] || "Standard Entry"} 
                     {isYachtActivity ? (
                       <span className="ml-1 text-[#6b7280]">({Number(durationQtyHours).toFixed(1)}h x {yachtQty})</span>
@@ -1113,7 +1256,7 @@ function BookingCard({
                       <span className="ml-1 text-[#6b7280]">(x{totalQty})</span>
                     )}
                   </span>
-                  <span className="text-[13px] font-black text-[#111827]">${baseTotalAmount}</span>
+                  <span className="text-[12px] font-black text-[#111827]">${baseTotalAmount}</span>
                 </div>
 
                 {isSUV && (
@@ -1125,10 +1268,10 @@ function BookingCard({
               </div>
             </div>
 
-            <div className="pt-2">
+            <div className="pt-1">
               <button
                 onClick={handleProceedToCheckout}
-                className={`w-full py-[18px] rounded-full text-white text-[13px] font-black uppercase tracking-widest transition-all ${
+                className={`w-full py-[11px] rounded-full text-white text-[11px] font-black uppercase tracking-widest transition-all ${
                   isVIP ? "bg-[#EF4444] shadow-[0_4px_14px_rgba(239,68,68,0.25)]" : "bg-[#004bb5] shadow-[0_4px_14px_rgba(0,75,181,0.25)]"
                 }`}
               >
