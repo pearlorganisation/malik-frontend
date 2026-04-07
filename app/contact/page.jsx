@@ -8,7 +8,7 @@ const ContactPage = () => {
     <div className="bg-white min-h-screen font-sans">
       {/* Header / Hero Section */}
       <div className="bg-[#f8fafc] py-12 md:py-16 px-4 relative overflow-hidden">
-        <div className="max-w-350 mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-50 mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-3xl">
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-[#0047AB] text-[10px] font-bold uppercase tracking-widest mb-4 border border-blue-100">
               <Headphones className="w-3 h-3" /> 24/7 Premium Support

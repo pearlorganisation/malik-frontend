@@ -309,69 +309,48 @@ export default function PlaceDetailPage() {
           </div>
 
           {/* SCROLLABLE SPOTS CONTAINER */}
-          <div 
-            ref={spotsScrollRef}
-            onScroll={() => handleScrollUpdate(spotsScrollRef, setCanScrollSpotsLeft, setCanScrollSpotsRight)}
-            className="flex overflow-x-auto hide-scrollbar gap-5 pb-6 snap-x snap-mandatory"
-          >
-            {currentSpots.map((spot, i) => (
-              <div 
-                key={i} 
-                onClick={() => router.push(`/spot/${spot._id}`)}
-                className="w-[280px] sm:w-[320px] shrink-0 snap-start bg-white rounded-[16px] border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow group cursor-pointer flex flex-col relative"
-              >
-                {/* IMAGE CONTAINER */}
-                <div className="relative h-[220px] overflow-hidden bg-gray-100">
-                  <img src={spot.image || "/placeholder.jpg"} alt={spot.title} className="w-full h-full object-cover"/>
-                  <div className="absolute top-5 -left-9 bg-[#facc15] text-[#0f172a] font-extrabold text-[10px] uppercase py-1.5 px-10 transform -rotate-45 shadow-sm text-center z-10 w-40">
-                    {spot.badge || "MUST SEE"}
-                  </div>
-                  <button className="absolute top-3 right-3 p-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/40 hover:bg-white hover:text-red-500 transition text-white z-10">
-                    <Heart className="w-4 h-4" />
-                  </button>
-                  <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent"></div>
-                  <div className="absolute bottom-3 left-3 flex items-center gap-1 text-white text-xs font-bold z-10">
-                    <Star className="w-3.5 h-3.5 text-[#facc15] fill-[#facc15]" />
-                    4.8 <span className="text-gray-300 font-normal ml-0.5">(1,200)</span>
-                  </div>
-                  <div className="absolute bottom-3 right-3 bg-white/95 text-green-700 px-2 py-1 rounded-[4px] text-[10px] font-bold flex items-center gap-1 shadow-sm z-10">
-                    <Check className="w-3 h-3" /> Free Cancel
-                  </div>
-                </div>
+          {/* SCROLLABLE SPOTS CONTAINER */}
+<div 
+  ref={spotsScrollRef}
+  onScroll={() => handleScrollUpdate(spotsScrollRef, setCanScrollSpotsLeft, setCanScrollSpotsRight)}
+  className="flex overflow-x-auto hide-scrollbar gap-6 pb-6 snap-x snap-mandatory"
+>
+  {currentSpots.map((spot, i) => (
+    <div 
+      key={i} 
+      onClick={() => router.push(`/spot/${spot._id}`)}
+      className="w-[300px] sm:w-[380px] shrink-0 snap-start bg-white rounded-lg border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 group cursor-pointer flex flex-col"
+    >
+      {/* IMAGE CONTAINER */}
+      <div className="relative h-[200px] overflow-hidden">
+        <img 
+          src={spot.image || "/placeholder.jpg"} 
+          alt={spot.title} 
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        
+        {/* TOP LEFT BADGE - White Pill Style */}
+        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-black font-black text-[10px] tracking-widest uppercase py-1.5 px-4 rounded-md shadow-sm">
+          {spot.badge || "VISIT"}
+        </div>
+      </div>
 
-                {/* CONTENT */}
-                <div className="p-4 flex flex-col flex-1">
-                  <h3 className="text-base font-extrabold text-gray-900 leading-tight mb-2 line-clamp-2">{spot.title}</h3>
-                  <div className="flex items-center gap-2 text-[11px] text-gray-500 font-bold uppercase tracking-wide mb-3">
-                    <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> 2H</span>
-                    <span className="w-1 h-1 bg-gray-300 rounded-full mx-0.5"></span>
-                    <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-[#facc15]" /> {place?.name || "DUBAI"}</span>
-                  </div>
-                  <p className="text-xs text-blue-600 bg-blue-50 px-2.5 py-2 rounded-lg font-medium mb-2 line-clamp-2 leading-relaxed">
-                    {spot.overview}
-                  </p>
-                  <div className="flex-1"></div>
-                  <div className="pt-4 mt-2 border-t border-gray-100 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div>
-                        <span className="text-[9px] text-gray-400 uppercase font-bold tracking-wider block mb-0.5">Free</span>
-                        <div className="text-xl font-extrabold text-[#0052cc] leading-none">$0</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <HelpCircle className="w-6 h-6 text-gray-300" />
-                      <button className="bg-[#0f172a] hover:bg-blue-600 text-white px-4 py-2.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 shadow-md">
-                        VIEW <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-            {currentSpots.length === 0 && (
-              <p className="w-full text-gray-500 py-8">No locations added to this category yet.</p>
-            )}
-          </div>
+      {/* CONTENT AREA */}
+      <div className="p-4 flex flex-col">
+        <h3 className="text-xl font-bold text-gray-900 mb-2">
+          {spot.title}
+        </h3>
+        <p className="text-sm text-gray-500 leading-relaxed line-clamp-2 font-medium">
+          {spot.overview}
+        </p>
+      </div>
+    </div>
+  ))}
+  
+  {currentSpots.length === 0 && (
+    <p className="w-full text-gray-400 py-12 text-center font-medium">No locations added to this category yet.</p>
+  )}
+</div>
         </section>
 
         {/* Top Rated Tours / Experiences Section */}

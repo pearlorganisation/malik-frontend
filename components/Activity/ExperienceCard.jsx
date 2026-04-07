@@ -6,7 +6,12 @@ import {
   Check,
   Heart,
   HelpCircle,
+  MessageCircle,
   ArrowRight,
+  CheckCircle,
+  PhoneCall,
+  PhoneCallIcon,
+  Phone,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -56,6 +61,21 @@ export const ExperienceCard = ({ activity, viewMode = "grid" }) => {
       : ribbon === "THRILL"
       ? "bg-yellow-400 text-black"
       : "bg-yellow-400 text-black";
+
+
+
+      const handleWhatsAppClick = (e) => {
+  e.stopPropagation();
+
+  const phoneNumber = "971501902213";
+
+  // Optional: dynamic message
+  const message = `Hi, I'm interested in ${title}`;
+  
+  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+
+  window.open(whatsappUrl, "_blank");
+};
 
   return (
     <div
@@ -156,22 +176,23 @@ export const ExperienceCard = ({ activity, viewMode = "grid" }) => {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            <button
-              onClick={(e) => e.stopPropagation()}
-              className="w-7 h-7 rounded-full bg-white flex items-center justify-center border border-gray-200 hover:bg-yellow-400 hover:border-yellow-400 transition text-gray-400 hover:text-black"
-            >
-              <HelpCircle size={14} strokeWidth={2} />
-            </button>
+     <button
+  onClick={handleWhatsAppClick}
+  className="bg-green-500 text-white text-[10px]  px-2 py-2 rounded-md flex items-center gap-1 hover:bg-green-600 transition"
+>
+   <Phone size={8} strokeWidth={5.5} />
+  WhatsApp
+</button>
 
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleRedirect();
               }}
-              className="bg-[#0f172a] text-white text-[11px] font-bold px-4 py-2 rounded-lg flex items-center gap-1 hover:bg-black transition"
+              className="bg-[#0f172a] text-white text-[11px] font-bold px-3 py-2 rounded-lg flex items-center gap-1 hover:bg-black transition"
             >
               VIEW
-              <ArrowRight size={13} strokeWidth={2.5} />
+              {/* <ArrowRight size={13} strokeWidth={2.5} /> */}
             </button>
           </div>
 
