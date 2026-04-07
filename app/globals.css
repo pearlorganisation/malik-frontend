@@ -63,3 +63,29 @@ body {
     display: none !important;
   }
 }
+.thin-scroll::-webkit-scrollbar {
+  height: 3px; /* aur thin */
+}
+
+.thin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: #b8b6b6; /* blue (Tailwind blue-600) */
+  border-radius: 10px;
+}
+
+/* hover pe thoda dark */
+.thin-scroll::-webkit-scrollbar-thumb:hover {
+  background: #505050; /* blue-700 */
+}
+
+/* Custom scrollbar hider */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
