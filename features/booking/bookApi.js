@@ -4,60 +4,40 @@ export const bookingApi = baseApi.injectEndpoints({
   overrideExisting: false,
   endpoints: (builder) => ({
     
-    // 1. User: Create Booking
+    // USER: Create Booking
     createBooking: builder.mutation({
-      query: (body) => ({
-        url: "/bookings/create",
-        method: "POST",
-        body,
-      }),
-      invalidatesTags: ["Bookings", "MyBookings"],
+      query: (body) => ({ url: "/bookings/create", method: "POST", body }),
+      invalidatesTags: ["MyBookings"],
     }),
 
-    // 2. User: Confirm Payment (Stripe Verification)
-    confirmBooking: builder.mutation({
-      query: (body) => ({
-        url: "/bookings/confirm-payment",
-        method: "POST",
-        body,
-      }),
-      invalidatesTags: ["Bookings", "MyBookings"],
-    }),
-
-    // 3. User: Get My Bookings (Dashboard)
+    // USER: Get My Bookings (Dashboard)
     getMyBookings: builder.query({
       query: ({ page = 1, limit = 10, status } = {}) => ({
         url: "/bookings/my-bookings",
-        method: "GET",
-        params: { page, limit, status },
+        params: { page, limit, status: status === "all" ? undefined : status },
       }),
       providesTags: ["MyBookings"],
     }),
 
-    // 4. Admin: Get All Bookings (Admin Panel)
+    // ADMIN: Get All Bookings
     getBookings: builder.query({
       query: ({ page = 1, limit = 10, search, status } = {}) => ({
-        url: "/bookings", // Backend route is router.get("/")
-        method: "GET",
+        url: "/bookings",
         params: { page, limit, search, status },
       }),
       providesTags: ["Bookings"],
     }),
 
-    // 5. Shared: Get Booking By ID
+    // SHARED: Get Specific Booking Detail
     getBookingById: builder.query({
-      query: (id) => ({
-        url: `/bookings/${id}`,
-        method: "GET",
-      }),
-      providesTags: (result, error, id) => [{ type: "Bookings", id }],
+      query: (id) => `/bookings/${id}`,
+      providesTags: (res, err, id) => [{ type: "Bookings", id }],
     }),
   }),
 });
 
 export const {
   useCreateBookingMutation,
-  useConfirmBookingMutation,
   useGetMyBookingsQuery,
   useGetBookingsQuery,
   useGetBookingByIdQuery,
