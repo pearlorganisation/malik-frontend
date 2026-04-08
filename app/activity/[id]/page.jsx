@@ -47,6 +47,7 @@ import {
 } from "lucide-react";
 import ActivityReviews from "@/components/Review/ActivityReviews";
 import { useCreateTourMutation } from "@/features/tour/tourApi";
+// import { useCreateBookingMutation } from "@/features/booking/bookApi";
 export default function ActivityDetailPage() {
   const fallbackHighlights =[
     "Experience breathtaking 360-degree views of Dubai",
@@ -1305,7 +1306,8 @@ function CheckoutView({
   suvTotalAddonPrice, 
   setBookingStep,
   handleFinalSubmit,
-  isBooking,
+  // isBooking,
+  isBooking: isParentBooking,
   isYachtActivity,
   durationQtyHours,
   yachtQty,
@@ -1317,7 +1319,7 @@ function CheckoutView({
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const [finalPayload, setFinalPayload] = useState(null);
   const [showQR, setShowQR] = useState(false);
-
+ const [createBooking, { isLoading: isMutationLoading }] = useCreateBookingMutation();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -1349,60 +1351,11 @@ function CheckoutView({
     setCheckoutStep(2);
   };
 
-  // const handlePayNow = () => {
-  //   const selectedAddons = fallbackAddons
-  //     .filter(a => addonQtys[a.id] > 0)
-  //     .map(a => ({ name: a.name, price: a.price, quantity: addonQtys[a.id], subtotal: a.price * addonQtys[a.id] }));
 
-  //   // ── Build Final Payload
-  //   const payload = {
-  //     activityId: activity?._id,
-  //     activityName: activity?.name,
-  //     variantName: selectedPackage?.name,
-  //     isYachtActivity,
-  //     timeSlot: selectedTimeSlot,
-  //     ...(isYachtActivity
-  //       ? { durationHours: durationQtyHours, numberOfYachts: yachtQty }
-  //       : { totalGuests: totalQty }
-  //     ),
-  //     transferType: isSUV ? "Private SUV" : "Self Arrival",
-  //     ...(isSUV && { suvCount: suvQty, suvPricePerUnit: activity?.PrivateSUV?.fee || 500, suvTotal: suvTotalAddonPrice }),
-  //     baseFare: baseTotalAmount,
-  //     addons: selectedAddons,
-  //     addonsTotal,
-  //     grandTotal: finalTotal,
-  //     customerDetails: {
-  //       firstName: formData.firstName,
-  //       lastName: formData.lastName,
-  //       email: formData.email,
-  //       phone: formData.phone,
-  //       pickupHotel: formData.pickupHotel,
-  //     },
-  //     bookingReference: `FT-${Math.floor(100000 + Math.random() * 900000)}`,
-  //     submittedAt: new Date().toISOString(),
-  //   };
-
-  //   console.log("════════════════════════════════════════════");
-  //   console.log("✅ FINAL BOOKING PAYLOAD — Ready for API");
-  //   console.log("════════════════════════════════════════════");
-  //   console.log(JSON.stringify(payload, null, 2));
-  //   console.log("════════════════════════════════════════════");
-
-  //   setToastMsg("🎉 Booking Confirmed!");
-  //   setFinalPayload(payload);
-  //   setTimeout(() => {
-  //     setToastMsg("");
-  //     setBookingConfirmed(true);
-  //   }, 1500);
-  // };
-
-
-  // CheckoutView component ke function parameters me in dono ko add karein:
-const [createTour, { isLoading: isCreatingTour }] = useCreateTourMutation();
   const handlePayNow = async () => {
     const selectedAddons = fallbackAddons
       .filter(a => addonQtys[a.id] > 0)
-      .map(a => ({ name: a.name, price: a.price, quantity: addonQtys[a.id], subtotal: a.price * addonQtys[a.id] }));
+      .map(a => ({addonId: a.id, name: a.name, price: a.price, quantity: addonQtys[a.id], subtotal: a.price * addonQtys[a.id] }));
 
     // ── Build exact participant breakdown (Adult, Child, etc.)
     const formattedParticipants = selectedPackage?.bookingFields
@@ -1410,6 +1363,7 @@ const [createTour, { isLoading: isCreatingTour }] = useCreateTourMutation();
       ?.map((f) => {
         const isDurationField = f.name.toLowerCase().includes('duration');
         return {
+           fieldId: f._id,
           label: f.name || f.label,
           quantity: quantities[f._id],
           unit: isDurationField ? 'hours' : 'guests',
@@ -1418,12 +1372,16 @@ const [createTour, { isLoading: isCreatingTour }] = useCreateTourMutation();
       }) ||[];
 
     // ── Build A-to-Z Final Payload
+    
     const payload = {
       // 1. Activity & Package Info
       activityId: activity?._id,
       activityName: activity?.name,
+       activityImage: activity?.Images?.[0]?.secure_url || activity?.Images?.[0]?.url, 
+       packageId: selectedPackage?._id,
       variantName: selectedPackage?.name,
-      
+        whatInclude: selectedPackage?.whatInclude || [],
+    whatExclude: selectedPackage?.whatExclude || [],
       // 2. Schedule Info
       selectedDate: selectedDate,
       timeSlot: selectedTimeSlot,
@@ -1438,7 +1396,7 @@ const [createTour, { isLoading: isCreatingTour }] = useCreateTourMutation();
       
       // 4. Transfer Info
       transferType: isSUV ? "Private SUV" : "Self Arrival",
-      ...(isSUV && { suvCount: suvQty, suvPricePerUnit: activity?.PrivateSUV?.fee || 500, suvTotal: suvTotalAddonPrice }),
+      ...(isSUV && { suvCount: suvQty, suvPricePerUnit: activity?.PrivateSUV?.fee || 500, suvTotal: suvTotalAddonPrice,  suvModel: activity?.PrivateSUV?.model || "SUV" }),
       
       // 5. Addons Info
       addons: selectedAddons,
@@ -1463,17 +1421,23 @@ const [createTour, { isLoading: isCreatingTour }] = useCreateTourMutation();
       // 8. Meta Info
       bookingReference: `FT-${Math.floor(100000 + Math.random() * 900000)}`,
       submittedAt: new Date().toISOString(),
+      paymentMethod: showQR ? "pay_now" : "pay_later"
     };
 
 
     
     try {
-    const response = await createTour(payload).unwrap();
+    // const response = await createTour(payload).unwrap();
+    const response = await createBooking(payload).unwrap();
     
     if (response.success) {
       setToastMsg("🎉 Booking Confirmed!");
       setFinalPayload(payload); // Storing local payload for UI display
-      
+      console.log("════════════════════════════════════════════");
+    console.log("✅ FINAL BOOKING PAYLOAD — Ready for API");
+    console.log("════════════════════════════════════════════");
+    console.log(JSON.stringify(payload, null, 2));
+    console.log("════════════════════════════════════════════");
       setTimeout(() => {
         setToastMsg("");
         setBookingConfirmed(true);
@@ -1679,10 +1643,10 @@ const [createTour, { isLoading: isCreatingTour }] = useCreateTourMutation();
     // </button>
     <button 
   onClick={handlePayNow}
-  disabled={isCreatingTour}
+  disabled={isMutationLoading}
   className="w-full bg-white border-2 border-[#004bb5] text-[#004bb5] hover:bg-[#004bb5] hover:text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all disabled:opacity-50"
 >
-  {isCreatingTour ? "PLEASE WAIT..." : "PAY LATER"}
+  {isMutationLoading ? "PLEASE WAIT..." : "PAY LATER"}
 </button>
   )}
 
@@ -1711,10 +1675,10 @@ const [createTour, { isLoading: isCreatingTour }] = useCreateTourMutation();
 
       <button
   onClick={handlePayNow}
-  disabled={isCreatingTour}
+  disabled={isMutationLoading}
   className="w-full bg-[#004bb5] hover:bg-[#003a8c] text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest transition-all shadow-[0_6px_20px_rgba(0,75,181,0.3)] disabled:opacity-70 flex items-center justify-center gap-2"
 >
-  {isCreatingTour ? (
+  {isMutationLoading ? (
     <> <Loader2 className="animate-spin" size={18} /> PROCESSING... </>
   ) : (
     "CONFIRM PAYMENT"
@@ -1731,10 +1695,10 @@ const [createTour, { isLoading: isCreatingTour }] = useCreateTourMutation();
 
     <button 
   onClick={handlePayNow}
-  disabled={isCreatingTour}
+  disabled={isMutationLoading}
   className="w-full bg-white border-2 border-[#004bb5] text-[#004bb5] hover:bg-[#004bb5] hover:text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all disabled:opacity-50"
 >
-  {isCreatingTour ? "PLEASE WAIT..." : "PAY LATER"}
+  {isMutationLoading ? "PLEASE WAIT..." : "PAY LATER"}
 </button>
  
     </div>
@@ -1816,59 +1780,256 @@ const [createTour, { isLoading: isCreatingTour }] = useCreateTourMutation();
 // ════════════════════════════════════════════════════════════════════════════
 // BOOKING CONFIRMED SCREEN
 // ════════════════════════════════════════════════════════════════════════════
-function BookingConfirmedScreen({ payload, activity }) {
+// function BookingConfirmedScreen({ payload, activity }) {
+//   const router = useRouter();
+//  const handleDownloadPDF = async () => {
+//     const element = document.getElementById("voucher-card");
+//     if (!element) return;
+
+//     try {
+//       // 1. UI element ko pehle high-quality image me convert karna (Modern CSS support ke sath)
+//       const dataUrl = await toPng(element, { 
+//         quality: 1, 
+//         pixelRatio: 2, // 2x quality for clear PDF
+//         cacheBust: true
+//       });
+
+//       // 2. Naya PDF document create karna
+//       const pdf = new jsPDF({
+//         orientation: 'portrait',
+//         unit: 'mm',
+//         format: 'a4'
+//       });
+
+//       // 3. Image ko PDF ke width ke hisaab se scale karna
+//       const pdfWidth = pdf.internal.pageSize.getWidth();
+//       const imgProps = pdf.getImageProperties(dataUrl);
+//       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+//       // 4. Image ko PDF me add karke download karna
+//       pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+//       pdf.save(`Booking-Voucher-${payload.bookingReference}.pdf`);
+
+//     } catch (error) {
+//       console.error("PDF generation failed:", error);
+//       alert("Failed to download PDF. Please try again.");
+//     }
+//   };
+//   return (
+//     <div className="min-h-screen bg-[#F9FAFB] font-sans flex flex-col items-center justify-start py-12 px-4">
+//       <div className="flex flex-col items-center mb-8">
+//         <div className="w-14 h-14 rounded-full border-4 border-emerald-500 flex items-center justify-center mb-5 animate-pulse">
+//           <CheckCircle2 size={28} className="text-emerald-500" />
+//         </div>
+//         <h1 className="text-[32px] md:text-[40px] font-black text-[#111827] tracking-tight">Booking Secured!</h1>
+//         <p className="text-[14px] text-gray-500 mt-2 text-center">
+//           Your adventure is confirmed. An e-ticket has been sent to{" "}
+//           <span className="font-bold text-gray-800">{payload.customerDetails?.email || "your email"}</span>.
+//         </p>
+//       </div>
+
+//       {/* Voucher Card */}
+//       <div id="voucher-card" className="w-full max-w-[620px] bg-white rounded-[24px] border border-gray-200 overflow-hidden shadow-[0_4px_30px_rgba(0,0,0,0.06)]">
+
+//         {/* Voucher Header */}
+//         <div className="px-7 pt-6 pb-4 border-b border-gray-100 flex items-start justify-between">
+//           <div>
+//             <div className="text-[11px] font-black text-[#004bb5] uppercase tracking-widest">FUN TOURS <span className="text-[#EF4444]">DUBAI</span></div>
+//             <div className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Digital Service Voucher</div>
+//           </div>
+//           <div className="text-right">
+//             <div className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Booking Reference</div>
+//             <div className="text-[15px] font-black text-[#111827] mt-0.5">{payload.bookingReference}</div>
+//           </div>
+//         </div>
+
+//         <div className="px-7 py-5 flex gap-4 border-b border-gray-100">
+//           <img
+//             src={activity?.Images?.[0]?.url || activity?.Images?.[0]?.secure_url || "/placeholder.jpg"}
+//             alt="activity"
+//             className="w-16 h-16 rounded-[14px] object-cover shrink-0 border border-gray-100"
+//           />
+//           <div className="flex-1">
+//             <h2 className="text-[16px] font-black text-[#111827] leading-snug">{payload.activityName}</h2>
+//             <div className="text-[10px] font-extrabold text-[#004bb5] uppercase tracking-widest mt-1">
+//               {payload.variantName?.split('-')[0]?.trim()}
+//               {payload.isYachtActivity ? ` (${Number(payload.durationHours).toFixed(1)} Hrs Charter)` : ''}
+//               {" "}({payload.transferType})
+//             </div>
+//           </div>
+//         </div>
+
+//         <div className="px-7 py-5 grid grid-cols-2 sm:grid-cols-4 gap-4 border-b border-gray-100">
+//           <div>
+//             <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mb-1">
+//               <Calendar size={11} /> Date
+//             </div>
+//             <div className="text-[13px] font-black text-[#111827]">
+//               {new Date(payload.submittedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+//             </div>
+//           </div>
+//           <div>
+//             <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mb-1">
+//               <Users size={11} /> Guests
+//             </div>
+//             <div className="text-[13px] font-black text-[#111827]">
+//               {payload.isYachtActivity
+//                 ? `${payload.numberOfYachts} Yacht${payload.numberOfYachts > 1 ? 's' : ''}`
+//                 : `${payload.totalGuests} Pers.`}
+//             </div>
+//           </div>
+//           <div>
+//             <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mb-1">
+//               <MapPin size={11} /> Pickup
+//             </div>
+//             <div className="text-[13px] font-black text-[#111827]">{payload.customerDetails?.pickupHotel || "—"}</div>
+//           </div>
+//           <div>
+//             <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mb-1">
+//               <Clock size={11} /> Time Slot
+//             </div>
+//             <div className="text-[13px] font-black text-[#111827]">{payload.timeSlot || "—"}</div>
+//           </div>
+//         </div>
+
+//         <div className="px-7 py-5 space-y-3 border-b border-gray-100">
+//           <div className="flex justify-between text-[13px] text-gray-500 font-bold">
+//             <span>Base Experience ({payload.variantName?.split('-')[0]?.trim()}{payload.isYachtActivity ? ` (${Number(payload.durationHours).toFixed(1)} Hrs Charter)` : ''})</span>
+//             <span>${payload.baseFare}</span>
+//           </div>
+//           {payload.transferType === "Private SUV" && (
+//             <div className="flex justify-between text-[13px] text-gray-500 font-bold">
+//               <span>Private SUV (x{payload.suvCount})</span>
+//               <span>${payload.suvTotal}</span>
+//             </div>
+//           )}
+//           {payload.addons?.map((addon, i) => (
+//             <div key={i} className="flex justify-between text-[13px] text-gray-500 font-bold">
+//               <span>{addon.name} (x{addon.quantity})</span>
+//               <span>${addon.subtotal}</span>
+//             </div>
+//           ))}
+//           <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+//             <span className="text-[15px] font-black text-[#111827]">Paid Total</span>
+//             <span className="text-[24px] font-black text-[#004bb5]">${payload.grandTotal}</span>
+//           </div>
+//         </div>
+
+//         <div className="px-7 py-5 flex items-start gap-4">
+//           <div className="w-10 h-10 rounded-[10px] border border-gray-200 flex items-center justify-center shrink-0">
+//             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+//               <rect x="1" y="1" width="7" height="7" rx="1" stroke="#9ca3af" strokeWidth="1.5"/>
+//               <rect x="12" y="1" width="7" height="7" rx="1" stroke="#9ca3af" strokeWidth="1.5"/>
+//               <rect x="1" y="12" width="7" height="7" rx="1" stroke="#9ca3af" strokeWidth="1.5"/>
+//               <rect x="13" y="13" width="2" height="2" fill="#9ca3af"/>
+//               <rect x="17" y="13" width="2" height="2" fill="#9ca3af"/>
+//               <rect x="13" y="17" width="2" height="2" fill="#9ca3af"/>
+//               <rect x="17" y="17" width="2" height="2" fill="#9ca3af"/>
+//             </svg>
+//           </div>
+//           <div className="flex-1">
+//             <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Usage Instructions</div>
+//             <p className="text-[12px] text-gray-500 leading-relaxed">
+//               Please present this digital voucher or a printed copy to our guide at the time of pickup. Valid ID may be requested.
+//             </p>
+//           </div>
+//         </div>
+
+//         <div className="bg-[#111827] px-7 py-3 flex items-center justify-between">
+//           <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400">
+//             <CheckCircle2 size={12} /> Official Voucher
+//           </div>
+//           <div className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400">Fun Tours Dubai Tourism L.L.C</div>
+//         </div>
+//       </div>
+
+//       <div className="flex items-center gap-3 mt-8 flex-wrap justify-center">
+//         <button
+//           onClick={() => window.print()}
+//           className="cursor-pointer flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+//         >
+//           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+//           Print Receipt
+//         </button>
+//        <button
+//           onClick={handleDownloadPDF}
+//           className="cursor-pointer flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+//         >
+//           {/* Download Icon */}
+//           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+//           Download PDF
+//         </button>
+//         <button
+//           onClick={() => router.push("/")}
+//           className="cursor-pointer flex items-center gap-2 px-6 py-3 rounded-full bg-[#111827] text-white text-[11px] font-black uppercase tracking-widest hover:bg-gray-800 transition-colors shadow-sm"
+//         >
+//           <Home size={13} /> Go Home
+//         </button>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+// ════════════════════════════════════════════════════════════════════════════
+// BOOKING CONFIRMED SCREEN (FINAL STABLE VERSION)
+// ════════════════════════════════════════════════════════════════════════════
+
+
+function BookingConfirmedScreen({ payload }) {
   const router = useRouter();
- const handleDownloadPDF = async () => {
+
+  const handleDownloadPDF = async () => {
     const element = document.getElementById("voucher-card");
     if (!element) return;
 
     try {
-      // 1. UI element ko pehle high-quality image me convert karna (Modern CSS support ke sath)
       const dataUrl = await toPng(element, { 
         quality: 1, 
-        pixelRatio: 2, // 2x quality for clear PDF
-        cacheBust: true
+        pixelRatio: 2, 
+        cacheBust: true,
+        backgroundColor: '#ffffff'
       });
 
-      // 2. Naya PDF document create karna
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       });
 
-      // 3. Image ko PDF ke width ke hisaab se scale karna
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const imgProps = pdf.getImageProperties(dataUrl);
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-      // 4. Image ko PDF me add karke download karna
       pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Booking-Voucher-${payload.bookingReference}.pdf`);
-
+      pdf.save(`Voucher-${payload.bookingReference}.pdf`);
     } catch (error) {
       console.error("PDF generation failed:", error);
-      alert("Failed to download PDF. Please try again.");
+      alert("Error generating PDF. Please try Print Receipt instead.");
     }
   };
+
+  // Image capture issue fix karne ke liye safe URL
+  const displayImg = payload.activityImage || "https://placehold.co/400x400?text=Fun+Tours+Dubai";
+
   return (
-    <div className="min-h-screen bg-[#F9FAFB] font-sans flex flex-col items-center justify-start py-12 px-4">
-      <div className="flex flex-col items-center mb-8">
-        <div className="w-14 h-14 rounded-full border-4 border-emerald-500 flex items-center justify-center mb-5 animate-pulse">
+    <div className="min-h-screen bg-[#F9FAFB] font-sans flex flex-col items-center justify-start py-12 px-4 print:py-0 print:px-0">
+      {/* SUCCESS MESSAGE */}
+      <div className="flex flex-col items-center mb-8 print:hidden text-center">
+        <div className="w-14 h-14 rounded-full border-4 border-emerald-500 flex items-center justify-center mb-5 animate-bounce">
           <CheckCircle2 size={28} className="text-emerald-500" />
         </div>
         <h1 className="text-[32px] md:text-[40px] font-black text-[#111827] tracking-tight">Booking Secured!</h1>
-        <p className="text-[14px] text-gray-500 mt-2 text-center">
-          Your adventure is confirmed. An e-ticket has been sent to{" "}
-          <span className="font-bold text-gray-800">{payload.customerDetails?.email || "your email"}</span>.
+        <p className="text-[14px] text-gray-500 mt-2">
+           Email sent to <span className="font-bold text-gray-800">{payload.customerDetails?.email}</span>
         </p>
       </div>
 
-      {/* Voucher Card */}
-      <div id="voucher-card" className="w-full max-w-[620px] bg-white rounded-[24px] border border-gray-200 overflow-hidden shadow-[0_4px_30px_rgba(0,0,0,0.06)]">
-
-        {/* Voucher Header */}
-        <div className="px-7 pt-6 pb-4 border-b border-gray-100 flex items-start justify-between">
+      {/* VOUCHER CARD */}
+      <div id="voucher-card" className="w-full max-w-[620px] bg-white rounded-[24px] border border-gray-200 overflow-hidden shadow-[0_4px_30px_rgba(0,0,0,0.06)] print:border-0 print:shadow-none">
+        
+        {/* Header */}
+        <div className="px-7 pt-6 pb-4 border-b border-gray-100 flex items-start justify-between bg-white">
           <div>
             <div className="text-[11px] font-black text-[#004bb5] uppercase tracking-widest">FUN TOURS <span className="text-[#EF4444]">DUBAI</span></div>
             <div className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Digital Service Voucher</div>
@@ -1879,29 +2040,30 @@ function BookingConfirmedScreen({ payload, activity }) {
           </div>
         </div>
 
-        <div className="px-7 py-5 flex gap-4 border-b border-gray-100">
+        {/* Activity Details */}
+        <div className="px-7 py-5 flex gap-4 border-b border-gray-100 bg-white">
           <img
-            src={activity?.Images?.[0]?.url || activity?.Images?.[0]?.secure_url || "/placeholder.jpg"}
+            src={displayImg}
             alt="activity"
+            crossOrigin="anonymous" 
             className="w-16 h-16 rounded-[14px] object-cover shrink-0 border border-gray-100"
           />
           <div className="flex-1">
             <h2 className="text-[16px] font-black text-[#111827] leading-snug">{payload.activityName}</h2>
             <div className="text-[10px] font-extrabold text-[#004bb5] uppercase tracking-widest mt-1">
-              {payload.variantName?.split('-')[0]?.trim()}
-              {payload.isYachtActivity ? ` (${Number(payload.durationHours).toFixed(1)} Hrs Charter)` : ''}
-              {" "}({payload.transferType})
+              {payload.variantName?.split('-')[0].trim()} ({payload.transferType})
             </div>
           </div>
         </div>
 
-        <div className="px-7 py-5 grid grid-cols-2 sm:grid-cols-4 gap-4 border-b border-gray-100">
+        {/* Info Grid */}
+        <div className="px-7 py-5 grid grid-cols-2 sm:grid-cols-4 gap-4 border-b border-gray-100 bg-white">
           <div>
             <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mb-1">
-              <Calendar size={11} /> Date
+              <Calendar size={11} /> Tour Date
             </div>
             <div className="text-[13px] font-black text-[#111827]">
-              {new Date(payload.submittedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+              {new Date(payload.selectedDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
             </div>
           </div>
           <div>
@@ -1909,68 +2071,67 @@ function BookingConfirmedScreen({ payload, activity }) {
               <Users size={11} /> Guests
             </div>
             <div className="text-[13px] font-black text-[#111827]">
-              {payload.isYachtActivity
-                ? `${payload.numberOfYachts} Yacht${payload.numberOfYachts > 1 ? 's' : ''}`
-                : `${payload.totalGuests} Pers.`}
+              {payload.isYachtActivity ? `${payload.numberOfYachts} Yacht` : `${payload.totalGuests} Pers.`}
             </div>
           </div>
           <div>
             <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mb-1">
               <MapPin size={11} /> Pickup
             </div>
-            <div className="text-[13px] font-black text-[#111827]">{payload.customerDetails?.pickupHotel || "—"}</div>
+            <div className="text-[13px] font-black text-[#111827] truncate">{payload.customerDetails?.pickupHotel || "Not Specified"}</div>
           </div>
           <div>
             <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mb-1">
               <Clock size={11} /> Time Slot
             </div>
-            <div className="text-[13px] font-black text-[#111827]">{payload.timeSlot || "—"}</div>
+            <div className="text-[13px] font-black text-[#111827]">{payload.timeSlot}</div>
           </div>
         </div>
 
-        <div className="px-7 py-5 space-y-3 border-b border-gray-100">
+        {/* Price Breakdown */}
+        <div className="px-7 py-5 space-y-3 border-b border-gray-100 bg-white">
           <div className="flex justify-between text-[13px] text-gray-500 font-bold">
-            <span>Base Experience ({payload.variantName?.split('-')[0]?.trim()}{payload.isYachtActivity ? ` (${Number(payload.durationHours).toFixed(1)} Hrs Charter)` : ''})</span>
-            <span>${payload.baseFare}</span>
+            <span>Base Experience ({payload.variantName?.split('-')[0].trim()})</span>
+            <span>${payload.pricing.baseFare}</span>
           </div>
+
           {payload.transferType === "Private SUV" && (
-            <div className="flex justify-between text-[13px] text-gray-500 font-bold">
-              <span>Private SUV (x{payload.suvCount})</span>
-              <span>${payload.suvTotal}</span>
+            <div className="flex flex-col gap-0.5">
+                <div className="flex justify-between text-[13px] text-gray-500 font-bold">
+                    <span>Private SUV Transfer (x{payload.suvCount})</span>
+                    <span>${payload.pricing.suvTotal}</span>
+                </div>
+                <div className="text-[10px] text-gray-400 font-medium italic">Model: {payload.suvModel}</div>
             </div>
           )}
+
           {payload.addons?.map((addon, i) => (
             <div key={i} className="flex justify-between text-[13px] text-gray-500 font-bold">
               <span>{addon.name} (x{addon.quantity})</span>
               <span>${addon.subtotal}</span>
             </div>
           ))}
-          <div className="flex justify-between items-center pt-3 border-t border-gray-100">
-            <span className="text-[15px] font-black text-[#111827]">Paid Total</span>
-            <span className="text-[24px] font-black text-[#004bb5]">${payload.grandTotal}</span>
+
+          <div className="flex justify-between items-center pt-3 border-t border-gray-100 mt-2">
+            <span className="text-[15px] font-black text-[#111827]">Total ({payload.paymentMethod?.replace('_', ' ').toUpperCase()})</span>
+            <span className="text-[24px] font-black text-[#004bb5]">${payload.pricing.grandTotal}</span>
           </div>
         </div>
 
-        <div className="px-7 py-5 flex items-start gap-4">
+        {/* Usage Instructions */}
+        <div className="px-7 py-5 flex items-start gap-4 bg-white">
           <div className="w-10 h-10 rounded-[10px] border border-gray-200 flex items-center justify-center shrink-0">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <rect x="1" y="1" width="7" height="7" rx="1" stroke="#9ca3af" strokeWidth="1.5"/>
-              <rect x="12" y="1" width="7" height="7" rx="1" stroke="#9ca3af" strokeWidth="1.5"/>
-              <rect x="1" y="12" width="7" height="7" rx="1" stroke="#9ca3af" strokeWidth="1.5"/>
-              <rect x="13" y="13" width="2" height="2" fill="#9ca3af"/>
-              <rect x="17" y="13" width="2" height="2" fill="#9ca3af"/>
-              <rect x="13" y="17" width="2" height="2" fill="#9ca3af"/>
-              <rect x="17" y="17" width="2" height="2" fill="#9ca3af"/>
-            </svg>
+            <Info size={20} className="text-gray-400" />
           </div>
           <div className="flex-1">
             <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Usage Instructions</div>
-            <p className="text-[12px] text-gray-500 leading-relaxed">
-              Please present this digital voucher or a printed copy to our guide at the time of pickup. Valid ID may be requested.
+            <p className="text-[12px] text-gray-500 leading-relaxed italic">
+              Please present this voucher to our representative. WhatsApp help: +971-XX-XXXXXXX.
             </p>
           </div>
         </div>
 
+        {/* Official Footer */}
         <div className="bg-[#111827] px-7 py-3 flex items-center justify-between">
           <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400">
             <CheckCircle2 size={12} /> Official Voucher
@@ -1979,27 +2140,16 @@ function BookingConfirmedScreen({ payload, activity }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3 mt-8 flex-wrap justify-center">
-        <button
-          onClick={() => window.print()}
-          className="cursor-pointer flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-          Print Receipt
+      {/* ACTION BUTTONS */}
+      <div className="flex items-center gap-3 mt-8 flex-wrap justify-center print:hidden">
+        <button onClick={() => window.print()} className="flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 shadow-sm">
+          <CreditCard size={14} /> Print
         </button>
-       <button
-          onClick={handleDownloadPDF}
-          className="cursor-pointer flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
-        >
-          {/* Download Icon */}
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Download PDF
+        <button onClick={handleDownloadPDF} className="flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 shadow-sm">
+          <ArrowRight size={14} className="rotate-90" /> Download PDF
         </button>
-        <button
-          onClick={() => router.push("/")}
-          className="cursor-pointer flex items-center gap-2 px-6 py-3 rounded-full bg-[#111827] text-white text-[11px] font-black uppercase tracking-widest hover:bg-gray-800 transition-colors shadow-sm"
-        >
-          <Home size={13} /> Go Home
+        <button onClick={() => router.push("/")} className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#111827] text-white text-[11px] font-black uppercase tracking-widest hover:bg-gray-800 shadow-sm">
+          <Home size={13} /> Home
         </button>
       </div>
     </div>
