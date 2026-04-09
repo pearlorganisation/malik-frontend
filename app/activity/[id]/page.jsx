@@ -1592,7 +1592,7 @@ function CheckoutView({
             ) : (
               <>
                 <div className="bg-white rounded-[24px] p-6 sm:p-8 shadow-[0_2px_20px_rgba(0,0,0,0.03)] border border-gray-100">
-                  <h3 className="flex items-center gap-2 text-[12px] font-black uppercase tracking-widest text-[#111827] mb-6">
+                  {/* <h3 className="flex items-center gap-2 text-[12px] font-black uppercase tracking-widest text-[#111827] mb-6">
                     <CreditCard size={15} className="text-[#004bb5]"/> SECURE PAYMENT
                   </h3>
                   
@@ -1638,8 +1638,67 @@ function CheckoutView({
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </div> */}
+
+
+
+                  {showQR && (
+  <>
+    <h3 className="flex items-center gap-2 text-[12px] font-black uppercase tracking-widest text-[#111827] mb-6">
+      <CreditCard size={15} className="text-[#004bb5]" /> SECURE PAYMENT
+    </h3>
+
+    <div className="space-y-5">
+      <div>
+        <label className="block text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-[0.15em] mb-2.5">
+          CARD NUMBER
+        </label>
+        <div className="relative flex items-center">
+          <CreditCard size={16} className="absolute left-4 text-[#9ca3af]" />
+          <input
+            type="text"
+            placeholder="0000 0000 0000 0000"
+            className="w-full bg-[#F9FAFB] border-0 rounded-[14px] pl-11 pr-4 py-4 text-[15px] font-black text-gray-900 placeholder:text-[#d1d5db] focus:ring-2 focus:ring-[#004bb5]/20 focus:bg-white transition-all outline-none tracking-widest"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-[0.15em] mb-2.5">
+            EXPIRY
+          </label>
+          <input
+            type="text"
+            placeholder="MM/YY"
+            className="w-full bg-[#F9FAFB] border-0 rounded-[14px] px-4 py-4 text-[15px] font-black text-center text-gray-900 placeholder:text-[#d1d5db] focus:ring-2 focus:ring-[#004bb5]/20 focus:bg-white transition-all outline-none tracking-widest"
+          />
+        </div>
+
+        <div>
+          <label className="block text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-[0.15em] mb-2.5">
+            CVV
+          </label>
+          <div className="relative flex items-center">
+            <svg className="absolute left-4 w-4 h-4 text-[#9ca3af]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+            <input
+              type="password"
+              placeholder="***"
+              className="w-full bg-[#F9FAFB] border-0 rounded-[14px] pl-11 pr-4 py-4 text-[15px] font-black text-gray-900 placeholder:text-[#d1d5db] focus:ring-2 focus:ring-[#004bb5]/20 focus:bg-white transition-all outline-none tracking-widest"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </>
+)}
+
+
+
 {/* 
+
                   <div className="mt-8">
                     <button 
                       onClick={handlePayNow}
