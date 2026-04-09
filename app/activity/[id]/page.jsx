@@ -3,8 +3,10 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useGetActivityByIdQuery } from "@/features/activity/activityApi.js";
 import { useCreateBookingMutation } from "@/features/booking/bookApi.js";
+import toast from "react-hot-toast";
 import ReviewModal from "@/components/Review/ReviewModal";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import StarRating from "@/components/Review/StarRating";
 import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
 import {
@@ -47,6 +49,7 @@ import {
 } from "lucide-react";
 import ActivityReviews from "@/components/Review/ActivityReviews";
 import { useCreateTourMutation } from "@/features/tour/tourApi";
+import { useSelector } from "react-redux";
 // import { useCreateBookingMutation } from "@/features/booking/bookApi";
 export default function ActivityDetailPage() {
   const fallbackHighlights =[
@@ -866,20 +869,47 @@ function PackagesSection({ activity, selectedPackageIndex, isVariantExpanded, ha
   );
 }
 
+
+
 function ReviewsSection({ activity }) {
+  const user = useSelector((state) => state.auth.user); 
   const [isReviewOpen, setIsReviewOpen] = useState(false);
+
+  const handleWriteReview = () => {
+    if (!user) {
+      return toast.error("Please login to write a review");
+    }
+    setIsReviewOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <div className="text-4xl font-black text-gray-900">{activity.rating || "4.8"}</div>
+          <div className="text-4xl font-black text-gray-900">{activity.rating || "4.0"}</div>
           <div className="flex items-center gap-0.5 mt-1">
-            {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />)}
+            {/* AB YEH LINE ERROR NAHI DEGI */}
+            <StarRating rating={Math.round(activity.rating || 4.5)} size="sm" />
           </div>
-          <div className="text-[11px] text-gray-400 uppercase tracking-widest font-bold mt-1">Based on {activity.reviewCount || "45000"} reviews</div>
+          <div className="text-[11px] text-gray-400 uppercase tracking-widest font-bold mt-1">
+            Based on {activity.reviewCount || "4"} reviews
+          </div>
         </div>
-        <button onClick={() => setIsReviewOpen(true)} className="px-8 py-2.5 bg-black text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-800 transition-colors">Write a Review</button>
-        {isReviewOpen && <ReviewModal isOpen={isReviewOpen} onClose={() => setIsReviewOpen(false)} activityId={activity?._id} />}
+        
+        <button 
+          onClick={handleWriteReview} 
+          className="px-8 py-2.5 bg-black text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-800 transition-colors"
+        >
+          Write a Review
+        </button>
+
+        {isReviewOpen && (
+          <ReviewModal 
+            isOpen={isReviewOpen} 
+            onClose={() => setIsReviewOpen(false)} 
+            activityId={activity?._id} 
+          />
+        )}
       </div>
     </div>
   );
@@ -1444,9 +1474,21 @@ function CheckoutView({
       }, 1500);
     }
   } catch (error) {
-    console.error("Booking Error:", error);
-    setToastMsg("❌ Booking Failed. Please try again.");
-    setTimeout(() => setToastMsg(""), 3000);
+   console.error("Booking Error:", error);
+
+    // 1. Backend se error message nikalna
+    let backendMessage = error?.data?.message || "Booking Failed. Please try again.";
+
+    // 2. Agar status 401 (Unauthorized) hai toh sundar message
+    if (error?.status === 401) {
+      backendMessage = "🔒 Login Required! Please log in to complete your booking.";
+    }
+
+    // 3. Toast set karna
+    setToastMsg(`❌ ${backendMessage}`);
+
+    // 4. Message ko automatic gayab karna
+    setTimeout(() => setToastMsg(""), 4000);
   }
 };
 

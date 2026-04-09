@@ -9,24 +9,23 @@ export default function ReviewModal({ isOpen, onClose, activityId }) {
 
   const [createReview, { isLoading }] = useCreateReviewMutation();
 
-  const handleSubmit = async () => {
-    if (!comment) return toast.error("Please write a comment");
+const handleSubmit = async () => {
+  if (!comment.trim()) return toast.error("Please write a comment");
 
-    try {
-      await createReview({
-        activityId,
-        rating,
-        comment,
-      }).unwrap();
+  try {
+    await createReview({
+      activityId,
+      rating,
+      comment,
+    }).unwrap();
 
-      toast.success("Review added successfully 🎉");
-      setComment("");
-      setRating(5);
-      onClose();
-    } catch (err) {
-      toast.error(err?.data?.message || "Something went wrong");
-    }
-  };
+    toast.success("Review added! 🎉");
+    onClose();
+  } catch (err) {
+    const errorMsg = err?.data?.message || "Something went wrong";
+    toast.error(errorMsg);
+  }
+};
 
   if (!isOpen) return null;
 
