@@ -212,8 +212,10 @@ export default function MegaMenu({
                   href={`/activity?slug=${act.slug}`}
                   // href={`/activity/${tour.slug}`}
                   // href={`/activity`}
+                  scroll={true}
                   onClick={onClose}
-                  className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl bg-white border border-transparent hover:border-blue-200 hover:bg-blue-50 hover:shadow-sm transition-all duration-200 group"
+                    className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors group min-w-0"
+                  // className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl bg-white border border-transparent hover:border-blue-200 hover:bg-blue-50 hover:shadow-sm transition-all duration-200 group"
                 >
                   {/* IMAGE */}
                   <div className="w-[52px] h-[46px] rounded-lg overflow-hidden bg-gray-100 shrink-0">
@@ -227,7 +229,7 @@ export default function MegaMenu({
                   </div>
 
                   {/* CONTENT */}
-                  <div className="flex-1 min-w-0">
+                  {/* <div className="flex-1 min-w-0 ">
                     <div className="flex items-center gap-1.5 mb-0.5">
                       <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider">
                         {act.categoryName}
@@ -239,11 +241,9 @@ export default function MegaMenu({
                         </span>
                       </div>
                     </div>
-
-                    <p className="text-[12px] font-bold text-slate-800 leading-snug truncate">
-                      {act.name}
-                    </p>
-
+ <p className="truncate text-[12px] font-bold text-slate-800">
+      {act.name}
+    </p>
                     <div className="flex items-center justify-between mt-0.5">
                       <div className="flex items-center gap-0.5">
                         <MapPin className="w-2.5 h-2.5 text-orange-400" />
@@ -261,7 +261,45 @@ export default function MegaMenu({
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </div> */}
+
+                  {/* CONTENT */}
+<div className="flex-1 min-w-0 overflow-hidden"> {/* added overflow-hidden */}
+  <div className="flex items-center gap-1.5 mb-0.5">
+    <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider shrink-0">
+      {act.categoryName}
+    </span>
+    <div className="flex items-center gap-0.5 shrink-0">
+      <Star className="w-2.5 h-2.5 text-yellow-400 fill-yellow-400" />
+      <span className="text-[9.5px] font-semibold text-slate-700">
+        {act.rating}
+      </span>
+    </div>
+  </div>
+
+  {/* IS WALE SECTION KO UPDATE KAREIN */}
+  <h4 className="text-[12px] font-bold text-slate-800 leading-[1.2] line-clamp-2 break-words h-[28px]">
+    {act.name}
+  </h4>
+
+  <div className="flex items-center justify-between mt-1">
+    <div className="flex items-center gap-0.5 min-w-0"> {/* min-w-0 added */}
+      <MapPin className="w-2.5 h-2.5 text-orange-400 shrink-0" />
+      <span className="text-[9px] font-semibold text-orange-500 uppercase tracking-wide truncate">
+        {act.location}
+      </span>
+    </div>
+
+    <div className="text-right shrink-0 ml-2">
+      <div className="text-[8px] text-slate-400 uppercase leading-none">
+        Starting at
+      </div>
+      <div className="text-[13px] font-bold text-slate-900 leading-tight">
+        ${act.startingPrice || 0}
+      </div>
+    </div>
+  </div>
+</div>
 
                   {/* RIGHT ARROW */}
                   <div className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center bg-slate-100 group-hover:bg-blue-600 transition-colors duration-200">

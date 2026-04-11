@@ -76,10 +76,8 @@ export default function ActivityDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = params?.id;
-
-  const { data, isLoading, isError } = useGetActivityByIdQuery(id, { skip: !id });
+ const { data, isLoading, isError } = useGetActivityByIdQuery(id, { skip: !id });
   const activity = data?.data;
-
   const PAGE_TABS = useMemo(() => {
     if (!activity) return[];
     const tabs =[];
@@ -109,7 +107,8 @@ export default function ActivityDetailPage() {
   const[selectedDate, setSelectedDate] = useState("");
   const[bookingStep, setBookingStep] = useState(1);
   const [isVariantExpanded, setIsVariantExpanded] = useState(true);
-
+const [activeIndex, setActiveIndex] = useState(null);
+  const [imgOffset, setImgOffset] = useState(0);
   // ─── SUV QUANTITY STATE (user-controlled) ────────────────────────────────
   const [suvQty, setSuvQty] = useState(1);
 
@@ -117,12 +116,20 @@ export default function ActivityDetailPage() {
   const contentRef = useRef(null);
 
   // 1. Image switching ke liye index state
-const [imgOffset, setImgOffset] = useState(0);
 // 2. Lightbox/Preview ke liye state
 const [previewImage, setPreviewImage] = useState(null);
 
 
-
+   useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (activeIndex === null) return;
+      if (e.key === "ArrowRight") setActiveIndex(prev => (prev === images.length - 1 ? 0 : prev + 1));
+      if (e.key === "ArrowLeft") setActiveIndex(prev => (prev === 0 ? images.length - 1 : prev - 1));
+      if (e.key === "Escape") setActiveIndex(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeIndex, activity?.Images?.length]);
   const selectedPackage = activity?.packages?.[selectedPackageIndex] || activity?.packages?.[0];
   const isVIP = selectedPackage?.name?.toLowerCase().includes("vip");
   const isSUV = transferType === "suv";
@@ -360,7 +367,18 @@ const handleSwitchImages = (e) => {
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900 p-4">
       {/* ── Breadcrumb ────────────────────────────────────────────────────── */}
-      <div className="bg-gray-60/10 border-b border-t border-gray-100 sticky top-0 z-40 shadow-sm">
+      {/* <div className="bg-gray-60/10 border-b border-t border-gray-100 sticky top-0 z-40 shadow-sm">
+        <div className="w-full mx-auto px-4 sm:px-6 py-2.5 flex items-center text-xs text-gray-500 gap-1.5 overflow-x-auto whitespace-nowrap">
+          <Home className="w-2.5 h-2.5 text-gray-400 shrink-0" />
+          <ChevronRight className="w-3 h-3 text-gray-300 shrink-0" />
+          <span className="hover:text-blue-600 cursor-pointer text-sm transition-colors">Home</span>
+          <ChevronRight className="w-3 h-3 text-gray-300 shrink-0" />
+          <span className="text-black font-bold text-[13px] tracking-widest truncate">{activity.name}</span>
+        </div>
+      </div> */}
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-2 md:py-4">
+          <div className="bg-gray-60/10 border-b border-t border-gray-100 sticky top-0 z-40 shadow-sm">
         <div className="w-full mx-auto px-4 sm:px-6 py-2.5 flex items-center text-xs text-gray-500 gap-1.5 overflow-x-auto whitespace-nowrap">
           <Home className="w-2.5 h-2.5 text-gray-400 shrink-0" />
           <ChevronRight className="w-3 h-3 text-gray-300 shrink-0" />
@@ -369,8 +387,6 @@ const handleSwitchImages = (e) => {
           <span className="text-black font-bold text-[13px] tracking-widest truncate">{activity.name}</span>
         </div>
       </div>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-2 md:py-4">
         {/* ── Title + Rating ────────────────────────────────────────────────── */}
         <div className="mb-5">
           <h1 className="text-2xl md:text-3xl lg:text-5xl font-bold text-black leading-tight mb-2">
@@ -425,7 +441,8 @@ const handleSwitchImages = (e) => {
   
   {/* Slot 1: Large Main Image (Hamesha current offset ki pehli image) */}
   <div 
-    onClick={() => setPreviewImage(images[imgOffset]?.url)}
+    // onClick={() => setPreviewImage(images[imgOffset]?.url)}
+    onClick={() => setActiveIndex(imgOffset)}
     className="col-span-2 row-span-2 relative group overflow-hidden cursor-pointer"
   >
     <img src={images[imgOffset]?.url || "/placeholder.jpg"} alt="Main" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
@@ -448,7 +465,8 @@ const handleSwitchImages = (e) => {
           <>
             <img 
               src={item.url} 
-              onClick={() => setPreviewImage(item.url)}
+              // onClick={() => setPreviewImage(item.url)}
+              onClick={() => setActiveIndex(currentImgIndex)}
               alt={`Gallery ${currentImgIndex}`} 
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
             />
@@ -456,7 +474,11 @@ const handleSwitchImages = (e) => {
             {/* Last Slot Overlay (+X More) */}
             {isLastSlot && (totalImages > imgOffset + 5 || imgOffset > 0) && (
               <div 
-                onClick={handleSwitchImages}
+                // onClick={handleSwitchImages}
+                  onClick={(e) => {
+    e.stopPropagation(); 
+    setActiveIndex(imgOffset + 4); 
+  }}
                 className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white"
               >
                 <span className="text-lg font-black tracking-tighter">
@@ -780,7 +802,7 @@ const handleSwitchImages = (e) => {
         </button>
       </div>
       {/* ── Image Preview Modal (Lightbox) ────────────────────────── */}
-{previewImage && (
+{/* {previewImage && (
   <div 
     className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 backdrop-blur-sm"
     onClick={() => setPreviewImage(null)}
@@ -793,6 +815,55 @@ const handleSwitchImages = (e) => {
       className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-300" 
       alt="Preview"
     />
+  </div>
+)} */}
+{/* ── Image Preview Modal (Lightbox) with Navigation ────────────────────────── */}
+{activeIndex !== null && (
+  <div 
+    className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in duration-300"
+    onClick={() => setActiveIndex(null)}
+  >
+    {/* Close Button */}
+    <button className="absolute top-6 right-6 text-white hover:text-red-500 z-50 transition-all">
+      <X size={40} strokeWidth={2} />
+    </button>
+
+    {/* Left Arrow */}
+    <button 
+      onClick={(e) => {
+        e.stopPropagation();
+        setActiveIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+      }}
+      className="absolute left-4 md:left-10 text-white bg-white/10 p-3 rounded-full hover:bg-white/20 transition-all"
+    >
+      <ChevronDown className="rotate-90" size={30} /> {/* ChevronDown rotate karke arrow banaya */}
+    </button>
+
+    {/* Main Image View */}
+    <div className="relative max-w-5xl w-full h-[80vh] flex flex-col items-center justify-center">
+      <img 
+        src={images[activeIndex]?.url} 
+        className="max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-300" 
+        alt="Preview"
+        onClick={(e) => e.stopPropagation()} // Image click se modal band na ho
+      />
+      
+      {/* Image Counter Badge */}
+      <div className="absolute bottom-[-40px] text-white/70 font-bold tracking-widest text-sm bg-white/10 px-4 py-1 rounded-full">
+        {activeIndex + 1} / {images.length}
+      </div>
+    </div>
+
+    {/* Right Arrow */}
+    <button 
+      onClick={(e) => {
+        e.stopPropagation();
+        setActiveIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+      }}
+      className="absolute right-4 md:right-10 text-white bg-white/10 p-3 rounded-full hover:bg-white/20 transition-all"
+    >
+      <ChevronRight size={30} />
+    </button>
   </div>
 )}
     </div>

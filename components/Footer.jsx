@@ -16,7 +16,7 @@ import {
   
 } from "lucide-react";
 
-
+import { useGetPagesQuery } from "@/features/page/pageApi";
 import { useGetCategoriesQuery } from "@/features/category/categoryApi.js";
 import { useGetAllPlacesQuery } from "@/features/place/placeApi";
 import Link from "next/link";
@@ -61,6 +61,7 @@ const places = placesResponse?.data || [];
       ? categories
       : MOCK_CATEGORIES;
 
+      const { data: cmsPages, isLoading: cmsLoading } = useGetPagesQuery();
   return (
     <footer className="w-full font-sans antialiased">
       {/* 1. CTA Banner Section - Blue Background */}
@@ -361,7 +362,7 @@ const places = placesResponse?.data || [];
         </div>
 
         {/* 3. Bottom Bar */}
-        <div className="container mx-auto px-4 mt-12 pt-8 border-t border-slate-900/50">
+        {/* <div className="container mx-auto px-4 mt-12 pt-8 border-t border-slate-900/50">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-[11px] text-slate-600 font-medium">
             <div>
               &copy; {new Date().getFullYear()} Dubai Tours. All rights
@@ -386,6 +387,31 @@ const places = placesResponse?.data || [];
             </div>
           </div>
         </div>
+      </div> */}
+        <div className="container mx-auto px-4 mt-12 pt-8 border-t border-slate-900/50">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-[11px] text-slate-600 font-medium">
+          <div>
+            &copy; {new Date().getFullYear()} Fun Tours. All rights reserved.
+          </div>
+          
+          <div className="flex flex-wrap justify-center gap-6">
+  {/* cmsPages agar undefined hua toh map crash kar dega, isliye ?. use karein */}
+  {!cmsLoading && cmsPages?.map((page) => (
+    <Link
+      key={page._id}
+      href={`/info/${page.slug}`}
+      className="hover:text-slate-400 transition-colors uppercase tracking-wider"
+    >
+      {page.title}
+    </Link>
+  ))}
+  
+  {/* <Link href="/sitemap" className="hover:text-slate-400 transition-colors uppercase tracking-wider">
+     Sitemap
+  </Link> */}
+</div>
+        </div>
+      </div>
       </div>
     </footer>
   );
