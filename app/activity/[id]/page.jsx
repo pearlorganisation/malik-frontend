@@ -3,8 +3,10 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useGetActivityByIdQuery } from "@/features/activity/activityApi.js";
 import { useCreateBookingMutation } from "@/features/booking/bookApi.js";
+import toast from "react-hot-toast";
 import ReviewModal from "@/components/Review/ReviewModal";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import StarRating from "@/components/Review/StarRating";
 import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
 import {
@@ -46,7 +48,9 @@ import {
   User 
 } from "lucide-react";
 import ActivityReviews from "@/components/Review/ActivityReviews";
-
+import { useCreateTourMutation } from "@/features/tour/tourApi";
+import { useSelector } from "react-redux";
+// import { useCreateBookingMutation } from "@/features/booking/bookApi";
 export default function ActivityDetailPage() {
   const fallbackHighlights =[
     "Experience breathtaking 360-degree views of Dubai",
@@ -72,8 +76,7 @@ export default function ActivityDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = params?.id;
-
-  const { data, isLoading, isError } = useGetActivityByIdQuery(id, { skip: !id });
+ const { data, isLoading, isError } = useGetActivityByIdQuery(id, { skip: !id });
   const activity = data?.data;
 
   const PAGE_TABS = useMemo(() => {
@@ -105,7 +108,8 @@ export default function ActivityDetailPage() {
   const[selectedDate, setSelectedDate] = useState("");
   const[bookingStep, setBookingStep] = useState(1);
   const [isVariantExpanded, setIsVariantExpanded] = useState(true);
-
+const [activeIndex, setActiveIndex] = useState(null);
+  const [imgOffset, setImgOffset] = useState(0);
   // ─── SUV QUANTITY STATE (user-controlled) ────────────────────────────────
   const [suvQty, setSuvQty] = useState(1);
 
@@ -113,12 +117,20 @@ export default function ActivityDetailPage() {
   const contentRef = useRef(null);
 
   // 1. Image switching ke liye index state
-const [imgOffset, setImgOffset] = useState(0);
 // 2. Lightbox/Preview ke liye state
 const [previewImage, setPreviewImage] = useState(null);
 
 
-
+   useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (activeIndex === null) return;
+      if (e.key === "ArrowRight") setActiveIndex(prev => (prev === images.length - 1 ? 0 : prev + 1));
+      if (e.key === "ArrowLeft") setActiveIndex(prev => (prev === 0 ? images.length - 1 : prev - 1));
+      if (e.key === "Escape") setActiveIndex(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeIndex, activity?.Images?.length]);
   const selectedPackage = activity?.packages?.[selectedPackageIndex] || activity?.packages?.[0];
   const isVIP = selectedPackage?.name?.toLowerCase().includes("vip");
   const isSUV = transferType === "suv";
@@ -356,7 +368,18 @@ const handleSwitchImages = (e) => {
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900 p-4">
       {/* ── Breadcrumb ────────────────────────────────────────────────────── */}
-      <div className="bg-gray-60/10 border-b border-t border-gray-100 sticky top-0 z-40 shadow-sm">
+      {/* <div className="bg-gray-60/10 border-b border-t border-gray-100 sticky top-0 z-40 shadow-sm">
+        <div className="w-full mx-auto px-4 sm:px-6 py-2.5 flex items-center text-xs text-gray-500 gap-1.5 overflow-x-auto whitespace-nowrap">
+          <Home className="w-2.5 h-2.5 text-gray-400 shrink-0" />
+          <ChevronRight className="w-3 h-3 text-gray-300 shrink-0" />
+          <span className="hover:text-blue-600 cursor-pointer text-sm transition-colors">Home</span>
+          <ChevronRight className="w-3 h-3 text-gray-300 shrink-0" />
+          <span className="text-black font-bold text-[13px] tracking-widest truncate">{activity.name}</span>
+        </div>
+      </div> */}
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-2 md:py-4">
+          <div className="bg-gray-60/10 border-b border-t border-gray-100 sticky top-0 z-40 shadow-sm">
         <div className="w-full mx-auto px-4 sm:px-6 py-2.5 flex items-center text-xs text-gray-500 gap-1.5 overflow-x-auto whitespace-nowrap">
           <Home className="w-2.5 h-2.5 text-gray-400 shrink-0" />
           <ChevronRight className="w-3 h-3 text-gray-300 shrink-0" />
@@ -365,8 +388,6 @@ const handleSwitchImages = (e) => {
           <span className="text-black font-bold text-[13px] tracking-widest truncate">{activity.name}</span>
         </div>
       </div>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-2 md:py-4">
         {/* ── Title + Rating ────────────────────────────────────────────────── */}
         <div className="mb-5">
           <h1 className="text-2xl md:text-3xl lg:text-5xl font-bold text-black leading-tight mb-2">
@@ -421,7 +442,8 @@ const handleSwitchImages = (e) => {
   
   {/* Slot 1: Large Main Image (Hamesha current offset ki pehli image) */}
   <div 
-    onClick={() => setPreviewImage(images[imgOffset]?.url)}
+    // onClick={() => setPreviewImage(images[imgOffset]?.url)}
+    onClick={() => setActiveIndex(imgOffset)}
     className="col-span-2 row-span-2 relative group overflow-hidden cursor-pointer"
   >
     <img src={images[imgOffset]?.url || "/placeholder.jpg"} alt="Main" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
@@ -444,7 +466,8 @@ const handleSwitchImages = (e) => {
           <>
             <img 
               src={item.url} 
-              onClick={() => setPreviewImage(item.url)}
+              // onClick={() => setPreviewImage(item.url)}
+              onClick={() => setActiveIndex(currentImgIndex)}
               alt={`Gallery ${currentImgIndex}`} 
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
             />
@@ -452,7 +475,11 @@ const handleSwitchImages = (e) => {
             {/* Last Slot Overlay (+X More) */}
             {isLastSlot && (totalImages > imgOffset + 5 || imgOffset > 0) && (
               <div 
-                onClick={handleSwitchImages}
+                // onClick={handleSwitchImages}
+                  onClick={(e) => {
+    e.stopPropagation(); 
+    setActiveIndex(imgOffset + 4); 
+  }}
                 className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white"
               >
                 <span className="text-lg font-black tracking-tighter">
@@ -776,7 +803,7 @@ const handleSwitchImages = (e) => {
         </button>
       </div>
       {/* ── Image Preview Modal (Lightbox) ────────────────────────── */}
-{previewImage && (
+{/* {previewImage && (
   <div 
     className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 backdrop-blur-sm"
     onClick={() => setPreviewImage(null)}
@@ -789,6 +816,55 @@ const handleSwitchImages = (e) => {
       className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-300" 
       alt="Preview"
     />
+  </div>
+)} */}
+{/* ── Image Preview Modal (Lightbox) with Navigation ────────────────────────── */}
+{activeIndex !== null && (
+  <div 
+    className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in duration-300"
+    onClick={() => setActiveIndex(null)}
+  >
+    {/* Close Button */}
+    <button className="absolute top-6 right-6 text-white hover:text-red-500 z-50 transition-all">
+      <X size={40} strokeWidth={2} />
+    </button>
+
+    {/* Left Arrow */}
+    <button 
+      onClick={(e) => {
+        e.stopPropagation();
+        setActiveIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+      }}
+      className="absolute left-4 md:left-10 text-white bg-white/10 p-3 rounded-full hover:bg-white/20 transition-all"
+    >
+      <ChevronDown className="rotate-90" size={30} /> {/* ChevronDown rotate karke arrow banaya */}
+    </button>
+
+    {/* Main Image View */}
+    <div className="relative max-w-5xl w-full h-[80vh] flex flex-col items-center justify-center">
+      <img 
+        src={images[activeIndex]?.url} 
+        className="max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-300" 
+        alt="Preview"
+        onClick={(e) => e.stopPropagation()} // Image click se modal band na ho
+      />
+      
+      {/* Image Counter Badge */}
+      <div className="absolute bottom-[-40px] text-white/70 font-bold tracking-widest text-sm bg-white/10 px-4 py-1 rounded-full">
+        {activeIndex + 1} / {images.length}
+      </div>
+    </div>
+
+    {/* Right Arrow */}
+    <button 
+      onClick={(e) => {
+        e.stopPropagation();
+        setActiveIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+      }}
+      className="absolute right-4 md:right-10 text-white bg-white/10 p-3 rounded-full hover:bg-white/20 transition-all"
+    >
+      <ChevronRight size={30} />
+    </button>
   </div>
 )}
     </div>
@@ -865,20 +941,47 @@ function PackagesSection({ activity, selectedPackageIndex, isVariantExpanded, ha
   );
 }
 
+
+
 function ReviewsSection({ activity }) {
+  const user = useSelector((state) => state.auth.user); 
   const [isReviewOpen, setIsReviewOpen] = useState(false);
+
+  const handleWriteReview = () => {
+    if (!user) {
+      return toast.error("Please login to write a review");
+    }
+    setIsReviewOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <div className="text-4xl font-black text-gray-900">{activity.rating || "4.8"}</div>
+          <div className="text-4xl font-black text-gray-900">{activity.rating || "4.0"}</div>
           <div className="flex items-center gap-0.5 mt-1">
-            {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />)}
+            {/* AB YEH LINE ERROR NAHI DEGI */}
+            <StarRating rating={Math.round(activity.rating || 4.5)} size="sm" />
           </div>
-          <div className="text-[11px] text-gray-400 uppercase tracking-widest font-bold mt-1">Based on {activity.reviewCount || "45000"} reviews</div>
+          <div className="text-[11px] text-gray-400 uppercase tracking-widest font-bold mt-1">
+            Based on {activity.reviewCount || "4"} reviews
+          </div>
         </div>
-        <button onClick={() => setIsReviewOpen(true)} className="px-8 py-2.5 bg-black text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-800 transition-colors">Write a Review</button>
-        {isReviewOpen && <ReviewModal isOpen={isReviewOpen} onClose={() => setIsReviewOpen(false)} activityId={activity?._id} />}
+        
+        <button 
+          onClick={handleWriteReview} 
+          className="px-8 py-2.5 bg-black text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-800 transition-colors"
+        >
+          Write a Review
+        </button>
+
+        {isReviewOpen && (
+          <ReviewModal 
+            isOpen={isReviewOpen} 
+            onClose={() => setIsReviewOpen(false)} 
+            activityId={activity?._id} 
+          />
+        )}
       </div>
     </div>
   );
@@ -1305,7 +1408,8 @@ function CheckoutView({
   suvTotalAddonPrice, 
   setBookingStep,
   handleFinalSubmit,
-  isBooking,
+  // isBooking,
+  isBooking: isParentBooking,
   isYachtActivity,
   durationQtyHours,
   yachtQty,
@@ -1317,7 +1421,7 @@ function CheckoutView({
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const [finalPayload, setFinalPayload] = useState(null);
   const [showQR, setShowQR] = useState(false);
-
+ const [createBooking, { isLoading: isMutationLoading }] = useCreateBookingMutation();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -1327,89 +1431,82 @@ function CheckoutView({
   });
 
   
+  const availableAddons = useMemo(() => {
+    return activity?.addons || [];
+  }, [activity]);
 
+  // 2. Initialize state as empty object so it doesn't crash
+  const [addonQtys, setAddonQtys] = useState({});
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const fallbackAddons =[
-    { id: "quad", name: "Quad Bike", price: 150, icon: <Zap size={14} className="text-gray-400"/> },
-    { id: "vip_majlis", name: "VIP Majlis", price: 50, icon: <Crown size={14} className="text-gray-400"/> },
-    { id: "falcon", name: "Falcon Pix", price: 25, icon: <Camera size={14} className="text-gray-400"/> }
-  ];
+  // const fallbackAddons =[
+  //   { id: "quad", name: "Quad Bike", price: 150, icon: <Zap size={14} className="text-gray-400"/> },
+  //   { id: "vip_majlis", name: "VIP Majlis", price: 50, icon: <Crown size={14} className="text-gray-400"/> },
+  //   { id: "falcon", name: "Falcon Pix", price: 25, icon: <Camera size={14} className="text-gray-400"/> }
+  // ];
+  // console.log("activity1",activity);
 
-  const[addonQtys, setAddonQtys] = useState({ quad: 0, vip_majlis: 0, falcon: 0 });
+  // const[addonQtys, setAddonQtys] = useState({ quad: 0, vip_majlis: 0, falcon: 0 });
 
-  const updateAddon = (id, delta) => {
-    setAddonQtys(prev => ({ ...prev,[id]: Math.max(0, prev[id] + delta) }));
+  // const updateAddon = (id, delta) => {
+  //   setAddonQtys(prev => ({ ...prev,[id]: Math.max(0, prev[id] + delta) }));
+  // };
+
+  // const addonsTotal = fallbackAddons.reduce((acc, curr) => acc + (curr.price * addonQtys[curr.id]), 0);
+  // const finalTotal = displayPrice + addonsTotal;
+
+  // const onContinueClick = () => {
+  //   setCheckoutStep(2);
+  // };
+  const getAddonIcon = (name) => {
+    const n = name?.toLowerCase() || "";
+    if (n.includes("bike") || n.includes("quad") || n.includes("bugati")) return <Zap size={14} className="text-blue-500"/>;
+    if (n.includes("vip") || n.includes("majlis")) return <Crown size={14} className="text-yellow-500"/>;
+    if (n.includes("falcon") || n.includes("camera") || n.includes("pix")) return <Camera size={14} className="text-gray-400"/>;
+    return <Zap size={14} className="text-gray-400"/>; // Default icon
   };
 
-  const addonsTotal = fallbackAddons.reduce((acc, curr) => acc + (curr.price * addonQtys[curr.id]), 0);
+  const updateAddon = (id, delta, max) => {
+    setAddonQtys(prev => {
+      const current = prev[id] || 0;
+      const newValue = Math.max(0, Math.min(max || 99, current + delta));
+      return { ...prev, [id]: newValue };
+    });
+  };
+
+  // 4. Calculate Total using backend data
+  const addonsTotal = availableAddons.reduce((acc, curr) => {
+    const qty = addonQtys[curr._id] || 0;
+    return acc + (curr.price * qty);
+  }, 0);
+
   const finalTotal = displayPrice + addonsTotal;
 
   const onContinueClick = () => {
     setCheckoutStep(2);
   };
 
-  // const handlePayNow = () => {
-  //   const selectedAddons = fallbackAddons
-  //     .filter(a => addonQtys[a.id] > 0)
-  //     .map(a => ({ name: a.name, price: a.price, quantity: addonQtys[a.id], subtotal: a.price * addonQtys[a.id] }));
 
-  //   // ── Build Final Payload
-  //   const payload = {
-  //     activityId: activity?._id,
-  //     activityName: activity?.name,
-  //     variantName: selectedPackage?.name,
-  //     isYachtActivity,
-  //     timeSlot: selectedTimeSlot,
-  //     ...(isYachtActivity
-  //       ? { durationHours: durationQtyHours, numberOfYachts: yachtQty }
-  //       : { totalGuests: totalQty }
-  //     ),
-  //     transferType: isSUV ? "Private SUV" : "Self Arrival",
-  //     ...(isSUV && { suvCount: suvQty, suvPricePerUnit: activity?.PrivateSUV?.fee || 500, suvTotal: suvTotalAddonPrice }),
-  //     baseFare: baseTotalAmount,
-  //     addons: selectedAddons,
-  //     addonsTotal,
-  //     grandTotal: finalTotal,
-  //     customerDetails: {
-  //       firstName: formData.firstName,
-  //       lastName: formData.lastName,
-  //       email: formData.email,
-  //       phone: formData.phone,
-  //       pickupHotel: formData.pickupHotel,
-  //     },
-  //     bookingReference: `FT-${Math.floor(100000 + Math.random() * 900000)}`,
-  //     submittedAt: new Date().toISOString(),
-  //   };
-
-  //   console.log("════════════════════════════════════════════");
-  //   console.log("✅ FINAL BOOKING PAYLOAD — Ready for API");
-  //   console.log("════════════════════════════════════════════");
-  //   console.log(JSON.stringify(payload, null, 2));
-  //   console.log("════════════════════════════════════════════");
-
-  //   setToastMsg("🎉 Booking Confirmed!");
-  //   setFinalPayload(payload);
-  //   setTimeout(() => {
-  //     setToastMsg("");
-  //     setBookingConfirmed(true);
-  //   }, 1500);
-  // };
-
-
-  // CheckoutView component ke function parameters me in dono ko add karein:
-
-  const handlePayNow = () => {
-    const selectedAddons = fallbackAddons
-      .filter(a => addonQtys[a.id] > 0)
-      .map(a => ({ name: a.name, price: a.price, quantity: addonQtys[a.id], subtotal: a.price * addonQtys[a.id] }));
-
+  const handlePayNow = async () => {
+    // const selectedAddons = fallbackAddons
+    //   .filter(a => addonQtys[a.id] > 0)
+    //   .map(a => ({addonId: a.id, name: a.name, price: a.price, quantity: addonQtys[a.id], subtotal: a.price * addonQtys[a.id] }));
+   const selectedAddons = availableAddons
+      .filter(a => (addonQtys[a._id] || 0) > 0)
+      .map(a => ({
+        addonId: a._id, 
+        name: a.name, 
+        price: a.price, 
+        quantity: addonQtys[a._id], 
+        subtotal: a.price * addonQtys[a._id] 
+      }));
     // ── Build exact participant breakdown (Adult, Child, etc.)
     const formattedParticipants = selectedPackage?.bookingFields
       ?.filter((f) => (quantities[f._id] || 0) > 0)
       ?.map((f) => {
         const isDurationField = f.name.toLowerCase().includes('duration');
         return {
+           fieldId: f._id,
           label: f.name || f.label,
           quantity: quantities[f._id],
           unit: isDurationField ? 'hours' : 'guests',
@@ -1418,12 +1515,16 @@ function CheckoutView({
       }) ||[];
 
     // ── Build A-to-Z Final Payload
+    
     const payload = {
       // 1. Activity & Package Info
       activityId: activity?._id,
       activityName: activity?.name,
+       activityImage: activity?.Images?.[0]?.secure_url || activity?.Images?.[0]?.url, 
+       packageId: selectedPackage?._id,
       variantName: selectedPackage?.name,
-      
+        whatInclude: selectedPackage?.whatInclude || [],
+    whatExclude: selectedPackage?.whatExclude || [],
       // 2. Schedule Info
       selectedDate: selectedDate,
       timeSlot: selectedTimeSlot,
@@ -1438,7 +1539,7 @@ function CheckoutView({
       
       // 4. Transfer Info
       transferType: isSUV ? "Private SUV" : "Self Arrival",
-      ...(isSUV && { suvCount: suvQty, suvPricePerUnit: activity?.PrivateSUV?.fee || 500, suvTotal: suvTotalAddonPrice }),
+      ...(isSUV && { suvCount: suvQty, suvPricePerUnit: activity?.PrivateSUV?.fee || 500, suvTotal: suvTotalAddonPrice,  suvModel: activity?.PrivateSUV?.model || "SUV" }),
       
       // 5. Addons Info
       addons: selectedAddons,
@@ -1463,22 +1564,46 @@ function CheckoutView({
       // 8. Meta Info
       bookingReference: `FT-${Math.floor(100000 + Math.random() * 900000)}`,
       submittedAt: new Date().toISOString(),
+      paymentMethod: showQR ? "pay_now" : "pay_later"
     };
 
-    // Yahan Console me apko A-to-Z sab data mil jayega
-    console.log("════════════════════════════════════════════");
-    console.log("✅ COMPLETE FINAL BOOKING PAYLOAD");
+
+    
+    try {
+    // const response = await createTour(payload).unwrap();
+    const response = await createBooking(payload).unwrap();
+    
+    if (response.success) {
+      setToastMsg("🎉 Booking Confirmed!");
+      setFinalPayload(payload); // Storing local payload for UI display
+      console.log("════════════════════════════════════════════");
+    console.log("✅ FINAL BOOKING PAYLOAD — Ready for API");
     console.log("════════════════════════════════════════════");
     console.log(JSON.stringify(payload, null, 2));
     console.log("════════════════════════════════════════════");
+      setTimeout(() => {
+        setToastMsg("");
+        setBookingConfirmed(true);
+      }, 1500);
+    }
+  } catch (error) {
+   console.error("Booking Error:", error);
 
-    setToastMsg("🎉 Booking Confirmed!");
-    setFinalPayload(payload);
-    setTimeout(() => {
-      setToastMsg("");
-      setBookingConfirmed(true);
-    }, 1500);
-  };
+    // 1. Backend se error message nikalna
+    let backendMessage = error?.data?.message || "Booking Failed. Please try again.";
+
+    // 2. Agar status 401 (Unauthorized) hai toh sundar message
+    if (error?.status === 401) {
+      backendMessage = "🔒 Login Required! Please log in to complete your booking.";
+    }
+
+    // 3. Toast set karna
+    setToastMsg(`❌ ${backendMessage}`);
+
+    // 4. Message ko automatic gayab karna
+    setTimeout(() => setToastMsg(""), 4000);
+  }
+};
 
 
   if (bookingConfirmed && finalPayload) {
@@ -1536,8 +1661,8 @@ function CheckoutView({
                     <Zap size={14} className="text-[#004bb5] fill-[#004bb5]"/> INSTANT UPGRADES
                   </h3>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {fallbackAddons.map(addon => (
+                  {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {availableAddons.map(addon => (
                       <div key={addon.id} className="border border-gray-100 rounded-[16px] p-4 flex flex-col items-center relative hover:border-gray-200 transition-colors">
                         <div className="flex justify-between w-full items-start mb-2">
                           {addon.icon}
@@ -1552,8 +1677,40 @@ function CheckoutView({
                       </div>
                     ))}
                   </div>
+                </div> */}
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {availableAddons.length > 0 ? (
+                      availableAddons.map(addon => (
+                        <div key={addon._id} className="border border-gray-100 rounded-[16px] p-4 flex flex-col items-center relative hover:border-gray-200 transition-colors">
+                          <div className="flex justify-between w-full items-start mb-2">
+                            {getAddonIcon(addon.name)}
+                            <span className="text-[11px] font-extrabold text-[#004bb5]">${addon.price}</span>
+                          </div>
+                          <div className="text-[13px] font-bold text-gray-900 mb-3 text-center w-full truncate">{addon.name}</div>
+                          <div className="flex items-center gap-4 bg-[#F4F5F7] rounded-xl px-2 py-1.5 w-full justify-center">
+                            <button 
+                                onClick={() => updateAddon(addon._id, -1, addon.max)} 
+                                disabled={!addonQtys[addon._id]} 
+                                className="w-6 h-6 flex items-center justify-center font-bold text-gray-500 hover:text-gray-900 disabled:opacity-40"
+                            >
+                                −
+                            </button>
+                            <span className="text-[13px] font-black text-gray-900">{addonQtys[addon._id] || 0}</span>
+                            <button 
+                                onClick={() => updateAddon(addon._id, 1, addon.max)} 
+                                className="w-6 h-6 flex items-center justify-center font-bold text-gray-500 hover:text-gray-900"
+                            >
+                                +
+                            </button>
+                          </div>
+                          {addon.max && <div className="text-[8px] text-gray-400 mt-1 uppercase font-bold">Max: {addon.max}</div>}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="col-span-3 py-4 text-center text-gray-400 text-xs italic">No upgrades available for this activity</div>
+                    )}
+                  </div>
                 </div>
-
                 <div className="bg-white rounded-[24px] p-6 shadow-[0_2px_20px_rgba(0,0,0,0.03)] border border-gray-100">
                   <h3 className="flex items-center gap-2 text-[12px] font-black uppercase tracking-widest text-[#111827] mb-5">
                     <Users size={14} className="text-gray-400"/> GUEST DETAILS
@@ -1580,7 +1737,7 @@ function CheckoutView({
             ) : (
               <>
                 <div className="bg-white rounded-[24px] p-6 sm:p-8 shadow-[0_2px_20px_rgba(0,0,0,0.03)] border border-gray-100">
-                  <h3 className="flex items-center gap-2 text-[12px] font-black uppercase tracking-widest text-[#111827] mb-6">
+                  {/* <h3 className="flex items-center gap-2 text-[12px] font-black uppercase tracking-widest text-[#111827] mb-6">
                     <CreditCard size={15} className="text-[#004bb5]"/> SECURE PAYMENT
                   </h3>
                   
@@ -1626,8 +1783,67 @@ function CheckoutView({
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </div> */}
+
+
+
+                  {showQR && (
+  <>
+    <h3 className="flex items-center gap-2 text-[12px] font-black uppercase tracking-widest text-[#111827] mb-6">
+      <CreditCard size={15} className="text-[#004bb5]" /> SECURE PAYMENT
+    </h3>
+
+    <div className="space-y-5">
+      <div>
+        <label className="block text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-[0.15em] mb-2.5">
+          CARD NUMBER
+        </label>
+        <div className="relative flex items-center">
+          <CreditCard size={16} className="absolute left-4 text-[#9ca3af]" />
+          <input
+            type="text"
+            placeholder="0000 0000 0000 0000"
+            className="w-full bg-[#F9FAFB] border-0 rounded-[14px] pl-11 pr-4 py-4 text-[15px] font-black text-gray-900 placeholder:text-[#d1d5db] focus:ring-2 focus:ring-[#004bb5]/20 focus:bg-white transition-all outline-none tracking-widest"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-[0.15em] mb-2.5">
+            EXPIRY
+          </label>
+          <input
+            type="text"
+            placeholder="MM/YY"
+            className="w-full bg-[#F9FAFB] border-0 rounded-[14px] px-4 py-4 text-[15px] font-black text-center text-gray-900 placeholder:text-[#d1d5db] focus:ring-2 focus:ring-[#004bb5]/20 focus:bg-white transition-all outline-none tracking-widest"
+          />
+        </div>
+
+        <div>
+          <label className="block text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-[0.15em] mb-2.5">
+            CVV
+          </label>
+          <div className="relative flex items-center">
+            <svg className="absolute left-4 w-4 h-4 text-[#9ca3af]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+            <input
+              type="password"
+              placeholder="***"
+              className="w-full bg-[#F9FAFB] border-0 rounded-[14px] pl-11 pr-4 py-4 text-[15px] font-black text-gray-900 placeholder:text-[#d1d5db] focus:ring-2 focus:ring-[#004bb5]/20 focus:bg-white transition-all outline-none tracking-widest"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </>
+)}
+
+
+
 {/* 
+
                   <div className="mt-8">
                     <button 
                       onClick={handlePayNow}
@@ -1664,13 +1880,20 @@ function CheckoutView({
 
   {/* PAY LATER BUTTON */}
   {!showQR && (
+    // <button 
+    //   // onClick={() => setShowQR(true)}
+    //   onClick={handlePayNow}
+    //   className="w-full bg-white border-2 border-[#004bb5] text-[#004bb5] hover:bg-[#004bb5] hover:text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all"
+    // >
+    //   PAY LATER
+    // </button>
     <button 
-      // onClick={() => setShowQR(true)}
-      onClick={handlePayNow}
-      className="w-full bg-white border-2 border-[#004bb5] text-[#004bb5] hover:bg-[#004bb5] hover:text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all"
-    >
-      PAY LATER
-    </button>
+  onClick={handlePayNow}
+  disabled={isMutationLoading}
+  className="w-full bg-white border-2 border-[#004bb5] text-[#004bb5] hover:bg-[#004bb5] hover:text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all disabled:opacity-50"
+>
+  {isMutationLoading ? "PLEASE WAIT..." : "PAY LATER"}
+</button>
   )}
 
   {/* QR SECTION */}
@@ -1689,20 +1912,40 @@ function CheckoutView({
       </p>
 
       {/* CONFIRM BUTTON */}
-      <button
+      {/* <button
         onClick={handlePayNow}
         className="w-full bg-[#004bb5] hover:bg-[#003a8c] text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest transition-all shadow-[0_6px_20px_rgba(0,75,181,0.3)]"
       >
         CONFIRM PAYMENT
-      </button>
+      </button> */}
+
+      <button
+  onClick={handlePayNow}
+  disabled={isMutationLoading}
+  className="w-full bg-[#004bb5] hover:bg-[#003a8c] text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest transition-all shadow-[0_6px_20px_rgba(0,75,181,0.3)] disabled:opacity-70 flex items-center justify-center gap-2"
+>
+  {isMutationLoading ? (
+    <> <Loader2 className="animate-spin" size={18} /> PROCESSING... </>
+  ) : (
+    "CONFIRM PAYMENT"
+  )}
+</button>
        
-     <button 
+     {/* <button 
       // onClick={() => setShowQR(true)}
       onClick={handlePayNow}
       className="w-full bg-white border-2 border-[#004bb5] text-[#004bb5] hover:bg-[#004bb5] hover:text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all"
     >
       PAY LATER
-    </button>
+    </button> */}
+
+    <button 
+  onClick={handlePayNow}
+  disabled={isMutationLoading}
+  className="w-full bg-white border-2 border-[#004bb5] text-[#004bb5] hover:bg-[#004bb5] hover:text-white rounded-[14px] py-4 text-[14px] font-black uppercase tracking-widest flex items-center justify-center transition-all disabled:opacity-50"
+>
+  {isMutationLoading ? "PLEASE WAIT..." : "PAY LATER"}
+</button>
  
     </div>
   )}
@@ -1758,14 +2001,22 @@ function CheckoutView({
                     <span>${suvTotalAddonPrice}</span>
                   </div>
                 )}
-                {fallbackAddons.map(addon => (
+                {/* {availableAddons.map(addon => (
                   addonQtys[addon.id] > 0 && (
                     <div key={addon.id} className="flex justify-between items-center text-[13px] font-bold text-gray-500">
                       <span>{addon.name} (x{addonQtys[addon.id]})</span>
                       <span>${addon.price * addonQtys[addon.id]}</span>
                     </div>
                   )
-                ))}
+                ))} */}
+                  {availableAddons.map(addon => (
+    (addonQtys[addon._id] || 0) > 0 && (
+      <div key={addon._id} className="flex justify-between items-center text-[13px] font-bold text-gray-500">
+        <span>{addon.name} (x{addonQtys[addon._id]})</span>
+        <span>${addon.price * addonQtys[addon._id]}</span>
+      </div>
+    )
+  ))}
               </div>
 
               <div className="flex justify-between items-center pt-5 border-t border-gray-100 mt-2">
@@ -1783,59 +2034,256 @@ function CheckoutView({
 // ════════════════════════════════════════════════════════════════════════════
 // BOOKING CONFIRMED SCREEN
 // ════════════════════════════════════════════════════════════════════════════
-function BookingConfirmedScreen({ payload, activity }) {
+// function BookingConfirmedScreen({ payload, activity }) {
+//   const router = useRouter();
+//  const handleDownloadPDF = async () => {
+//     const element = document.getElementById("voucher-card");
+//     if (!element) return;
+
+//     try {
+//       // 1. UI element ko pehle high-quality image me convert karna (Modern CSS support ke sath)
+//       const dataUrl = await toPng(element, { 
+//         quality: 1, 
+//         pixelRatio: 2, // 2x quality for clear PDF
+//         cacheBust: true
+//       });
+
+//       // 2. Naya PDF document create karna
+//       const pdf = new jsPDF({
+//         orientation: 'portrait',
+//         unit: 'mm',
+//         format: 'a4'
+//       });
+
+//       // 3. Image ko PDF ke width ke hisaab se scale karna
+//       const pdfWidth = pdf.internal.pageSize.getWidth();
+//       const imgProps = pdf.getImageProperties(dataUrl);
+//       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+//       // 4. Image ko PDF me add karke download karna
+//       pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+//       pdf.save(`Booking-Voucher-${payload.bookingReference}.pdf`);
+
+//     } catch (error) {
+//       console.error("PDF generation failed:", error);
+//       alert("Failed to download PDF. Please try again.");
+//     }
+//   };
+//   return (
+//     <div className="min-h-screen bg-[#F9FAFB] font-sans flex flex-col items-center justify-start py-12 px-4">
+//       <div className="flex flex-col items-center mb-8">
+//         <div className="w-14 h-14 rounded-full border-4 border-emerald-500 flex items-center justify-center mb-5 animate-pulse">
+//           <CheckCircle2 size={28} className="text-emerald-500" />
+//         </div>
+//         <h1 className="text-[32px] md:text-[40px] font-black text-[#111827] tracking-tight">Booking Secured!</h1>
+//         <p className="text-[14px] text-gray-500 mt-2 text-center">
+//           Your adventure is confirmed. An e-ticket has been sent to{" "}
+//           <span className="font-bold text-gray-800">{payload.customerDetails?.email || "your email"}</span>.
+//         </p>
+//       </div>
+
+//       {/* Voucher Card */}
+//       <div id="voucher-card" className="w-full max-w-[620px] bg-white rounded-[24px] border border-gray-200 overflow-hidden shadow-[0_4px_30px_rgba(0,0,0,0.06)]">
+
+//         {/* Voucher Header */}
+//         <div className="px-7 pt-6 pb-4 border-b border-gray-100 flex items-start justify-between">
+//           <div>
+//             <div className="text-[11px] font-black text-[#004bb5] uppercase tracking-widest">FUN TOURS <span className="text-[#EF4444]">DUBAI</span></div>
+//             <div className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Digital Service Voucher</div>
+//           </div>
+//           <div className="text-right">
+//             <div className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Booking Reference</div>
+//             <div className="text-[15px] font-black text-[#111827] mt-0.5">{payload.bookingReference}</div>
+//           </div>
+//         </div>
+
+//         <div className="px-7 py-5 flex gap-4 border-b border-gray-100">
+//           <img
+//             src={activity?.Images?.[0]?.url || activity?.Images?.[0]?.secure_url || "/placeholder.jpg"}
+//             alt="activity"
+//             className="w-16 h-16 rounded-[14px] object-cover shrink-0 border border-gray-100"
+//           />
+//           <div className="flex-1">
+//             <h2 className="text-[16px] font-black text-[#111827] leading-snug">{payload.activityName}</h2>
+//             <div className="text-[10px] font-extrabold text-[#004bb5] uppercase tracking-widest mt-1">
+//               {payload.variantName?.split('-')[0]?.trim()}
+//               {payload.isYachtActivity ? ` (${Number(payload.durationHours).toFixed(1)} Hrs Charter)` : ''}
+//               {" "}({payload.transferType})
+//             </div>
+//           </div>
+//         </div>
+
+//         <div className="px-7 py-5 grid grid-cols-2 sm:grid-cols-4 gap-4 border-b border-gray-100">
+//           <div>
+//             <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mb-1">
+//               <Calendar size={11} /> Date
+//             </div>
+//             <div className="text-[13px] font-black text-[#111827]">
+//               {new Date(payload.submittedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+//             </div>
+//           </div>
+//           <div>
+//             <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mb-1">
+//               <Users size={11} /> Guests
+//             </div>
+//             <div className="text-[13px] font-black text-[#111827]">
+//               {payload.isYachtActivity
+//                 ? `${payload.numberOfYachts} Yacht${payload.numberOfYachts > 1 ? 's' : ''}`
+//                 : `${payload.totalGuests} Pers.`}
+//             </div>
+//           </div>
+//           <div>
+//             <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mb-1">
+//               <MapPin size={11} /> Pickup
+//             </div>
+//             <div className="text-[13px] font-black text-[#111827]">{payload.customerDetails?.pickupHotel || "—"}</div>
+//           </div>
+//           <div>
+//             <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mb-1">
+//               <Clock size={11} /> Time Slot
+//             </div>
+//             <div className="text-[13px] font-black text-[#111827]">{payload.timeSlot || "—"}</div>
+//           </div>
+//         </div>
+
+//         <div className="px-7 py-5 space-y-3 border-b border-gray-100">
+//           <div className="flex justify-between text-[13px] text-gray-500 font-bold">
+//             <span>Base Experience ({payload.variantName?.split('-')[0]?.trim()}{payload.isYachtActivity ? ` (${Number(payload.durationHours).toFixed(1)} Hrs Charter)` : ''})</span>
+//             <span>${payload.baseFare}</span>
+//           </div>
+//           {payload.transferType === "Private SUV" && (
+//             <div className="flex justify-between text-[13px] text-gray-500 font-bold">
+//               <span>Private SUV (x{payload.suvCount})</span>
+//               <span>${payload.suvTotal}</span>
+//             </div>
+//           )}
+//           {payload.addons?.map((addon, i) => (
+//             <div key={i} className="flex justify-between text-[13px] text-gray-500 font-bold">
+//               <span>{addon.name} (x{addon.quantity})</span>
+//               <span>${addon.subtotal}</span>
+//             </div>
+//           ))}
+//           <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+//             <span className="text-[15px] font-black text-[#111827]">Paid Total</span>
+//             <span className="text-[24px] font-black text-[#004bb5]">${payload.grandTotal}</span>
+//           </div>
+//         </div>
+
+//         <div className="px-7 py-5 flex items-start gap-4">
+//           <div className="w-10 h-10 rounded-[10px] border border-gray-200 flex items-center justify-center shrink-0">
+//             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+//               <rect x="1" y="1" width="7" height="7" rx="1" stroke="#9ca3af" strokeWidth="1.5"/>
+//               <rect x="12" y="1" width="7" height="7" rx="1" stroke="#9ca3af" strokeWidth="1.5"/>
+//               <rect x="1" y="12" width="7" height="7" rx="1" stroke="#9ca3af" strokeWidth="1.5"/>
+//               <rect x="13" y="13" width="2" height="2" fill="#9ca3af"/>
+//               <rect x="17" y="13" width="2" height="2" fill="#9ca3af"/>
+//               <rect x="13" y="17" width="2" height="2" fill="#9ca3af"/>
+//               <rect x="17" y="17" width="2" height="2" fill="#9ca3af"/>
+//             </svg>
+//           </div>
+//           <div className="flex-1">
+//             <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Usage Instructions</div>
+//             <p className="text-[12px] text-gray-500 leading-relaxed">
+//               Please present this digital voucher or a printed copy to our guide at the time of pickup. Valid ID may be requested.
+//             </p>
+//           </div>
+//         </div>
+
+//         <div className="bg-[#111827] px-7 py-3 flex items-center justify-between">
+//           <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400">
+//             <CheckCircle2 size={12} /> Official Voucher
+//           </div>
+//           <div className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400">Fun Tours Dubai Tourism L.L.C</div>
+//         </div>
+//       </div>
+
+//       <div className="flex items-center gap-3 mt-8 flex-wrap justify-center">
+//         <button
+//           onClick={() => window.print()}
+//           className="cursor-pointer flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+//         >
+//           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+//           Print Receipt
+//         </button>
+//        <button
+//           onClick={handleDownloadPDF}
+//           className="cursor-pointer flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+//         >
+//           {/* Download Icon */}
+//           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+//           Download PDF
+//         </button>
+//         <button
+//           onClick={() => router.push("/")}
+//           className="cursor-pointer flex items-center gap-2 px-6 py-3 rounded-full bg-[#111827] text-white text-[11px] font-black uppercase tracking-widest hover:bg-gray-800 transition-colors shadow-sm"
+//         >
+//           <Home size={13} /> Go Home
+//         </button>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+// ════════════════════════════════════════════════════════════════════════════
+// BOOKING CONFIRMED SCREEN (FINAL STABLE VERSION)
+// ════════════════════════════════════════════════════════════════════════════
+
+
+function BookingConfirmedScreen({ payload }) {
   const router = useRouter();
- const handleDownloadPDF = async () => {
+
+  const handleDownloadPDF = async () => {
     const element = document.getElementById("voucher-card");
     if (!element) return;
 
     try {
-      // 1. UI element ko pehle high-quality image me convert karna (Modern CSS support ke sath)
       const dataUrl = await toPng(element, { 
         quality: 1, 
-        pixelRatio: 2, // 2x quality for clear PDF
-        cacheBust: true
+        pixelRatio: 2, 
+        cacheBust: true,
+        backgroundColor: '#ffffff'
       });
 
-      // 2. Naya PDF document create karna
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       });
 
-      // 3. Image ko PDF ke width ke hisaab se scale karna
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const imgProps = pdf.getImageProperties(dataUrl);
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-      // 4. Image ko PDF me add karke download karna
       pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Booking-Voucher-${payload.bookingReference}.pdf`);
-
+      pdf.save(`Voucher-${payload.bookingReference}.pdf`);
     } catch (error) {
       console.error("PDF generation failed:", error);
-      alert("Failed to download PDF. Please try again.");
+      alert("Error generating PDF. Please try Print Receipt instead.");
     }
   };
+
+  // Image capture issue fix karne ke liye safe URL
+  const displayImg = payload.activityImage || "https://placehold.co/400x400?text=Fun+Tours+Dubai";
+
   return (
-    <div className="min-h-screen bg-[#F9FAFB] font-sans flex flex-col items-center justify-start py-12 px-4">
-      <div className="flex flex-col items-center mb-8">
-        <div className="w-14 h-14 rounded-full border-4 border-emerald-500 flex items-center justify-center mb-5 animate-pulse">
+    <div className="min-h-screen bg-[#F9FAFB] font-sans flex flex-col items-center justify-start py-12 px-4 print:py-0 print:px-0">
+      {/* SUCCESS MESSAGE */}
+      <div className="flex flex-col items-center mb-8 print:hidden text-center">
+        <div className="w-14 h-14 rounded-full border-4 border-emerald-500 flex items-center justify-center mb-5 animate-bounce">
           <CheckCircle2 size={28} className="text-emerald-500" />
         </div>
         <h1 className="text-[32px] md:text-[40px] font-black text-[#111827] tracking-tight">Booking Secured!</h1>
-        <p className="text-[14px] text-gray-500 mt-2 text-center">
-          Your adventure is confirmed. An e-ticket has been sent to{" "}
-          <span className="font-bold text-gray-800">{payload.customerDetails?.email || "your email"}</span>.
+        <p className="text-[14px] text-gray-500 mt-2">
+           Email sent to <span className="font-bold text-gray-800">{payload.customerDetails?.email}</span>
         </p>
       </div>
 
-      {/* Voucher Card */}
-      <div id="voucher-card" className="w-full max-w-[620px] bg-white rounded-[24px] border border-gray-200 overflow-hidden shadow-[0_4px_30px_rgba(0,0,0,0.06)]">
-
-        {/* Voucher Header */}
-        <div className="px-7 pt-6 pb-4 border-b border-gray-100 flex items-start justify-between">
+      {/* VOUCHER CARD */}
+      <div id="voucher-card" className="w-full max-w-[620px] bg-white rounded-[24px] border border-gray-200 overflow-hidden shadow-[0_4px_30px_rgba(0,0,0,0.06)] print:border-0 print:shadow-none">
+        
+        {/* Header */}
+        <div className="px-7 pt-6 pb-4 border-b border-gray-100 flex items-start justify-between bg-white">
           <div>
             <div className="text-[11px] font-black text-[#004bb5] uppercase tracking-widest">FUN TOURS <span className="text-[#EF4444]">DUBAI</span></div>
             <div className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Digital Service Voucher</div>
@@ -1846,29 +2294,30 @@ function BookingConfirmedScreen({ payload, activity }) {
           </div>
         </div>
 
-        <div className="px-7 py-5 flex gap-4 border-b border-gray-100">
+        {/* Activity Details */}
+        <div className="px-7 py-5 flex gap-4 border-b border-gray-100 bg-white">
           <img
-            src={activity?.Images?.[0]?.url || activity?.Images?.[0]?.secure_url || "/placeholder.jpg"}
+            src={displayImg}
             alt="activity"
+            crossOrigin="anonymous" 
             className="w-16 h-16 rounded-[14px] object-cover shrink-0 border border-gray-100"
           />
           <div className="flex-1">
             <h2 className="text-[16px] font-black text-[#111827] leading-snug">{payload.activityName}</h2>
             <div className="text-[10px] font-extrabold text-[#004bb5] uppercase tracking-widest mt-1">
-              {payload.variantName?.split('-')[0]?.trim()}
-              {payload.isYachtActivity ? ` (${Number(payload.durationHours).toFixed(1)} Hrs Charter)` : ''}
-              {" "}({payload.transferType})
+              {payload.variantName?.split('-')[0].trim()} ({payload.transferType})
             </div>
           </div>
         </div>
 
-        <div className="px-7 py-5 grid grid-cols-2 sm:grid-cols-4 gap-4 border-b border-gray-100">
+        {/* Info Grid */}
+        <div className="px-7 py-5 grid grid-cols-2 sm:grid-cols-4 gap-4 border-b border-gray-100 bg-white">
           <div>
             <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mb-1">
-              <Calendar size={11} /> Date
+              <Calendar size={11} /> Tour Date
             </div>
             <div className="text-[13px] font-black text-[#111827]">
-              {new Date(payload.submittedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+              {new Date(payload.selectedDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
             </div>
           </div>
           <div>
@@ -1876,68 +2325,67 @@ function BookingConfirmedScreen({ payload, activity }) {
               <Users size={11} /> Guests
             </div>
             <div className="text-[13px] font-black text-[#111827]">
-              {payload.isYachtActivity
-                ? `${payload.numberOfYachts} Yacht${payload.numberOfYachts > 1 ? 's' : ''}`
-                : `${payload.totalGuests} Pers.`}
+              {payload.isYachtActivity ? `${payload.numberOfYachts} Yacht` : `${payload.totalGuests} Pers.`}
             </div>
           </div>
           <div>
             <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mb-1">
               <MapPin size={11} /> Pickup
             </div>
-            <div className="text-[13px] font-black text-[#111827]">{payload.customerDetails?.pickupHotel || "—"}</div>
+            <div className="text-[13px] font-black text-[#111827] truncate">{payload.customerDetails?.pickupHotel || "Not Specified"}</div>
           </div>
           <div>
             <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mb-1">
               <Clock size={11} /> Time Slot
             </div>
-            <div className="text-[13px] font-black text-[#111827]">{payload.timeSlot || "—"}</div>
+            <div className="text-[13px] font-black text-[#111827]">{payload.timeSlot}</div>
           </div>
         </div>
 
-        <div className="px-7 py-5 space-y-3 border-b border-gray-100">
+        {/* Price Breakdown */}
+        <div className="px-7 py-5 space-y-3 border-b border-gray-100 bg-white">
           <div className="flex justify-between text-[13px] text-gray-500 font-bold">
-            <span>Base Experience ({payload.variantName?.split('-')[0]?.trim()}{payload.isYachtActivity ? ` (${Number(payload.durationHours).toFixed(1)} Hrs Charter)` : ''})</span>
-            <span>${payload.baseFare}</span>
+            <span>Base Experience ({payload.variantName?.split('-')[0].trim()})</span>
+            <span>${payload.pricing.baseFare}</span>
           </div>
+
           {payload.transferType === "Private SUV" && (
-            <div className="flex justify-between text-[13px] text-gray-500 font-bold">
-              <span>Private SUV (x{payload.suvCount})</span>
-              <span>${payload.suvTotal}</span>
+            <div className="flex flex-col gap-0.5">
+                <div className="flex justify-between text-[13px] text-gray-500 font-bold">
+                    <span>Private SUV Transfer (x{payload.suvCount})</span>
+                    <span>${payload.pricing.suvTotal}</span>
+                </div>
+                <div className="text-[10px] text-gray-400 font-medium italic">Model: {payload.suvModel}</div>
             </div>
           )}
+
           {payload.addons?.map((addon, i) => (
             <div key={i} className="flex justify-between text-[13px] text-gray-500 font-bold">
               <span>{addon.name} (x{addon.quantity})</span>
               <span>${addon.subtotal}</span>
             </div>
           ))}
-          <div className="flex justify-between items-center pt-3 border-t border-gray-100">
-            <span className="text-[15px] font-black text-[#111827]">Paid Total</span>
-            <span className="text-[24px] font-black text-[#004bb5]">${payload.grandTotal}</span>
+
+          <div className="flex justify-between items-center pt-3 border-t border-gray-100 mt-2">
+            <span className="text-[15px] font-black text-[#111827]">Total ({payload.paymentMethod?.replace('_', ' ').toUpperCase()})</span>
+            <span className="text-[24px] font-black text-[#004bb5]">${payload.pricing.grandTotal}</span>
           </div>
         </div>
 
-        <div className="px-7 py-5 flex items-start gap-4">
+        {/* Usage Instructions */}
+        <div className="px-7 py-5 flex items-start gap-4 bg-white">
           <div className="w-10 h-10 rounded-[10px] border border-gray-200 flex items-center justify-center shrink-0">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <rect x="1" y="1" width="7" height="7" rx="1" stroke="#9ca3af" strokeWidth="1.5"/>
-              <rect x="12" y="1" width="7" height="7" rx="1" stroke="#9ca3af" strokeWidth="1.5"/>
-              <rect x="1" y="12" width="7" height="7" rx="1" stroke="#9ca3af" strokeWidth="1.5"/>
-              <rect x="13" y="13" width="2" height="2" fill="#9ca3af"/>
-              <rect x="17" y="13" width="2" height="2" fill="#9ca3af"/>
-              <rect x="13" y="17" width="2" height="2" fill="#9ca3af"/>
-              <rect x="17" y="17" width="2" height="2" fill="#9ca3af"/>
-            </svg>
+            <Info size={20} className="text-gray-400" />
           </div>
           <div className="flex-1">
             <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Usage Instructions</div>
-            <p className="text-[12px] text-gray-500 leading-relaxed">
-              Please present this digital voucher or a printed copy to our guide at the time of pickup. Valid ID may be requested.
+            <p className="text-[12px] text-gray-500 leading-relaxed italic">
+              Please present this voucher to our representative. WhatsApp help: +971-XX-XXXXXXX.
             </p>
           </div>
         </div>
 
+        {/* Official Footer */}
         <div className="bg-[#111827] px-7 py-3 flex items-center justify-between">
           <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-emerald-400">
             <CheckCircle2 size={12} /> Official Voucher
@@ -1946,27 +2394,16 @@ function BookingConfirmedScreen({ payload, activity }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3 mt-8 flex-wrap justify-center">
-        <button
-          onClick={() => window.print()}
-          className="cursor-pointer flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-          Print Receipt
+      {/* ACTION BUTTONS */}
+      <div className="flex items-center gap-3 mt-8 flex-wrap justify-center print:hidden">
+        <button onClick={() => window.print()} className="flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 shadow-sm">
+          <CreditCard size={14} /> Print
         </button>
-       <button
-          onClick={handleDownloadPDF}
-          className="cursor-pointer flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
-        >
-          {/* Download Icon */}
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Download PDF
+        <button onClick={handleDownloadPDF} className="flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 bg-white text-[11px] font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 shadow-sm">
+          <ArrowRight size={14} className="rotate-90" /> Download PDF
         </button>
-        <button
-          onClick={() => router.push("/")}
-          className="cursor-pointer flex items-center gap-2 px-6 py-3 rounded-full bg-[#111827] text-white text-[11px] font-black uppercase tracking-widest hover:bg-gray-800 transition-colors shadow-sm"
-        >
-          <Home size={13} /> Go Home
+        <button onClick={() => router.push("/")} className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#111827] text-white text-[11px] font-black uppercase tracking-widest hover:bg-gray-800 shadow-sm">
+          <Home size={13} /> Home
         </button>
       </div>
     </div>

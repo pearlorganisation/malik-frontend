@@ -4,9 +4,11 @@ import { Plus, Search, Loader2, LayoutGrid } from "lucide-react";
 import { useGetActivitiesQuery } from "@/features/activity/activityApi";
 import CategoryBalls from "@/components/Category/CategoryBalls.jsx";
 import { ExperienceCard } from "./ExperienceCard.jsx";
-
+import FilterModal from "../Category/FilterModal.jsx";
+import { useGetCategoriesQuery } from "@/features/category/categoryApi";
 export default function ActivitiesPage() {
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   // Start with 10 items as per requirement
   const [itemsToLoad, setItemsToLoad] = useState(10); 
   const [viewMode, setViewMode] = useState("grid");
@@ -46,20 +48,34 @@ export default function ActivitiesPage() {
     setSelectedCategory(cat || "");
     setItemsToLoad(10); // Reset to 10 on category change
   };
-
+ const { data: catResponse } = useGetCategoriesQuery({ page: 1, limit: 50 });
+  const allCategoriesData = catResponse?.data || [];
   // Helper to get Tailwind grid classes based on dropdown selection
-  const getGridConfig = () => {
-    if (viewMode !== "grid") return "flex flex-col gap-4";
+  // const getGridConfig = () => {
+  //   if (viewMode !== "grid") return "flex flex-col gap-4";
     
-    const base = "grid gap-5 grid-cols-1 sm:grid-cols-2";
-    switch (colsPerRow) {
-      case 2: return `${base} lg:grid-cols-2`;
-      case 3: return `${base} lg:grid-cols-3`;
-      case 4: return `${base} md:grid-cols-3 lg:grid-cols-4`;
-      // case 5: default: return `${base} md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5`;
-       default: return `${base} md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5`;
-    }
-  };
+  //   const base = "grid gap-5 grid-cols-1 sm:grid-cols-2";
+  //   switch (colsPerRow) {
+  //     case 2: return `${base} lg:grid-cols-2`;
+  //     case 3: return `${base} lg:grid-cols-3`;
+  //     case 4: return `${base} md:grid-cols-3 lg:grid-cols-4`;
+  //     // case 5: default: return `${base} md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5`;
+  //      default: return `${base} md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5`;
+  //   }
+  // };
+
+  // ActivitiesPage.js ke andar is function ko update karein
+const getGridConfig = () => {
+  if (viewMode !== "grid") return "flex flex-col gap-4";
+  const base = "grid gap-3 sm:gap-5 grid-cols-2"; 
+  
+  switch (colsPerRow) {
+    case 2: return `${base} sm:grid-cols-2 lg:grid-cols-2`;
+    case 3: return `${base} sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3`;
+    case 4: return `${base} sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4`;
+    default: return `${base} sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5`;
+  }
+};
 
   if (isLoading && !data) {
     return (
@@ -124,12 +140,13 @@ export default function ActivitiesPage() {
           // viewMode={viewMode}
           // setViewMode={setViewMode}
 
-           setSelectedCategory={setSelectedCategory}
-          selectedCategory={selectedCategory}
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-          colsPerRow={colsPerRow}
-          setColsPerRow={setColsPerRow}
+             setSelectedCategory={setSelectedCategory}
+  selectedCategory={selectedCategory}
+  viewMode={viewMode}
+  setViewMode={setViewMode}
+  colsPerRow={colsPerRow}
+  setColsPerRow={setColsPerRow}
+  setIsFilterOpen={setIsFilterOpen}
         />
 
         {/* Dynamic Grid */}
@@ -187,6 +204,18 @@ export default function ActivitiesPage() {
           </div>
         )}
       </div>
+      {isFilterOpen && (
+  <FilterModal 
+ isOpen={isFilterOpen} 
+      onClose={() => setIsFilterOpen(false)}
+      categories={allCategoriesData} 
+      selectedCategory={selectedCategory}
+      setSelectedCategory={handleSelectCategory} 
+      colsPerRow={colsPerRow}
+      setColsPerRow={setColsPerRow}
+  />
+)}
     </section>
+    
   );
 }
