@@ -78,6 +78,7 @@ export default function ActivityDetailPage() {
   const id = params?.id;
  const { data, isLoading, isError } = useGetActivityByIdQuery(id, { skip: !id });
   const activity = data?.data;
+
   const PAGE_TABS = useMemo(() => {
     if (!activity) return[];
     const tabs =[];
@@ -1430,22 +1431,55 @@ function CheckoutView({
   });
 
   
+  const availableAddons = useMemo(() => {
+    return activity?.addons || [];
+  }, [activity]);
 
+  // 2. Initialize state as empty object so it doesn't crash
+  const [addonQtys, setAddonQtys] = useState({});
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const fallbackAddons =[
-    { id: "quad", name: "Quad Bike", price: 150, icon: <Zap size={14} className="text-gray-400"/> },
-    { id: "vip_majlis", name: "VIP Majlis", price: 50, icon: <Crown size={14} className="text-gray-400"/> },
-    { id: "falcon", name: "Falcon Pix", price: 25, icon: <Camera size={14} className="text-gray-400"/> }
-  ];
+  // const fallbackAddons =[
+  //   { id: "quad", name: "Quad Bike", price: 150, icon: <Zap size={14} className="text-gray-400"/> },
+  //   { id: "vip_majlis", name: "VIP Majlis", price: 50, icon: <Crown size={14} className="text-gray-400"/> },
+  //   { id: "falcon", name: "Falcon Pix", price: 25, icon: <Camera size={14} className="text-gray-400"/> }
+  // ];
+  // console.log("activity1",activity);
 
-  const[addonQtys, setAddonQtys] = useState({ quad: 0, vip_majlis: 0, falcon: 0 });
+  // const[addonQtys, setAddonQtys] = useState({ quad: 0, vip_majlis: 0, falcon: 0 });
 
-  const updateAddon = (id, delta) => {
-    setAddonQtys(prev => ({ ...prev,[id]: Math.max(0, prev[id] + delta) }));
+  // const updateAddon = (id, delta) => {
+  //   setAddonQtys(prev => ({ ...prev,[id]: Math.max(0, prev[id] + delta) }));
+  // };
+
+  // const addonsTotal = fallbackAddons.reduce((acc, curr) => acc + (curr.price * addonQtys[curr.id]), 0);
+  // const finalTotal = displayPrice + addonsTotal;
+
+  // const onContinueClick = () => {
+  //   setCheckoutStep(2);
+  // };
+  const getAddonIcon = (name) => {
+    const n = name?.toLowerCase() || "";
+    if (n.includes("bike") || n.includes("quad") || n.includes("bugati")) return <Zap size={14} className="text-blue-500"/>;
+    if (n.includes("vip") || n.includes("majlis")) return <Crown size={14} className="text-yellow-500"/>;
+    if (n.includes("falcon") || n.includes("camera") || n.includes("pix")) return <Camera size={14} className="text-gray-400"/>;
+    return <Zap size={14} className="text-gray-400"/>; // Default icon
   };
 
-  const addonsTotal = fallbackAddons.reduce((acc, curr) => acc + (curr.price * addonQtys[curr.id]), 0);
+  const updateAddon = (id, delta, max) => {
+    setAddonQtys(prev => {
+      const current = prev[id] || 0;
+      const newValue = Math.max(0, Math.min(max || 99, current + delta));
+      return { ...prev, [id]: newValue };
+    });
+  };
+
+  // 4. Calculate Total using backend data
+  const addonsTotal = availableAddons.reduce((acc, curr) => {
+    const qty = addonQtys[curr._id] || 0;
+    return acc + (curr.price * qty);
+  }, 0);
+
   const finalTotal = displayPrice + addonsTotal;
 
   const onContinueClick = () => {
@@ -1454,10 +1488,18 @@ function CheckoutView({
 
 
   const handlePayNow = async () => {
-    const selectedAddons = fallbackAddons
-      .filter(a => addonQtys[a.id] > 0)
-      .map(a => ({addonId: a.id, name: a.name, price: a.price, quantity: addonQtys[a.id], subtotal: a.price * addonQtys[a.id] }));
-
+    // const selectedAddons = fallbackAddons
+    //   .filter(a => addonQtys[a.id] > 0)
+    //   .map(a => ({addonId: a.id, name: a.name, price: a.price, quantity: addonQtys[a.id], subtotal: a.price * addonQtys[a.id] }));
+   const selectedAddons = availableAddons
+      .filter(a => (addonQtys[a._id] || 0) > 0)
+      .map(a => ({
+        addonId: a._id, 
+        name: a.name, 
+        price: a.price, 
+        quantity: addonQtys[a._id], 
+        subtotal: a.price * addonQtys[a._id] 
+      }));
     // ── Build exact participant breakdown (Adult, Child, etc.)
     const formattedParticipants = selectedPackage?.bookingFields
       ?.filter((f) => (quantities[f._id] || 0) > 0)
@@ -1619,8 +1661,8 @@ function CheckoutView({
                     <Zap size={14} className="text-[#004bb5] fill-[#004bb5]"/> INSTANT UPGRADES
                   </h3>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {fallbackAddons.map(addon => (
+                  {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {availableAddons.map(addon => (
                       <div key={addon.id} className="border border-gray-100 rounded-[16px] p-4 flex flex-col items-center relative hover:border-gray-200 transition-colors">
                         <div className="flex justify-between w-full items-start mb-2">
                           {addon.icon}
@@ -1635,8 +1677,40 @@ function CheckoutView({
                       </div>
                     ))}
                   </div>
+                </div> */}
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {availableAddons.length > 0 ? (
+                      availableAddons.map(addon => (
+                        <div key={addon._id} className="border border-gray-100 rounded-[16px] p-4 flex flex-col items-center relative hover:border-gray-200 transition-colors">
+                          <div className="flex justify-between w-full items-start mb-2">
+                            {getAddonIcon(addon.name)}
+                            <span className="text-[11px] font-extrabold text-[#004bb5]">${addon.price}</span>
+                          </div>
+                          <div className="text-[13px] font-bold text-gray-900 mb-3 text-center w-full truncate">{addon.name}</div>
+                          <div className="flex items-center gap-4 bg-[#F4F5F7] rounded-xl px-2 py-1.5 w-full justify-center">
+                            <button 
+                                onClick={() => updateAddon(addon._id, -1, addon.max)} 
+                                disabled={!addonQtys[addon._id]} 
+                                className="w-6 h-6 flex items-center justify-center font-bold text-gray-500 hover:text-gray-900 disabled:opacity-40"
+                            >
+                                −
+                            </button>
+                            <span className="text-[13px] font-black text-gray-900">{addonQtys[addon._id] || 0}</span>
+                            <button 
+                                onClick={() => updateAddon(addon._id, 1, addon.max)} 
+                                className="w-6 h-6 flex items-center justify-center font-bold text-gray-500 hover:text-gray-900"
+                            >
+                                +
+                            </button>
+                          </div>
+                          {addon.max && <div className="text-[8px] text-gray-400 mt-1 uppercase font-bold">Max: {addon.max}</div>}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="col-span-3 py-4 text-center text-gray-400 text-xs italic">No upgrades available for this activity</div>
+                    )}
+                  </div>
                 </div>
-
                 <div className="bg-white rounded-[24px] p-6 shadow-[0_2px_20px_rgba(0,0,0,0.03)] border border-gray-100">
                   <h3 className="flex items-center gap-2 text-[12px] font-black uppercase tracking-widest text-[#111827] mb-5">
                     <Users size={14} className="text-gray-400"/> GUEST DETAILS
@@ -1927,14 +2001,22 @@ function CheckoutView({
                     <span>${suvTotalAddonPrice}</span>
                   </div>
                 )}
-                {fallbackAddons.map(addon => (
+                {/* {availableAddons.map(addon => (
                   addonQtys[addon.id] > 0 && (
                     <div key={addon.id} className="flex justify-between items-center text-[13px] font-bold text-gray-500">
                       <span>{addon.name} (x{addonQtys[addon.id]})</span>
                       <span>${addon.price * addonQtys[addon.id]}</span>
                     </div>
                   )
-                ))}
+                ))} */}
+                  {availableAddons.map(addon => (
+    (addonQtys[addon._id] || 0) > 0 && (
+      <div key={addon._id} className="flex justify-between items-center text-[13px] font-bold text-gray-500">
+        <span>{addon.name} (x{addonQtys[addon._id]})</span>
+        <span>${addon.price * addonQtys[addon._id]}</span>
+      </div>
+    )
+  ))}
               </div>
 
               <div className="flex justify-between items-center pt-5 border-t border-gray-100 mt-2">
