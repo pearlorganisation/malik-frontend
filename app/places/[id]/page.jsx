@@ -346,6 +346,32 @@ export default function PlaceDetailPage() {
                     <Check className="w-3 h-3" /> Free Cancel
                   </div>
                 </div>
+          {/* SCROLLABLE SPOTS CONTAINER */}
+          {/* SCROLLABLE SPOTS CONTAINER */}
+<div 
+  ref={spotsScrollRef}
+  onScroll={() => handleScrollUpdate(spotsScrollRef, setCanScrollSpotsLeft, setCanScrollSpotsRight)}
+  className="flex overflow-x-auto hide-scrollbar gap-6 pb-6 snap-x snap-mandatory"
+>
+  {currentSpots.map((spot, i) => (
+    <div 
+      key={i} 
+      onClick={() => router.push(`/spot/${spot._id}`)}
+      className="w-[300px] sm:w-[380px] shrink-0 snap-start bg-white rounded-lg border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 group cursor-pointer flex flex-col"
+    >
+      {/* IMAGE CONTAINER */}
+      <div className="relative h-[200px] overflow-hidden">
+        <img 
+          src={spot.image || "/placeholder.jpg"} 
+          alt={spot.title} 
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        
+        {/* TOP LEFT BADGE - White Pill Style */}
+        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-black font-black text-[10px] tracking-widest uppercase py-1.5 px-4 rounded-md shadow-sm">
+          {spot.badge || "VISIT"}
+        </div>
+      </div>
 
                 <div className="p-4 flex flex-col flex-1">
                   <h3 className="text-base font-extrabold text-gray-900 leading-tight mb-2 line-clamp-2">{spot.title}</h3>
@@ -379,6 +405,22 @@ export default function PlaceDetailPage() {
               <p className="w-full text-gray-500 py-8">No locations added to this category yet.</p>
             )}
           </div>
+      {/* CONTENT AREA */}
+      <div className="p-4 flex flex-col">
+        <h3 className="text-xl font-bold text-gray-900 mb-2">
+          {spot.title}
+        </h3>
+        <p className="text-sm text-gray-500 leading-relaxed line-clamp-2 font-medium">
+          {spot.overview}
+        </p>
+      </div>
+    </div>
+  ))}
+  
+  {currentSpots.length === 0 && (
+    <p className="w-full text-gray-400 py-12 text-center font-medium">No locations added to this category yet.</p>
+  )}
+</div>
         </section>
 
         {/* Top Rated Tours / Experiences Section (SYNCED WITH DROPDOWN LOGIC) */}
