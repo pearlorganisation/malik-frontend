@@ -156,9 +156,7 @@ export const ExperienceCard = ({ activity, viewMode = "grid" }) => {
         </div>
 
         {/* Footer: Price + VIEW */}
-        <div className="flex items-center justify-between mt-auto pt-1.5 sm:pt-2 border-t border-gray-100">
-
-          {/* Price */}
+        {/* <div className="flex items-center justify-between mt-auto pt-1.5 sm:pt-2 border-t border-gray-100">
           <div>
             <div className="text-[8px] sm:text-[9px] text-gray-400 font-bold uppercase leading-none mb-0.5">
               FROM
@@ -167,8 +165,6 @@ export const ExperienceCard = ({ activity, viewMode = "grid" }) => {
               {price ? `$${price}` : "$45"}
             </div>
           </div>
-
-          {/* Actions */}
           <div className="flex items-center gap-2">
      <button
   onClick={handleWhatsAppClick}
@@ -186,10 +182,49 @@ export const ExperienceCard = ({ activity, viewMode = "grid" }) => {
               className="bg-[#0f172a] text-white text-[11px] font-bold px-3 py-2 rounded-lg flex items-center gap-1 hover:bg-black transition"
             >
               VIEW
-              {/* <ArrowRight size={13} strokeWidth={2.5} /> */}
+             
             </button>
           </div>
-        </div>
+        </div> */}
+
+        {/* Footer: Price + VIEW */}
+<div className="flex items-center justify-between mt-auto pt-1.5 sm:pt-2 border-t border-gray-100 gap-1">
+
+  {/* Price Section */}
+  <div className="flex-shrink-0">
+    <div className="text-[7px] sm:text-[9px] text-gray-400 font-bold uppercase leading-none mb-0.5">
+      FROM
+    </div>
+    <div className="text-[13px] sm:text-[18px] md:text-[20px] font-black text-[#0047AB] leading-none">
+      {price ? `$${price}` : "$45"}
+    </div>
+  </div>
+
+  {/* Actions Section */}
+  <div className="flex items-center gap-1 sm:gap-2">
+    {/* WhatsApp Button */}
+    <button
+      onClick={handleWhatsAppClick}
+      className="bg-green-500 text-white p-2 sm:px-2 sm:py-2 rounded-md flex items-center justify-center hover:bg-green-600 transition"
+      title="WhatsApp"
+    >
+      <Phone size={10} strokeWidth={4} className="sm:w-3 sm:h-3" />
+      {/* Mobile pe text hidden rakha hai, sirf tablet/desktop pe dikhega */}
+      <span className="hidden md:inline ml-1 text-[10px] font-bold">WhatsApp</span>
+    </button>
+
+    {/* View Button */}
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        handleRedirect();
+      }}
+      className="bg-[#0f172a] text-white text-[10px] sm:text-[11px] font-bold px-2 py-2 sm:px-3 rounded-md sm:rounded-lg flex items-center gap-1 hover:bg-black transition whitespace-nowrap"
+    >
+      VIEW
+    </button>
+  </div>
+</div>
       </div>
     </div>
   );

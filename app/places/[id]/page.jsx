@@ -348,7 +348,7 @@ export default function PlaceDetailPage() {
                 </div>
           {/* SCROLLABLE SPOTS CONTAINER */}
           {/* SCROLLABLE SPOTS CONTAINER */}
-<div 
+{/* <div 
   ref={spotsScrollRef}
   onScroll={() => handleScrollUpdate(spotsScrollRef, setCanScrollSpotsLeft, setCanScrollSpotsRight)}
   className="flex overflow-x-auto hide-scrollbar gap-6 pb-6 snap-x snap-mandatory"
@@ -359,15 +359,14 @@ export default function PlaceDetailPage() {
       onClick={() => router.push(`/spot/${spot._id}`)}
       className="w-[300px] sm:w-[380px] shrink-0 snap-start bg-white rounded-lg border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 group cursor-pointer flex flex-col"
     >
-      {/* IMAGE CONTAINER */}
+    
       <div className="relative h-[200px] overflow-hidden">
         <img 
           src={spot.image || "/placeholder.jpg"} 
           alt={spot.title} 
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        
-        {/* TOP LEFT BADGE - White Pill Style */}
+     
         <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-black font-black text-[10px] tracking-widest uppercase py-1.5 px-4 rounded-md shadow-sm">
           {spot.badge || "VISIT"}
         </div>
@@ -404,8 +403,8 @@ export default function PlaceDetailPage() {
             {currentSpots.length === 0 && (
               <p className="w-full text-gray-500 py-8">No locations added to this category yet.</p>
             )}
-          </div>
-      {/* CONTENT AREA */}
+          </div> */}
+      
       <div className="p-4 flex flex-col">
         <h3 className="text-xl font-bold text-gray-900 mb-2">
           {spot.title}
