@@ -210,7 +210,7 @@ export const ExperienceCard = ({ activity, viewMode = "grid" }) => {
     >
       <Phone size={10} strokeWidth={4} className="sm:w-3 sm:h-3" />
       {/* Mobile pe text hidden rakha hai, sirf tablet/desktop pe dikhega */}
-      <span className="hidden md:inline ml-1 text-[10px] font-bold">WhatsApp</span>
+      {/* <span className="hidden md:inline ml-1 text-[10px] font-bold">WhatsApp</span> */}
     </button>
 
     {/* View Button */}

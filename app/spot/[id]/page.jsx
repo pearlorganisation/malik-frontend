@@ -144,7 +144,7 @@ const SpotDetailsPage = () => {
           </div>
 
           {/* --- DYNAMIC WHERE TO STAY SECTION --- */}
-          <div className="bg-white rounded-[32px] shadow-lg shadow-slate-100 p-7 border border-slate-50">
+          {/* <div className="bg-white rounded-[32px] shadow-lg shadow-slate-100 p-7 border border-slate-50">
             <div className="flex items-center gap-2 mb-6">
               <Hotel size={16} className="text-blue-600" />
               <h2 className="text-base font-black text-slate-800">Where to Stay</h2>
@@ -176,8 +176,54 @@ const SpotDetailsPage = () => {
                 </div>
               )}
             </div>
+          </div> */}
+{/* --- DYNAMIC WHERE TO STAY SECTION --- */}
+<div className="bg-white rounded-[32px] shadow-xl shadow-slate-200/40 p-7 border border-slate-50">
+  <div className="flex items-center gap-2.5 mb-6">
+    <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600">
+      <Hotel size={18} />
+    </div>
+    <h2 className="text-base font-black text-slate-800 tracking-tight">Where to Stay</h2>
+  </div>
+
+  <div className="space-y-4">
+    {/* Spot.whereToStay check karein ki array hai aur populate ho chuka hai */}
+    {spot.whereToStay && spot.whereToStay.length > 0 && typeof spot.whereToStay[0] === 'object' ? (
+      spot.whereToStay.map((hotel) => (
+        <div 
+          key={hotel._id} 
+          onClick={() => router.push(`/hotels/${hotel._id}`)}
+          className="group relative p-4 bg-white rounded-2xl border border-slate-100 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 flex items-center justify-between cursor-pointer overflow-hidden"
+        >
+          <div className="space-y-1">
+            <h4 className="font-bold text-sm text-slate-900 group-hover:text-blue-600 transition-colors">
+              {hotel.name}
+            </h4>
+            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400">
+              <span className="uppercase tracking-tighter italic">Nearby</span>
+              <span className="w-1 h-1 bg-slate-300 rounded-full" />
+              <div className="flex items-center gap-1 text-orange-500">
+                {/* Aapke Hotel model mein rating.average hai */}
+                <span>{hotel.rating?.average || "0.0"}</span>
+                <Star size={10} fill="currentColor" className="mb-0.5" />
+              </div>
+            </div>
           </div>
 
+          <div className="text-right">
+            <p className="font-black text-sm text-slate-900 tracking-tight">
+              ₹{hotel.pricePerNight}<span className="text-[10px] text-slate-400 font-medium lowercase">/night</span>
+            </p>
+          </div>
+        </div>
+      ))
+    ) : (
+      <div className="py-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">No listings available</p>
+      </div>
+    )}
+  </div>
+</div>
         </aside>
       </main>
     </div>
