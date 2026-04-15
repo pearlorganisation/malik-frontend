@@ -3,7 +3,8 @@
 import React, { useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Check, X, RefreshCw, Mail, Download, AlertCircle } from "lucide-react";
-import { useConfirmBookingMutation } from "@/features/booking/bookApi";
+// import { useConfirmBookingMutation } from "@/features/booking/bookApi";
+import { useGetBookingByIdQuery } from "@/features/booking/bookApi";
 
 /* ---------- Button component ---------- */
 const Button = ({
@@ -145,10 +146,14 @@ const TransactionCard = ({
 export default function BookingStatusClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  // const bookingId = searchParams.get("bookingId");
+
+  // const [confirmBooking, { data, isLoading, isError, error }] =
+  //   useConfirmBookingMutation();
   const bookingId = searchParams.get("bookingId");
 
-  const [confirmBooking, { data, isLoading, isError, error }] =
-    useConfirmBookingMutation();
+const { data, isLoading, isError, error } =
+  useGetBookingByIdQuery(bookingId);
 
   useEffect(() => {
     if (bookingId) {
