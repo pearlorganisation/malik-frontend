@@ -19,7 +19,6 @@ export const placeApi = baseApi.injectEndpoints({
       }),
       providesTags: (result, error, id) => [{ type: "Places", id }],
     }),
-
   }),
 });
 
