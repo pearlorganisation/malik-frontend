@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { useRouter } from 'next/navigation'
 import { useInquiry } from "@/context/InquiryContext";
 import { 
   Search, 
@@ -20,6 +21,7 @@ const images = [
 export default function Hero() {
   const { openInquiry } = useInquiry();
   const [current, setCurrent] = useState(0);
+  const router = useRouter()
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -88,7 +90,7 @@ export default function Hero() {
 
         {/* Buttons */}
         <div className="flex flex-wrap gap-2.5 sm:gap-3">
-          <button className="px-4 sm:px-5 py-2.5 rounded-lg bg-[#004bb5] hover:bg-[#003c94] text-white text-[11px] sm:text-[12px] font-extrabold tracking-wide flex items-center gap-2 transition-all shadow-lg shadow-blue-900/40 whitespace-nowrap">
+          <button onClick={() => router.push('/aitrip-planner')} className="px-4 sm:px-5 py-2.5 rounded-lg bg-[#004bb5] hover:bg-[#003c94] text-white text-[11px] sm:text-[12px] font-extrabold tracking-wide flex items-center gap-2 transition-all shadow-lg shadow-blue-900/40 whitespace-nowrap">
             <Sparkles size={14} className="text-yellow-400 shrink-0" /> AI Trip Planner
           </button>
           <button

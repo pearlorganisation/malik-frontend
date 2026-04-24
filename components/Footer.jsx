@@ -147,18 +147,39 @@ const places = placesResponse?.data || [];
                 experiences since 2002.
               </p>
 
-              {/* Social Icons */}
-              <div className="flex gap-2">
-                {[Instagram, Facebook, Youtube].map((Icon, idx) => (
-                  <a
-                    key={idx}
-                    href="#"
-                    className="w-9 h-9 rounded-lg bg-[#0F172A] border border-slate-800 flex items-center justify-center hover:bg-[#1d4ed8] hover:border-[#1d4ed8] hover:text-white transition-all text-slate-500"
-                  >
-                    <Icon size={16} />
-                  </a>
-                ))}
-              </div>
+             <div className="flex gap-2">
+  {[
+    {
+      Icon: Instagram,
+      link: "https://instagram.com",
+      hover: "hover:bg-gradient-to-r hover:from-pink-500 hover:via-red-500 hover:to-yellow-500",
+      border: "hover:border-pink-500",
+    },
+    {
+      Icon: Facebook,
+      link: "https://facebook.com",
+      hover: "hover:bg-[#1877F2]",
+      border: "hover:border-[#1877F2]",
+    },
+    {
+      Icon: Youtube,
+      link: "https://youtube.com",
+      hover: "hover:bg-[#FF0000]",
+      border: "hover:border-[#FF0000]",
+    },
+  ].map(({ Icon, link, hover, border }, idx) => (
+    <a
+      key={idx}
+      href={link}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`w-9 h-9 rounded-lg bg-[#0F172A] border border-slate-800 flex items-center justify-center text-slate-500 transition-all ${hover} ${border} hover:text-white`}
+    >
+      <Icon size={16} />
+    </a>
+  ))}
+</div>
+           
 
               {/* License Badge */}
               <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#0F172A] border border-green-900/30 text-green-500 text-[10px] font-bold uppercase tracking-wider shadow-sm">
