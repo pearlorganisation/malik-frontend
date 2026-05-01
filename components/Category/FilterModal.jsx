@@ -70,7 +70,7 @@ export default function FilterModal({
               Display Layout (Columns)
             </label>
             <div className="flex flex-wrap gap-3">
-              {[2, 3, 4, 5].map((num) => (
+              {[1,2, 3, 4, 5].map((num) => (
                 <button
                   key={num}
                   onClick={() => setColsPerRow(num)}
