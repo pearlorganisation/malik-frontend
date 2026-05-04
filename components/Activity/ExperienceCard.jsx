@@ -357,7 +357,7 @@ return (
               }}
               className="bg-[#0f172a] text-white text-[10px] sm:text-[11px] font-bold px-2 py-2 sm:px-4 sm:py-2.5 rounded-md sm:rounded-lg flex items-center gap-1 hover:bg-black transition whitespace-nowrap"
             >
-              VIEW DETAILS
+              VIEW
             </button>
           </div>
         </div>
