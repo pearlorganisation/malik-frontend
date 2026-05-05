@@ -18,7 +18,7 @@ const HotelDetailPage = () => {
 
   const { data: response, isLoading, error } = useGetHotelByIdQuery(id);
   const hotel = response?.data;
-
+console.log(":hot",hotel);
   // Amenity icon mapper
   const getAmenityIcon = (name) => {
     const n = name.toLowerCase();
@@ -159,6 +159,14 @@ const HotelDetailPage = () => {
                 >
                   <Phone size={14} /> CONTACT HOTEL
                 </button>
+                {hotel?.referwebsiteurl && (
+  <button
+    onClick={() => window.open(hotel.referwebsiteurl, "_blank")}
+    className="w-full bg-slate-900 hover:bg-black text-white py-4 rounded-2xl font-black text-xs transition-all"
+  >
+    VISIT WEBSITE
+  </button>
+)}
               </div>
 
               <div className="pt-6 border-t border-slate-50 space-y-4">

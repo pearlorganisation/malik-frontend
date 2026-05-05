@@ -1,79 +1,83 @@
-import React from "react";
-import {
-  Star,
-  Clock,
-  MapPin,
-  Check,
-  Heart,
-  HelpCircle,
-  MessageCircle,
-  ArrowRight,
-  CheckCircle,
-  PhoneCall,
-  PhoneCallIcon,
-  Phone,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
+// import React from "react";
+// import {
+//   Star,
+//   Clock,
+//   MapPin,
+//   Check,
+//   Heart,
+//   HelpCircle,
+//   MessageCircle,
+//   ArrowRight,
+//   CheckCircle,
+//   PhoneCall,
+//   PhoneCallIcon,
+//   Phone,
+// } from "lucide-react";
+// import { useRouter } from "next/navigation";
+// import Image from "next/image";
 
-const getStartingPrice = (variants = []) => {
-  const prices = [];
-  variants.forEach((v) =>
-    v.pricing?.forEach((p) => p.price > 0 && prices.push(p.price))
-  );
-  return prices.length ? Math.min(...prices) : null;
-};
+// const getStartingPrice = (variants = []) => {
+//   const prices = [];
+//   variants.forEach((v) =>
+//     v.pricing?.forEach((p) => p.price > 0 && prices.push(p.price))
+//   );
+//   return prices.length ? Math.min(...prices) : null;
+// };
 
-export const ExperienceCard = ({ activity, viewMode = "grid" }) => {
-  const router = useRouter();
-const isList = viewMode === "list"; 
-  const price = getStartingPrice(activity.variants);
-  const title = activity.title || activity.name || "Untitled Activity";
-  const rating = activity.rating || 4.8;
-  const reviewCount = activity.reviewCount || 1200;
-  const durationHours = activity.duration?.hours || 6;
-  const location = activity.location || "Dubai";
-  const hasFreeCancellation = activity.cancellationPolicy?.isFreeCancellation;
-  const tags = activity.tags?.slice(0, 2) || ["Adventure", "Sightseeing"];
+// export const ExperienceCard = ({ activity, viewMode = "grid" }) => {
+//   const router = useRouter();
+// const isList = viewMode === "list"; 
+//   const price = getStartingPrice(activity.variants);
+//   const title = activity.title || activity.name || "Untitled Activity";
+//   const rating = activity.rating || 4.8;
+//   const reviewCount = activity.reviewCount || 1200;
+//   const durationHours = activity.duration?.hours || 6;
+//   const location = activity.location || "Dubai";
+//   const hasFreeCancellation = activity.cancellationPolicy?.isFreeCancellation;
+//   const tags = activity.tags?.slice(0, 2) || ["Adventure", "Sightseeing"];
 
-  const image =
-    activity.images?.[0]?.url?.trim() ||
-    activity.images?.[0]?.secure_url?.trim() ||
-    (typeof activity.images?.[0] === "string" && activity.images?.[0].trim()) ||
-    "https://picsum.photos/400/300";
+//   const image =
+//     activity.images?.[0]?.url?.trim() ||
+//     activity.images?.[0]?.secure_url?.trim() ||
+//     (typeof activity.images?.[0] === "string" && activity.images?.[0].trim()) ||
+//     "https://picsum.photos/400/300";
 
-  const handleRedirect = () => router.push(`/activity/${activity._id}`);
+//   const handleRedirect = () => router.push(`/activity/${activity._id}`);
 
-  const ribbons = ["POPULAR", "BEST SELLER", "THRILL", "MUST SEE"];
-  const ribbon = ribbons[title.length % ribbons.length];
-  const ribbonColor =
-    ribbon === "BEST SELLER"
-      ? "bg-red-500 text-white"
-      : "bg-yellow-400 text-black";
+//   const ribbons = ["POPULAR", "BEST SELLER", "THRILL", "MUST SEE"];
+//   const ribbon = ribbons[title.length % ribbons.length];
+//   const ribbonColor =
+//     ribbon === "BEST SELLER"
+//       ? "bg-red-500 text-white"
+//       : "bg-yellow-400 text-black";
 
 
 
-      const handleWhatsAppClick = (e) => {
-  e.stopPropagation();
+//       const handleWhatsAppClick = (e) => {
+//   e.stopPropagation();
 
-  const phoneNumber = "971501902213";
+//   const phoneNumber = "971501902213";
 
-  // Optional: dynamic message
-  const message = `Hi, I'm interested in ${title}`;
+//   // Optional: dynamic message
+//   const message = `Hi, I'm interested in ${title}`;
   
-  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+//   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 
-  window.open(whatsappUrl, "_blank");
-};
-
-//   return (
+//   window.open(whatsappUrl, "_blank");
+// };
+// return (
 //     <div
 //       onClick={handleRedirect}
-//       className="group cursor-pointer bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-lg transition-all flex flex-col"
+//       // CHANGE 1: Main container ko list mode mein 'flex-row' kiya
+//       className={`group cursor-pointer bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-lg transition-all flex ${
+//         isList ? "flex-col sm:flex-row h-auto sm:h-52" : "flex-col"
+//       }`}
 //     >
-//       {/* IMAGE */}
-//       {/* Mobile: h-32, Desktop: h-40 */}
-//       <div className="relative h-32 sm:h-40 overflow-hidden">
+//       {/* IMAGE SECTION */}
+//       {/* CHANGE 2: List mode mein image ki width fix ki aur height full ki */}
+//       <div className={`relative overflow-hidden shrink-0 ${
+//         isList ? "h-48 sm:h-full sm:w-1/3 md:w-[30%]" : "h-32 sm:h-40"
+//       }`}>
 //         <Image
 //           src={image}
 //           alt={title}
@@ -102,7 +106,7 @@ const isList = viewMode === "list";
 //           <Heart size={14} className="hidden sm:block" />
 //         </button>
 
-//         {/* Bottom bar */}
+//         {/* Bottom bar inside Image (Rating/Cancel) */}
 //         <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-1.5 sm:px-2 pb-1.5 sm:pb-2">
 //           <div className="flex items-center gap-0.5 sm:gap-1 text-white text-[10px] sm:text-[11px] font-bold">
 //             <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-400 fill-yellow-400" />
@@ -123,11 +127,16 @@ const isList = viewMode === "list";
 //         </div>
 //       </div>
 
-//       {/* CONTENT */}
-//       <div className="px-2 pt-2 pb-2 sm:px-3 sm:pt-3 sm:pb-3 flex flex-col grow">
+//       {/* CONTENT SECTION */}
+//       {/* CHANGE 3: Padding ko list mode ke hisaab se adjust kiya */}
+//       <div className={`flex flex-col grow ${
+//         isList ? "p-4 sm:p-5 md:p-6" : "px-2 pt-2 pb-2 sm:px-3 sm:pt-3 sm:pb-3"
+//       }`}>
 
-//         {/* Title — 2 lines on mobile, 2 lines on desktop */}
-//         <h3 className="text-[11px] sm:text-[13.5px] font-extrabold text-slate-900 leading-snug line-clamp-2 mb-1.5 sm:mb-2">
+//         {/* Title */}
+//         <h3 className={`font-extrabold text-slate-900 leading-snug line-clamp-2 mb-1.5 sm:mb-2 ${
+//           isList ? "text-sm sm:text-lg" : "text-[11px] sm:text-[13.5px]"
+//         }`}>
 //           {title}
 //         </h3>
 
@@ -146,8 +155,8 @@ const isList = viewMode === "list";
 //           </div>
 //         </div>
 
-//         {/* Tags — hidden on mobile to save space, visible sm+ */}
-//         <div className="hidden sm:flex gap-1 flex-wrap mb-3">
+//         {/* Tags */}
+//         <div className={`flex gap-1 flex-wrap mb-3 ${isList ? "mt-2" : "hidden sm:flex"}`}>
 //           {tags.map((tag, i) => (
 //             <span key={i} className="bg-blue-50 text-blue-700 text-[9px] font-bold px-2 py-0.5 rounded-sm">
 //               {tag}
@@ -156,91 +165,117 @@ const isList = viewMode === "list";
 //         </div>
 
 //         {/* Footer: Price + VIEW */}
-//         {/* <div className="flex items-center justify-between mt-auto pt-1.5 sm:pt-2 border-t border-gray-100">
-//           <div>
-//             <div className="text-[8px] sm:text-[9px] text-gray-400 font-bold uppercase leading-none mb-0.5">
+//         <div className={`flex items-center justify-between mt-auto pt-1.5 sm:pt-2 border-t border-gray-100 gap-1`}>
+//           <div className="flex-shrink-0">
+//             <div className="text-[7px] sm:text-[9px] text-gray-400 font-bold uppercase leading-none mb-0.5">
 //               FROM
 //             </div>
-//             <div className="text-[15px] sm:text-[20px] font-black text-[#0047AB] leading-none">
+//             <div className={`font-black text-[#0047AB] leading-none ${
+//               isList ? "text-[18px] sm:text-[24px]" : "text-[13px] sm:text-[20px]"
+//             }`}>
 //               {price ? `$${price}` : "$45"}
 //             </div>
 //           </div>
-//           <div className="flex items-center gap-2">
-//      <button
-//   onClick={handleWhatsAppClick}
-//   className="bg-green-500 text-white text-[10px]  px-2 py-2 rounded-md flex items-center gap-1 hover:bg-green-600 transition"
-// >
-//    <Phone size={8} strokeWidth={5.5} />
-//   WhatsApp
-// </button>
+
+//           <div className="flex items-center gap-1 sm:gap-2">
+//             <button
+//               onClick={handleWhatsAppClick}
+//               className="bg-green-500 text-white p-2 sm:px-3 sm:py-2.5 rounded-md flex items-center justify-center hover:bg-green-600 transition"
+//               title="WhatsApp"
+//             >
+//               <Phone size={10} strokeWidth={4} className="sm:w-3 sm:h-3" />
+//             </button>
 
 //             <button
 //               onClick={(e) => {
 //                 e.stopPropagation();
 //                 handleRedirect();
 //               }}
-//               className="bg-[#0f172a] text-white text-[11px] font-bold px-3 py-2 rounded-lg flex items-center gap-1 hover:bg-black transition"
+//               className="bg-[#0f172a] text-white text-[10px] sm:text-[11px] font-bold px-2 py-2 sm:px-4 sm:py-2.5 rounded-md sm:rounded-lg flex items-center gap-1 hover:bg-black transition whitespace-nowrap"
 //             >
 //               VIEW
-             
 //             </button>
 //           </div>
-//         </div> */}
-
-//         {/* Footer: Price + VIEW */}
-// <div className="flex items-center justify-between mt-auto pt-1.5 sm:pt-2 border-t border-gray-100 gap-1">
-
-//   {/* Price Section */}
-//   <div className="flex-shrink-0">
-//     <div className="text-[7px] sm:text-[9px] text-gray-400 font-bold uppercase leading-none mb-0.5">
-//       FROM
-//     </div>
-//     <div className="text-[13px] sm:text-[18px] md:text-[20px] font-black text-[#0047AB] leading-none">
-//       {price ? `$${price}` : "$45"}
-//     </div>
-//   </div>
-
-//   {/* Actions Section */}
-//   <div className="flex items-center gap-1 sm:gap-2">
-//     {/* WhatsApp Button */}
-//     <button
-//       onClick={handleWhatsAppClick}
-//       className="bg-green-500 text-white p-2 sm:px-2 sm:py-2 rounded-md flex items-center justify-center hover:bg-green-600 transition"
-//       title="WhatsApp"
-//     >
-//       <Phone size={10} strokeWidth={4} className="sm:w-3 sm:h-3" />
-//       {/* Mobile pe text hidden rakha hai, sirf tablet/desktop pe dikhega */}
-//       {/* <span className="hidden md:inline ml-1 text-[10px] font-bold">WhatsApp</span> */}
-//     </button>
-
-//     {/* View Button */}
-//     <button
-//       onClick={(e) => {
-//         e.stopPropagation();
-//         handleRedirect();
-//       }}
-//       className="bg-[#0f172a] text-white text-[10px] sm:text-[11px] font-bold px-2 py-2 sm:px-3 rounded-md sm:rounded-lg flex items-center gap-1 hover:bg-black transition whitespace-nowrap"
-//     >
-//       VIEW
-//     </button>
-//   </div>
-// </div>
+//         </div>
 //       </div>
 //     </div>
 //   );
+// };
 
-return (
+
+import React from "react";
+import {
+  Star,
+  Clock,
+  MapPin,
+  Check,
+  Heart,
+  HelpCircle,
+  MessageCircle,
+  ArrowRight,
+  CheckCircle,
+  PhoneCall,
+  PhoneCallIcon,
+  Phone,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+
+const getStartingPrice = (variants = []) => {
+  const prices = [];
+  variants.forEach((v) =>
+    v.pricing?.forEach((p) => p.price > 0 && prices.push(p.price))
+  );
+  return prices.length ? Math.min(...prices) : null;
+};
+
+export const ExperienceCard = ({ activity, viewMode = "grid" }) => {
+  const router = useRouter();
+  const isList = viewMode === "list"; 
+  const price = getStartingPrice(activity.variants);
+  const title = activity.title || activity.name || "Untitled Activity";
+  const rating = activity.rating || 4.8;
+  const reviewCount = activity.reviewCount || 1200;
+  const durationHours = activity.duration?.hours || 6;
+  const location = activity.location || "Dubai";
+  const hasFreeCancellation = activity.cancellationPolicy?.isFreeCancellation;
+  const tags = activity.tags?.slice(0, 2) || ["Adventure", "Sightseeing"];
+
+  const image =
+    activity.images?.[0]?.url?.trim() ||
+    activity.images?.[0]?.secure_url?.trim() ||
+    (typeof activity.images?.[0] === "string" && activity.images?.[0].trim()) ||
+    "https://picsum.photos/400/300";
+
+  const handleRedirect = () => router.push(`/activity/${activity._id}`);
+
+  const ribbons = ["POPULAR", "BEST SELLER", "THRILL", "MUST SEE"];
+  const ribbon = ribbons[title.length % ribbons.length];
+  const ribbonColor =
+    ribbon === "BEST SELLER"
+      ? "bg-red-500 text-white"
+      : "bg-yellow-400 text-black";
+
+  const handleWhatsAppClick = (e) => {
+    e.stopPropagation();
+    const phoneNumber = "971501902213";
+    const message = `Hi, I'm interested in ${title}`;
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
+  return (
     <div
       onClick={handleRedirect}
-      // CHANGE 1: Main container ko list mode mein 'flex-row' kiya
+      /* CHANGE: flex-col hatakar hamesha flex-row rakha isList mode mein */
       className={`group cursor-pointer bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-lg transition-all flex ${
-        isList ? "flex-col sm:flex-row h-auto sm:h-52" : "flex-col"
+        isList ? "flex-row h-[160px] sm:h-52" : "flex-col"
       }`}
     >
       {/* IMAGE SECTION */}
-      {/* CHANGE 2: List mode mein image ki width fix ki aur height full ki */}
+      {/* CHANGE: Mobile par width fix ki (w-[35%]) aur height full rakhi */}
       <div className={`relative overflow-hidden shrink-0 ${
-        isList ? "h-48 sm:h-full sm:w-1/3 md:w-[30%]" : "h-32 sm:h-40"
+        isList ? "w-[35%] sm:w-1/3 md:w-[30%] h-full" : "h-32 sm:h-40"
       }`}>
         <Image
           src={image}
@@ -292,14 +327,14 @@ return (
       </div>
 
       {/* CONTENT SECTION */}
-      {/* CHANGE 3: Padding ko list mode ke hisaab se adjust kiya */}
-      <div className={`flex flex-col grow ${
-        isList ? "p-4 sm:p-5 md:p-6" : "px-2 pt-2 pb-2 sm:px-3 sm:pt-3 sm:pb-3"
+      {/* CHANGE: Mobile padding ko thoda kam kiya (p-3) taki text achhe se dikhe */}
+      <div className={`flex flex-col grow min-w-0 ${
+        isList ? "p-3 sm:p-5 md:p-6" : "px-2 pt-2 pb-2 sm:px-3 sm:pt-3 sm:pb-3"
       }`}>
 
         {/* Title */}
-        <h3 className={`font-extrabold text-slate-900 leading-snug line-clamp-2 mb-1.5 sm:mb-2 ${
-          isList ? "text-sm sm:text-lg" : "text-[11px] sm:text-[13.5px]"
+        <h3 className={`font-extrabold text-slate-900 leading-snug line-clamp-2 mb-1 sm:mb-2 ${
+          isList ? "text-[13px] sm:text-lg" : "text-[11px] sm:text-[13.5px]"
         }`}>
           {title}
         </h3>
@@ -320,9 +355,9 @@ return (
         </div>
 
         {/* Tags */}
-        <div className={`flex gap-1 flex-wrap mb-3 ${isList ? "mt-2" : "hidden sm:flex"}`}>
+        <div className={`flex gap-1 flex-wrap mb-2 ${isList ? "flex" : "hidden sm:flex"}`}>
           {tags.map((tag, i) => (
-            <span key={i} className="bg-blue-50 text-blue-700 text-[9px] font-bold px-2 py-0.5 rounded-sm">
+            <span key={i} className="bg-blue-50 text-blue-700 text-[8px] sm:text-[9px] font-bold px-1.5 sm:px-2 py-0.5 rounded-sm">
               {tag}
             </span>
           ))}
@@ -335,7 +370,7 @@ return (
               FROM
             </div>
             <div className={`font-black text-[#0047AB] leading-none ${
-              isList ? "text-[18px] sm:text-[24px]" : "text-[13px] sm:text-[20px]"
+              isList ? "text-[16px] sm:text-[24px]" : "text-[13px] sm:text-[20px]"
             }`}>
               {price ? `$${price}` : "$45"}
             </div>
@@ -344,7 +379,7 @@ return (
           <div className="flex items-center gap-1 sm:gap-2">
             <button
               onClick={handleWhatsAppClick}
-              className="bg-green-500 text-white p-2 sm:px-3 sm:py-2.5 rounded-md flex items-center justify-center hover:bg-green-600 transition"
+              className="bg-green-500 text-white p-1.5 sm:p-2.5 rounded-md flex items-center justify-center hover:bg-green-600 transition"
               title="WhatsApp"
             >
               <Phone size={10} strokeWidth={4} className="sm:w-3 sm:h-3" />
@@ -355,7 +390,7 @@ return (
                 e.stopPropagation();
                 handleRedirect();
               }}
-              className="bg-[#0f172a] text-white text-[10px] sm:text-[11px] font-bold px-2 py-2 sm:px-4 sm:py-2.5 rounded-md sm:rounded-lg flex items-center gap-1 hover:bg-black transition whitespace-nowrap"
+              className="bg-[#0f172a] text-white text-[9px] sm:text-[11px] font-bold px-2 py-1.5 sm:px-4 sm:py-2.5 rounded-md sm:rounded-lg flex items-center gap-1 hover:bg-black transition whitespace-nowrap"
             >
               VIEW
             </button>
